@@ -135,6 +135,8 @@ Avoid:
 
 The palette should be restrained.
 
+Canonical token values live in `docs/design_tokens.md`. Use those tokens before adding new colors.
+
 Use:
 
 - neutral background

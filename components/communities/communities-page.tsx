@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Filter, Plus, Search, Sparkles, TrendingUp, Users } from "lucide-react";
 import { ListingCard } from "@/components/listing/listing-card";
 import { Badge } from "@/components/ui/badge";
@@ -224,7 +225,8 @@ function CommunityCard({
   );
 
   return (
-    <Card className="rounded-lg p-5">
+    <Link href={`/communities/${community.slug}`} className="block">
+      <Card variant="interactive" className="rounded-lg p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-foreground">
@@ -252,6 +254,7 @@ function CommunityCard({
           </div>
         ))}
       </div>
-    </Card>
+      </Card>
+    </Link>
   );
 }

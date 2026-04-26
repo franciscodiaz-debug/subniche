@@ -62,7 +62,7 @@ export function SheetContent({
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div
         className={cn(
-          "fixed inset-y-0 right-0 w-full max-w-md border-l border-border bg-surface p-5 shadow-soft",
+          "fixed inset-y-0 right-0 w-full max-w-md border-l border-border bg-card p-5 shadow-overlay",
           className,
         )}
         role="dialog"

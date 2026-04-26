@@ -1,10 +1,10 @@
 import {
   CircleUserRound,
-  GalleryVerticalEnd,
   Heart,
   Home,
   Inbox,
   Landmark,
+  Package,
   Plus,
   Repeat2,
   Shapes,
@@ -53,8 +53,8 @@ export const desktopNavItems: NavItem[] = [
   },
   {
     href: "/collections",
-    label: "Collections",
-    icon: GalleryVerticalEnd,
+    label: "My Stuff",
+    icon: Package,
     description: "Curated ownership and taste",
   },
   {
@@ -67,7 +67,7 @@ export const desktopNavItems: NavItem[] = [
 
 export const primaryAction: NavItem = {
   href: "/add-item",
-  label: "Create Listing",
+  label: "Add Item",
   icon: Plus,
 };
 
@@ -83,7 +83,7 @@ export const mobileNavItems: NavItem[] = [
   desktopNavItems[1],
   {
     href: primaryAction.href,
-    label: "Create",
+    label: "Add",
     icon: primaryAction.icon,
   },
   desktopNavItems[5],

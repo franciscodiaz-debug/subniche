@@ -7,8 +7,8 @@ export const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-accent/30 bg-accent/12 text-accent",
-        secondary: "border-border bg-muted text-muted-foreground",
+        default: "border-primary/30 bg-primary/10 text-primary",
+        secondary: "border-border bg-secondary text-muted-foreground",
         outline: "border-border bg-transparent text-muted-foreground",
         destructive: "border-destructive/35 bg-destructive/12 text-destructive",
         success: "border-success/35 bg-success/12 text-success",

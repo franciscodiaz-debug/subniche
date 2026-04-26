@@ -71,7 +71,7 @@ export function TabsTrigger({
     <button
       className={cn(
         "rounded-md px-3 py-1.5 text-sm font-semibold text-muted-foreground transition hover:text-foreground",
-        active && "bg-surface text-foreground shadow-card",
+        active && "bg-card text-foreground shadow-card",
         className,
       )}
       role="tab"

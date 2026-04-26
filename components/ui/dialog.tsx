@@ -64,7 +64,7 @@ export function DialogContent({
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 px-4 backdrop-blur-sm">
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-xl border border-border bg-surface p-5 shadow-soft",
+          "relative w-full max-w-lg rounded-xl border border-border bg-card p-5 shadow-overlay",
           className,
         )}
         role="dialog"

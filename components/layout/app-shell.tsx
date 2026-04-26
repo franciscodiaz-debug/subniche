@@ -10,7 +10,9 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <DesktopSidebar />
-      <main className="min-h-screen pb-24 lg:pl-72 lg:pb-0">{children}</main>
+      <main className="min-h-screen pb-24 lg:pl-[220px] lg:pb-0">
+        {children}
+      </main>
       <MobileNav />
     </div>
   );

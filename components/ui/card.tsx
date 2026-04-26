@@ -9,11 +9,11 @@ export function Card({ className, variant = "default", ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-surface text-foreground",
+        "rounded-xl border border-border bg-card text-card-foreground",
         variant === "interactive" &&
-          "transition hover:border-accent/45 hover:shadow-card",
+          "transition hover:border-primary/45 hover:shadow-card",
         variant === "elevated" && "shadow-card",
-        variant === "muted" && "bg-muted/70",
+        variant === "muted" && "bg-secondary",
         variant === "media" && "overflow-hidden",
         className,
       )}

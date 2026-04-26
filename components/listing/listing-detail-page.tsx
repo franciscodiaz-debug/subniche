@@ -52,16 +52,19 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
         </Link>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_440px]">
         <main className="space-y-6">
-          <ListingImageGallery images={listing.images} title={listing.title} />
           <ListingDetailHeader
             listing={listing}
             category={category}
             niche={niche}
           />
 
-          <div className="space-y-4 lg:hidden">
+          <div className="xl:hidden">
+            <ListingImageGallery images={listing.images} title={listing.title} />
+          </div>
+
+          <div className="space-y-4 xl:hidden">
             <ListingActionPanel listing={listing} />
             {seller ? (
               <SellerSummaryCard
@@ -90,8 +93,9 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
           <RelatedListings listings={relatedListings} />
         </main>
 
-        <aside className="hidden lg:block">
+        <aside className="hidden xl:block">
           <div className="sticky top-6 space-y-4">
+            <ListingImageGallery images={listing.images} title={listing.title} />
             <ListingActionPanel listing={listing} />
             {seller ? (
               <SellerSummaryCard

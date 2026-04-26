@@ -15,6 +15,8 @@ Important example:
 
 An item can be in a collection and also marked for sale or trade.
 
+For the MVP add-item flow, owned-item statuses are additive, while Wishlist / Wanted is a separate mode. Activating Wanted should clear or disable owned-item statuses so wanted items are not confused with inventory the user already owns.
+
 ## Status behavior
 
 ### For Sale

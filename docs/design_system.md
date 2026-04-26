@@ -258,6 +258,221 @@ Profile should surface:
 - wishlist
 - trust/social proof placeholders
 
+## Design audit decisions
+
+This section records the canonical design direction after reviewing the V0 reference archive. The V0 exports are reference material only; production implementation should rebuild these patterns cleanly through shared components.
+
+### Winning visual language
+
+Use the dark navy/gold marketplace system as the canonical baseline.
+
+Canonical direction:
+
+- dark navy-tinted neutral background
+- elevated but quiet card surfaces
+- warm gold primary accent
+- restrained status colors
+- image-led item and collection surfaces
+- editorial, enthusiast-native composition
+
+Avoid:
+
+- generic SaaS blue/purple gradients
+- light dashboard styling as the primary product mode
+- one-off page palettes
+- overly bubbly social-app UI
+- decorative surfaces that do not carry product information
+
+### Color tokens
+
+Use a restrained token set inspired by the V0 references:
+
+- background: deep navy neutral
+- surface/card: slightly lighter navy neutral
+- border: subtle cool neutral
+- foreground: high-contrast near-white
+- muted foreground: cool gray
+- primary/accent: warm gold
+- success: green, for successful/verified/available states only
+- info: blue, for informational states only
+- warning: amber, for pending/attention states only
+- destructive: red, for destructive actions only
+
+Status colors should never overpower item images. Most status chips should use neutral surfaces with small color accents, not loud filled badges everywhere.
+
+### Typography
+
+Use a clean sans-serif as the default product font. A restrained serif display accent may be used for logged-out editorial moments, but it should not appear in dense app surfaces.
+
+Canonical hierarchy:
+
+- display: logged-out hero and major marketing statements only
+- page title: one per page
+- section title: modules and page bands
+- card title: item, collection, community, user, offer
+- metadata: compact supporting details
+- microcopy: labels, helper text, timestamps
+
+Rules:
+
+- app pages should favor scan speed over dramatic type
+- card titles should remain compact and truncate predictably
+- metadata should be consistent across cards
+- do not introduce new type scales per page
+
+### Layout and navigation
+
+Use a persistent desktop sidebar for authenticated app navigation. The V0 references repeatedly rely on sidebar-based orientation, and this matches the app-like marketplace workflow.
+
+Desktop navigation:
+
+- Home
+- Market
+- Trade
+- Communities
+- Collections
+- Inbox
+- Create Listing
+- Profile/account
+
+Mobile navigation:
+
+- prioritize Home, Market, Create, Inbox, Profile
+- use drawers for secondary navigation and filters
+- do not force every desktop item into the bottom nav
+
+Page layout rules:
+
+- authenticated pages use a shared app shell
+- marketplace, trade, profile, collections, and inbox must share spacing and surface rules
+- dense pages may use compact controls, but should not feel cramped
+- filters and side panels should push or overlay predictably, not resize content unpredictably
+
+### Cards
+
+The canonical card style is:
+
+- 8px to 12px radius for dense marketplace cards
+- 12px to 16px radius for larger editorial/profile/collection cards
+- subtle border
+- dark surface
+- strong image area where relevant
+- concise metadata under the title
+- status chips in predictable positions
+- hover border/accent, not heavy shadows
+
+Listing cards should win over generic product cards. A listing card must support:
+
+- image
+- title
+- subtitle or matched search context
+- price when saleable
+- trade indicator when tradeable
+- status chips
+- seller or community context when relevant
+- saved/favorite affordance
+- grid and list density variants
+
+### Buttons and controls
+
+Use one button system across the app.
+
+Canonical variants:
+
+- primary: high-confidence actions such as Create listing, Make offer, Send message, Start trade
+- secondary/outline: alternate actions such as Edit profile, View profile, Save draft
+- ghost: low-emphasis actions, tabs, menus, contextual controls
+- icon: compact tool actions with accessible labels and tooltips
+- destructive: delete/remove/cancel destructive actions only
+
+Do not create page-specific button styles. Use icons for compact tools where a standard icon exists.
+
+### Marketplace filters
+
+Use a filter sidebar on desktop and a filter drawer on mobile. The V0 market reference has the strongest pattern here: filters, active chips, sort, density controls, and listing grid belong together.
+
+Market and Trade can route to the same marketplace surface. Market opens standard browsing; Trade opens the shared shell with trade mode enabled, tradeable inventory emphasized, and trade match semantics visible by default.
+
+Canonical marketplace controls:
+
+- search
+- category/subcategory filters
+- brand or niche-specific attributes
+- condition
+- price range
+- status filters
+- trade availability
+- sort
+- grid density
+- active filter chips
+
+Filters should be designed as a reusable system because later niches will have different attribute sets.
+
+### Profile header
+
+Use the profile reference as the winner for identity and trust. Profiles should feel like a credibility layer, not a generic account page.
+
+Canonical profile header:
+
+- avatar
+- display name/handle
+- location and member-since metadata
+- short bio
+- verification indicators
+- linked account indicators
+- counts for items, collections, and trades
+- profile actions grouped on the right or under the header on mobile
+
+Profile tabs:
+
+- Collections
+- For Sale / Trade
+- Looking For
+- Activity
+- About, if needed later
+
+### Trade language
+
+Trade UI must distinguish match types clearly.
+
+Canonical labels:
+
+- True Match: both users' explicit criteria align
+- Inbound Interest: another user wants something from you, but your criteria may not be satisfied
+- Suggested: weaker recommendation, future only
+
+Do not label suggestions as matches. Trade cards should show both sides of the potential exchange and any cash adjustment clearly.
+
+### Homepage visual language
+
+Logged-out homepage should be editorial and image-led, not a SaaS landing page. It should explain the niche-first marketplace concept through marketplace, collection, trade, trust, and community examples.
+
+Logged-in home should be practical and app-like:
+
+- activation checklist
+- recommended listings
+- watchlist or saved searches
+- collection prompts
+- community prompts
+- trade opportunities
+
+### Forms
+
+The add-item reference establishes the right product model: one item can serve multiple contexts. Creation UI must support multi-status behavior.
+
+Canonical add-item flow:
+
+- choose one or more statuses first
+- gather title, subtitle, description, images
+- gather niche/category attributes
+- show sale fields only when for sale
+- show trade fields only when for trade
+- show collection placement when in collection
+- show wanted/wishlist fields when wanted
+- provide a review/save step
+
+Do not model item status as a single exclusive visual state.
+
 ## Collection UI
 
 Collections should feel browsable and identity-rich, not just utilitarian folders.

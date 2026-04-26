@@ -278,11 +278,209 @@ Optional visual ranking/quality indicator.
 
 ### OfferComposer
 
-Allows user to compose:
+Builds or edits an offer from a conversation or listing detail context.
 
-- cash offer
-- trade offer
-- cash + trade offer
+Should support:
+
+- cash-only offer
+- trade-only offer
+- trade plus cash adjustment
+- selected user item
+- selected counterparty item
+- note/message
+- expiration or pending state, future
+
+### OfferCard
+
+Displays an offer in inbox, listing detail, or profile context.
+
+Should support:
+
+- pending
+- accepted
+- declined
+- countered
+- expired
+- cash component
+- trade component
+- action buttons appropriate to viewer role
+
+## Audit additions
+
+The design-system audit adds the following component decisions before implementation starts.
+
+### AppShell
+
+Owns authenticated app layout.
+
+Includes:
+
+- desktop sidebar
+- mobile top/bottom navigation entry points
+- page content region
+- responsive gutters
+- global background
+- shared route grouping
+
+Do not rebuild navigation inside individual pages.
+
+### NavItem
+
+Reusable navigation link for sidebar, drawer, and mobile nav.
+
+Supports:
+
+- icon
+- label
+- active state
+- badge/count
+- collapsed sidebar mode
+- disabled/future state
+
+### PageHeader
+
+Reusable page-level header.
+
+Supports:
+
+- icon
+- title
+- subtitle
+- primary action
+- secondary actions
+- compact mobile layout
+
+Use this instead of custom page title rows.
+
+### FilterDrawer
+
+Mobile-first filter container.
+
+Supports:
+
+- sectioned filters
+- apply/clear actions
+- active count
+- sticky footer actions
+
+### ActiveFilterChips
+
+Displays currently applied filters.
+
+Supports:
+
+- removable chip
+- clear all
+- horizontal scroll on mobile
+- wrap on desktop
+
+### GridDensityControl
+
+Lets users switch listing density.
+
+Supported modes:
+
+- compact
+- comfortable
+- spacious
+
+Density should affect grid columns, image size, and metadata visibility through one shared configuration.
+
+### MarketTabs
+
+Switches between market contexts.
+
+Initial contexts:
+
+- For Sale
+- Trade
+
+Future contexts may include saved searches or community market scope, but do not add them until the product flow needs them.
+
+### StatusSelector
+
+Multi-select item status control for add-item/edit-item flows.
+
+Must support combinations:
+
+- In Collection + For Sale
+- In Collection + For Trade
+- For Sale + For Trade
+- Wishlist / Wanted as a distinct wanted-item mode
+
+### ListingStatusChips
+
+Visual status chips for listing and item cards.
+
+Supported labels:
+
+- For Sale
+- For Trade
+- In Collection
+- Wanted
+- Private
+- Community
+
+Status chips should use restrained color accents.
+
+### UserTrustPills
+
+Compact trust/verification display.
+
+Supports:
+
+- email verified
+- phone verified
+- ID verified, future
+- linked account
+- marketplace account, future
+
+### CollectionPreviewCard
+
+Canonical collection card.
+
+Supports:
+
+- cover image or image strip
+- title
+- owner
+- item count
+- visibility state
+- short description
+
+### ProfileInventoryTabs
+
+Canonical profile tab group.
+
+Initial tabs:
+
+- Collections
+- For Sale / Trade
+- Looking For
+- Activity
+
+### ConversationLayout
+
+Inbox layout with:
+
+- thread list
+- active conversation panel
+- user/profile context panel
+- offer context
+- mobile back navigation
+
+### CommunityMarketCard
+
+Community preview surface.
+
+Supports:
+
+- community name
+- niche
+- member count
+- description
+- recent listing thumbnails
+- join/view action
 
 ### OfferThread
 

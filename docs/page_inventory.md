@@ -258,6 +258,174 @@ Optional MVP.
 
 Future or lightweight MVP.
 
+## Audit decisions
+
+The design-system audit confirms the following page-level decisions before app implementation starts.
+
+### Canonical first local build route set
+
+The first local build should prioritize an authenticated prototype shell and core marketplace flows.
+
+Build order after this audit:
+
+- app shell
+- core components
+- mock data
+- marketplace
+- listing detail
+- add item
+- profile and collections
+- logged-out homepage
+- logged-in homepage
+- communities
+- inbox/offers/trade
+- design polish
+
+### Logged-out homepage
+
+Keep it editorial and image-led.
+
+Required sections:
+
+- hero with concrete marketplace/product imagery
+- marketplace preview
+- collections/trust explanation
+- trade explanation
+- community/niche explanation
+- final CTA
+
+Do not make it a generic SaaS hero. The first viewport should communicate SubNiche as an enthusiast marketplace, not a broad productivity tool.
+
+### Logged-in home
+
+Use as an activity and activation dashboard.
+
+Required modules:
+
+- activation checklist
+- recommended listings
+- new/trending listings
+- saved searches or watchlist
+- collection prompt
+- trade prompt
+- community prompt
+
+This page should help a user decide what to do next.
+
+### Marketplace / Market
+
+This is the first full page implementation after shell/components/mock data.
+
+The top-level Market and Trade routes may share the same marketplace shell. Market opens normal browse mode. Trade opens the same shell with trade mode enabled by default.
+
+Canonical layout:
+
+- page header
+- market tabs
+- filter control row
+- active filter chips
+- sort and density controls
+- responsive listing grid
+- desktop filter sidebar
+- mobile filter drawer
+
+Marketplace must support both grid and list/card density patterns, but implementation can start with grid if density switching is ready.
+
+### Trade
+
+Trade may share the market shell but must have distinct semantics.
+
+Required sections:
+
+- selected tradeable item control
+- True Match cards
+- Inbound Interest cards
+- empty state for no matches
+- clear labels explaining match type
+
+Do not merge True Match, Inbound Interest, and Suggested into one vague match concept.
+
+### Listing detail
+
+Canonical layout:
+
+- image gallery
+- item title/subtitle
+- price and status chips
+- niche/category/condition attributes
+- seller summary/trust card
+- trade interest panel if relevant
+- action panel with contact, offer, trade, save
+- related listings
+
+Public listing detail can show disabled/contact-gated actions later, but the first local build can assume a signed-in prototype context.
+
+### Add item / create listing
+
+Canonical layout:
+
+- status selector first
+- item basics
+- image upload placeholder
+- category and attributes
+- sale fields conditional on For Sale
+- trade fields conditional on For Trade
+- collection placement conditional on In Collection
+- wanted fields conditional on Wishlist / Wanted
+- review/save step
+
+The add-item flow should preserve the product rule that one item can live in multiple marketplace contexts.
+
+### Profile
+
+Canonical layout:
+
+- profile header
+- verification/linked account trust pills
+- stats
+- profile tabs
+- collection cards
+- listing cards
+- wanted items
+- activity feed
+
+Profile should be a trust/identity surface, not merely a settings page.
+
+### Collections
+
+Canonical layout:
+
+- collection grid
+- collection detail header
+- item grid/list
+- visibility state
+- optional notes or description
+
+Collections can initially be grouped into profile/my-stuff flows, but shared components should make a standalone collection page straightforward.
+
+### Communities
+
+Canonical layout:
+
+- communities index
+- community overview
+- community market surface
+- community member/post placeholders
+
+Listings should be published into a community context, not duplicated per community.
+
+### Inbox / offers
+
+Canonical layout:
+
+- conversation list
+- active thread
+- participant trust panel
+- listing or offer context
+- offer state actions
+
+Mobile should use a stack: thread list, conversation, then detail panel through back navigation or drawer.
+
 ## Suggested build order
 
 1. App shell

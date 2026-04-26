@@ -4,7 +4,7 @@ import { mockListings, mockMessageThreads, mockOffers, mockProfiles } from "@/da
 
 export default function InboxPage() {
   return (
-    <PageShell>
+    <PageShell className="max-w-none p-4 sm:px-6 lg:px-8 lg:py-8">
       <InboxExperience
         listings={mockListings}
         offers={mockOffers}

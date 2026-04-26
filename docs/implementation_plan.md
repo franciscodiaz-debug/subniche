@@ -184,6 +184,8 @@ Deliverables:
 - for sale / for trade sections
 - social proof / verification placeholders
 
+Use `docs/v0_design_alignment_audit.md` for the current v0 gap analysis and page priority before starting this branch.
+
 ### 11. `feature/homepage-logged-out`
 
 Build marketing surface.

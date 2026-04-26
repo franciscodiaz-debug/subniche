@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bell,
   CheckCircle2,
@@ -38,32 +39,45 @@ export function HomePage() {
 
   return (
     <PageShell className="space-y-8">
-      <section className="relative overflow-hidden rounded-xl border border-border bg-surface p-6 shadow-card">
-        <div
-          className="absolute inset-y-0 right-0 hidden w-1/2 bg-cover bg-center opacity-25 lg:block"
-          style={{
-            backgroundImage:
-              "url('/mock/listings/fender-stratocaster-sunburst.jpg')",
-          }}
-        />
+      <section className="relative isolate -mx-4 overflow-hidden px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/hero-guitar.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-40"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/25"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-b from-background/35 via-transparent to-background"
+          />
+        </div>
         <div className="relative max-w-3xl">
-          <div className="text-sm font-semibold text-accent">
-            SN / MusicGear
+          <div className="text-lg font-semibold">
+            <span className="text-primary">SN</span>
+            <span className="mx-2 text-muted-foreground/60">/</span>
+            <span className="text-foreground">MusicGear</span>
           </div>
-          <h1 className="mt-3 text-4xl font-semibold text-foreground">
+          <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight text-foreground md:text-5xl">
             Where musicians{" "}
-            <span className="text-accent">trade, sell, and collect.</span>
+            <span className="text-primary">trade, sell, and collect.</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-            Fresh listings, trade matches, collection updates, and community
-            context for the gear people actually care about.
+          <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
+            Welcome back, {profile?.displayName ?? "Kyle"} - fresh listings,
+            trade matches, collection updates, and community context are waiting.
           </p>
-          <div className="mt-5 flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <div className="mt-6 flex flex-wrap gap-5 text-sm text-muted-foreground">
             <HeroMetric value="12,487" label="pieces of gear listed" />
             <HeroMetric value="42" label="gear communities" />
             <HeroMetric value="3,214" label="musicians online" />
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <Link
               href="/market"
               className={buttonVariants({ variant: "primary" })}

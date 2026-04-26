@@ -12,6 +12,7 @@ export function SortControl({ value = "newest", onChange }: SortControlProps) {
   return (
     <Select
       aria-label="Sort listings"
+      className="h-10 rounded-full bg-card font-semibold"
       value={value}
       onChange={(event) => onChange?.(event.target.value as SortOption)}
     >

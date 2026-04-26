@@ -133,21 +133,21 @@ export function WelcomePage() {
           </nav>
         </header>
 
-        <section className="relative overflow-hidden rounded-lg border border-border bg-surface shadow-card">
+        <section className="relative isolate -mx-4 overflow-hidden px-5 py-8 sm:-mx-6 sm:px-8 lg:-mx-10 lg:px-10 lg:py-10">
           <div className="absolute inset-0">
             <Image
-              src="/mock/listings/fender-twin-reverb.jpg"
+              src="/hero-guitar.jpg"
               alt=""
               fill
               priority
-              sizes="(min-width: 1024px) 80vw, 100vw"
-              className="object-cover opacity-20"
+              sizes="100vw"
+              className="object-cover opacity-40"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/45" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/25" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/35 via-transparent to-background" />
           </div>
 
-          <div className="relative px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+          <div className="relative">
             <div className="max-w-5xl">
               <div className="flex flex-wrap items-center gap-3 text-2xl font-semibold text-foreground sm:text-3xl">
                 <span className="text-accent">SN</span>

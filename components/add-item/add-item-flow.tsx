@@ -204,12 +204,12 @@ function CategoryStrip({
   const childLabel = selectedCategory?.name.replace(" Guitars", "") ?? "Other";
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-5">
-      <div className="mb-4 text-sm font-medium text-muted-foreground">
+    <section className="rounded-lg border border-border bg-card p-4">
+      <div className="mb-3 text-sm font-semibold text-muted-foreground">
         Category
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+        <span className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
           {parentLabel}
         </span>
         <span className="text-2xl text-muted-foreground" aria-hidden="true">
@@ -226,7 +226,7 @@ function CategoryStrip({
               className={cn(
                 "rounded-lg border px-4 py-2 text-sm font-semibold transition",
                 active
-                  ? "border-accent/60 bg-accent/10 text-accent"
+                  ? "rounded-full border-accent/60 bg-accent/10 text-accent"
                   : "border-border bg-background text-muted-foreground hover:border-accent/45 hover:text-foreground",
               )}
               onClick={() => onCategoryChange(category.id)}

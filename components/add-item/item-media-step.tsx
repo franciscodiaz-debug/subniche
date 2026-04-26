@@ -32,10 +32,11 @@ export function ItemMediaStep({
             width={720}
             height={540}
             sizes="(min-width: 1280px) 420px, 100vw"
-            className="aspect-[4/3] w-full object-cover"
+            className="aspect-square w-full object-cover"
+            style={{ objectPosition: "center bottom" }}
           />
         ) : (
-          <div className="grid aspect-[4/3] place-items-center border border-dashed border-border text-center">
+          <div className="grid aspect-square place-items-center border border-dashed border-border text-center">
             <div>
               <ImagePlus
                 className="mx-auto size-8 text-accent"
@@ -69,6 +70,7 @@ export function ItemMediaStep({
                 fill
                 sizes="80px"
                 className="object-cover"
+                style={{ objectPosition: "center bottom" }}
               />
             </button>
           );

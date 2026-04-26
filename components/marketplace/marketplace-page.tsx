@@ -250,11 +250,11 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
           />
         </div>
 
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-5">
             <div className="flex items-center gap-3">
-              <Telescope className="size-8 text-accent" aria-hidden="true" />
-              <h1 className="text-3xl font-bold tracking-normal text-foreground">
+              <Telescope className="size-9 text-accent" aria-hidden="true" />
+              <h1 className="text-4xl font-semibold text-foreground md:text-5xl">
                 Market
               </h1>
             </div>
@@ -263,7 +263,11 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
           <div className="sm:pt-1">
             <Link
               href="/add-item"
-              className={buttonVariants({ variant: "secondary", size: "lg" })}
+              className={buttonVariants({
+                variant: "outline",
+                size: "lg",
+                className: "rounded-full bg-transparent",
+              })}
             >
               <Plus className="size-4" aria-hidden="true" />
               Add Item
@@ -280,7 +284,7 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
             type="button"
             onClick={() => setFiltersOpen(true)}
             className={cn(
-              "hidden h-10 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:bg-secondary lg:inline-flex",
+              "hidden h-10 shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:bg-secondary lg:inline-flex",
               filtersOpen && "lg:hidden",
             )}
           >

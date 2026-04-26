@@ -34,7 +34,7 @@ export function ItemBasicsStep({
         <FormField id="item-title" label="Title">
           <Input
             id="item-title"
-            className="h-20 text-3xl font-bold tracking-normal placeholder:text-muted-foreground/45"
+            className="h-16 border-0 bg-transparent px-0 text-3xl font-semibold tracking-normal shadow-none placeholder:text-muted-foreground/45 focus:border-transparent focus:ring-0 md:text-4xl"
             value={basics.title}
             onChange={(event) => update({ title: event.target.value })}
             placeholder="Enter item title"
@@ -52,7 +52,7 @@ export function ItemBasicsStep({
       <FormField id="item-description" label="Description">
         <Textarea
           id="item-description"
-          className="min-h-44 text-base leading-7"
+          className="min-h-40 bg-background text-base leading-7"
           value={basics.description}
           onChange={(event) => update({ description: event.target.value })}
           placeholder="Describe your item in detail..."

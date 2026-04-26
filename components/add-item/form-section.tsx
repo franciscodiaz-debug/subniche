@@ -24,17 +24,17 @@ export function FormSection({
   title,
 }: FormSectionProps) {
   return (
-    <Card className={cn("overflow-hidden rounded-lg", className)}>
-      <CardHeader className="border-b border-border/70">
+    <Card className={cn("overflow-hidden rounded-lg bg-card", className)}>
+      <CardHeader className="border-b border-border/70 p-4">
         {eyebrow ? (
           <p className="text-xs font-semibold uppercase text-accent">
             {eyebrow}
           </p>
         ) : null}
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-lg">{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent className="space-y-4 p-5">{children}</CardContent>
+      <CardContent className="space-y-5 p-4">{children}</CardContent>
     </Card>
   );
 }

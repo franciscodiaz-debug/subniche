@@ -1,6 +1,7 @@
 import {
   CircleUserRound,
   GalleryVerticalEnd,
+  Heart,
   Home,
   Inbox,
   Landmark,
@@ -43,6 +44,12 @@ export const desktopNavItems: NavItem[] = [
     label: "Communities",
     icon: UsersRound,
     description: "Publishing contexts and groups",
+  },
+  {
+    href: "/favorites",
+    label: "Following",
+    icon: Heart,
+    description: "Favorites, follows, and saved searches",
   },
   {
     href: "/collections",

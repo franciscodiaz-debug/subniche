@@ -27,7 +27,7 @@ export function TradeInterestPanel({
   }
 
   return (
-    <Card>
+    <Card className="rounded-lg">
       <CardHeader>
         <CardTitle>Trade interests</CardTitle>
       </CardHeader>
@@ -37,7 +37,7 @@ export function TradeInterestPanel({
             {interests.map((interest) => (
               <div
                 key={interest.id}
-                className="rounded-lg border border-border bg-muted/45 p-4"
+                className="rounded-lg border border-border bg-secondary/60 p-4"
               >
                 <h3 className="font-semibold text-foreground">
                   {interest.title}
@@ -75,7 +75,7 @@ export function TradeInterestPanel({
             {opportunities.map((opportunity) => (
               <div
                 key={opportunity.id}
-                className="rounded-lg border border-border bg-surface p-4"
+                className="rounded-lg border border-border bg-card p-4"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <TradeMatchBadge matchType={opportunity.matchType} />

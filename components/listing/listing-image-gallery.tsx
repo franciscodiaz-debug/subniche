@@ -15,7 +15,7 @@ export function ListingImageGallery({ images, title }: ListingImageGalleryProps)
 
   return (
     <section aria-label={`${title} images`} className="space-y-3">
-      <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted">
+      <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-card">
         {selectedImage ? (
           <Image
             src={selectedImage}
@@ -38,10 +38,10 @@ export function ListingImageGallery({ images, title }: ListingImageGalleryProps)
               type="button"
               aria-label={`Show image ${index + 1} for ${title}`}
               className={cn(
-                "relative size-16 shrink-0 overflow-hidden rounded-lg border bg-muted transition",
+                "relative size-16 shrink-0 overflow-hidden rounded-lg border bg-card transition",
                 selectedIndex === index
-                  ? "border-accent"
-                  : "border-border hover:border-accent/45",
+                  ? "border-primary"
+                  : "border-border hover:border-primary/45",
               )}
               onClick={() => setSelectedIndex(index)}
             >

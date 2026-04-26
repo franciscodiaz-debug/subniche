@@ -25,7 +25,7 @@ export function SellerSummaryCard({
   collectionCount,
 }: SellerSummaryCardProps) {
   return (
-    <Card>
+    <Card className="rounded-lg">
       <CardHeader>
         <CardTitle>Seller context</CardTitle>
       </CardHeader>

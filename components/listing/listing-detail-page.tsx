@@ -8,7 +8,6 @@ import { ListingImageGallery } from "@/components/listing/listing-image-gallery"
 import { RelatedListings } from "@/components/listing/related-listings";
 import { TradeInterestPanel } from "@/components/listing/trade-interest-panel";
 import { PageShell } from "@/components/layout/page-shell";
-import { SellerSummaryCard } from "@/components/profile/seller-summary-card";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -41,7 +40,7 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
   const sellerStats = getSellerListingStats(listing.sellerId);
 
   return (
-    <PageShell className="space-y-6">
+    <PageShell className="max-w-none space-y-6 lg:px-12">
       <div>
         <Link
           href="/market"
@@ -52,7 +51,7 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
         </Link>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,440px)] xl:items-start">
         <main className="space-y-6">
           <ListingDetailHeader
             listing={listing}
@@ -65,15 +64,11 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
           </div>
 
           <div className="space-y-4 xl:hidden">
-            <ListingActionPanel listing={listing} />
-            {seller ? (
-              <SellerSummaryCard
-                profile={seller}
-                listingCount={sellerStats.listingCount}
-                tradeReadyCount={sellerStats.tradeReadyCount}
-                collectionCount={sellerStats.profileStatCount}
-              />
-            ) : null}
+            <ListingActionPanel
+              listing={listing}
+              seller={seller}
+              listingCount={sellerStats.listingCount}
+            />
           </div>
 
           <DescriptionCard description={listing.description} />
@@ -96,15 +91,11 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
         <aside className="hidden xl:block">
           <div className="sticky top-6 space-y-4">
             <ListingImageGallery images={listing.images} title={listing.title} />
-            <ListingActionPanel listing={listing} />
-            {seller ? (
-              <SellerSummaryCard
-                profile={seller}
-                listingCount={sellerStats.listingCount}
-                tradeReadyCount={sellerStats.tradeReadyCount}
-                collectionCount={sellerStats.profileStatCount}
-              />
-            ) : null}
+            <ListingActionPanel
+              listing={listing}
+              seller={seller}
+              listingCount={sellerStats.listingCount}
+            />
             <PublishingContextCard listing={listing} />
           </div>
         </aside>
@@ -115,7 +106,7 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
 
 function DescriptionCard({ description }: { description?: string }) {
   return (
-    <Card>
+    <Card className="rounded-lg">
       <CardHeader>
         <CardTitle>Description</CardTitle>
       </CardHeader>
@@ -130,7 +121,7 @@ function DescriptionCard({ description }: { description?: string }) {
 
 function PublishingContextCard({ listing }: { listing: MockListing }) {
   return (
-    <Card>
+    <Card className="rounded-lg">
       <CardHeader>
         <CardTitle>Publishing context</CardTitle>
       </CardHeader>

@@ -16,13 +16,13 @@ export function ListingDetailHeader({
   niche,
 }: ListingDetailHeaderProps) {
   return (
-    <header className="space-y-5 rounded-lg border border-border bg-surface p-6">
-      <div className="flex flex-wrap gap-2">
+    <header className="space-y-5">
+      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
         {niche ? <Badge variant="outline">{niche.name}</Badge> : null}
         {category ? <Badge variant="secondary">{category.name}</Badge> : null}
       </div>
       <div className="space-y-2">
-        <h1 className="max-w-4xl text-4xl font-bold tracking-normal text-foreground md:text-5xl">
+        <h1 className="max-w-4xl text-3xl font-bold tracking-normal text-foreground md:text-4xl">
           {listing.title}
         </h1>
         {listing.subtitle ? (
@@ -31,11 +31,11 @@ export function ListingDetailHeader({
           </p>
         ) : null}
       </div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <ListingPrice
           price={listing.price}
           mode={listing.priceMode}
-          className="text-4xl text-primary md:text-5xl"
+          className="text-3xl md:text-4xl"
         />
         <ListingStatusBadges statuses={listing.statuses} />
       </div>

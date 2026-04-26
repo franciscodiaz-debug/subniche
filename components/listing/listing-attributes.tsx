@@ -31,7 +31,7 @@ export function ListingAttributes({
   ].filter((detail) => detail.value);
 
   return (
-    <Card>
+    <Card className="rounded-lg">
       <CardHeader>
         <CardTitle>Details</CardTitle>
       </CardHeader>
@@ -40,7 +40,7 @@ export function ListingAttributes({
           {details.map((detail) => (
             <div
               key={`${detail.label}-${detail.value}`}
-              className="rounded-lg border border-border bg-muted/45 p-3"
+            className="rounded-lg border border-border bg-secondary/60 p-3"
             >
               <dt className="text-xs font-semibold uppercase text-muted-foreground">
                 {detail.label}

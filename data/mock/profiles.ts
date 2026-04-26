@@ -5,7 +5,7 @@ export const mockProfiles: MockProfile[] = [
     id: "kyle-k",
     displayName: "Kyle K",
     handle: "@subnichefounder",
-    avatarUrl: "/mock/profiles/kyle-k.png",
+    avatarUrl: "/mock/profiles/kyle-k.jpg",
     location: "Portland, OR",
     memberSince: "Member since 2026",
     bio: "Guitar gear obsessive building a focused marketplace for people who care about provenance, condition, and trade fit.",

@@ -76,6 +76,7 @@ export function TabsTrigger({
       )}
       role="tab"
       aria-selected={active}
+      data-state={active ? "active" : "inactive"}
       type="button"
       onClick={() => context.setValue(value)}
       {...props}

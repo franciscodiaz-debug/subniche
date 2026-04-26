@@ -1,7 +1,8 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Heart, MessageSquare, Repeat2 } from "lucide-react";
+import { Heart, MessageSquare, Repeat2, Settings } from "lucide-react";
+import Link from "next/link";
 import { CollectionCard } from "@/components/collection/collection-card";
 import { ListingCard } from "@/components/listing/listing-card";
 import type {
@@ -10,6 +11,7 @@ import type {
   MockTradeInterest,
 } from "@/data/mock";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,25 +36,51 @@ export function ProfileTabs({
   );
 
   return (
-    <Tabs defaultValue="collections" className="space-y-5">
-      <TabsList className="flex w-full overflow-x-auto rounded-none border-x-0 border-t-0 bg-transparent p-0">
-        <TabsTrigger value="collections" className="mr-8 rounded-none px-0 py-3">
-          Collections
-        </TabsTrigger>
-        <TabsTrigger value="available" className="mr-8 rounded-none px-0 py-3">
-          For Sale / Trade
-        </TabsTrigger>
-        <TabsTrigger value="wanted" className="mr-8 rounded-none px-0 py-3">
-          Looking For
-        </TabsTrigger>
-        <TabsTrigger value="activity" className="rounded-none px-0 py-3">
-          Activity
-        </TabsTrigger>
-      </TabsList>
+    <Tabs defaultValue="collections" className="space-y-8">
+      <div className="flex flex-col gap-4 border-b border-border md:flex-row md:items-center md:justify-between">
+        <TabsList className="flex w-full overflow-x-auto rounded-none border-0 bg-transparent p-0 md:w-auto">
+          <TabsTrigger
+            value="collections"
+            className="relative mr-10 rounded-none bg-transparent px-0 py-4 text-2xl font-semibold shadow-none after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:after:bg-primary md:text-3xl"
+          >
+            Collections
+          </TabsTrigger>
+          <TabsTrigger
+            value="available"
+            className="relative mr-10 rounded-none bg-transparent px-0 py-4 text-2xl font-semibold shadow-none after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:after:bg-primary md:text-3xl"
+          >
+            For Sale / Trade
+          </TabsTrigger>
+          <TabsTrigger
+            value="wanted"
+            className="relative mr-10 rounded-none bg-transparent px-0 py-4 text-2xl font-semibold shadow-none after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:after:bg-primary md:text-3xl"
+          >
+            Looking For
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="relative rounded-none bg-transparent px-0 py-4 text-2xl font-semibold shadow-none after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:after:bg-primary md:text-3xl"
+          >
+            Activity
+          </TabsTrigger>
+        </TabsList>
+        <Link
+          href="/collections"
+          className={buttonVariants({
+            variant: "ghost",
+            size: "sm",
+            className:
+              "mb-3 w-fit text-muted-foreground hover:text-foreground md:mb-0",
+          })}
+        >
+          <Settings className="size-4" aria-hidden="true" />
+          Manage
+        </Link>
+      </div>
 
-      <TabsContent value="collections">
+      <TabsContent value="collections" className="mt-0">
         {collections.length > 0 ? (
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-2">
             {collections.map((collection) => (
               <CollectionCard
                 key={collection.id}
@@ -76,7 +104,7 @@ export function ProfileTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="available">
+      <TabsContent value="available" className="mt-0">
         {availableListings.length > 0 ? (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {availableListings.map((listing) => (
@@ -91,7 +119,7 @@ export function ProfileTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="wanted">
+      <TabsContent value="wanted" className="mt-0">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           {wantedListings.length > 0 ? (
             <div className="grid gap-5 md:grid-cols-2">
@@ -107,7 +135,7 @@ export function ProfileTabs({
           )}
           <div className="space-y-3">
             {tradeInterests.map((interest) => (
-              <Card key={interest.id} className="p-4">
+              <Card key={interest.id} className="rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <div className="grid size-9 place-items-center rounded-lg bg-info/12 text-info">
                     <Repeat2 className="size-4" aria-hidden="true" />
@@ -137,8 +165,8 @@ export function ProfileTabs({
         </div>
       </TabsContent>
 
-      <TabsContent value="activity">
-        <div className="grid gap-4 md:grid-cols-3">
+      <TabsContent value="activity" className="mt-0">
+        <div className="grid gap-3">
           <ActivityCard
             icon={Repeat2}
             title="Trade criteria updated"
@@ -170,12 +198,16 @@ function ActivityCard({
   title: string;
 }) {
   return (
-    <Card className="p-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Icon className="size-4 text-accent" aria-hidden="true" />
-        {title}
+    <Card className="rounded-lg p-4">
+      <div className="flex items-start gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-card text-accent ring-1 ring-border">
+          <Icon className="size-4" aria-hidden="true" />
+        </span>
+        <div>
+          <div className="text-sm font-semibold text-foreground">{title}</div>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+        </div>
       </div>
-      <p className="mt-3 text-sm leading-6 text-muted-foreground">{body}</p>
     </Card>
   );
 }

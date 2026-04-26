@@ -15,8 +15,9 @@ export const mockCollections: MockCollection[] = [
     description: "Pieces that actually stay wired into the working studio.",
     images: [
       listingImage("listing-strat-pro-ii"),
-      listingImage("listing-mesa-dual-rectifier"),
       listingImage("listing-fender-twin"),
+      listingImage("listing-les-paul-goldtop"),
+      "/mock/listings/gretsch-6120-orange.jpg",
     ],
     itemCount: 18,
     estimatedValue: "$62,000",

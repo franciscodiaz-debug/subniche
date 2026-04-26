@@ -22,6 +22,7 @@ type MobileFilterSheetProps = {
   categories: MockCategory[];
   niches: MockNiche[];
   conditions: string[];
+  activeFilterCount?: number;
   onCategoryChange: (categoryId: string) => void;
   onNicheChange: (nicheId: string) => void;
   onConditionChange: (condition: string) => void;
@@ -30,14 +31,22 @@ type MobileFilterSheetProps = {
   onCommunityContextChange: (context: CommunityContextFilter) => void;
 };
 
-export function MobileFilterSheet(props: MobileFilterSheetProps) {
+export function MobileFilterSheet({
+  activeFilterCount = 0,
+  ...props
+}: MobileFilterSheetProps) {
   return (
     <Sheet>
       <SheetTrigger className={buttonVariants({ variant: "secondary" })}>
         <SlidersHorizontal className="size-4" aria-hidden="true" />
         Filters
+        {activeFilterCount > 0 ? (
+          <span className="grid size-5 place-items-center rounded-full bg-accent text-xs font-bold text-primary-foreground">
+            {activeFilterCount}
+          </span>
+        ) : null}
       </SheetTrigger>
-      <SheetContent className="overflow-y-auto">
+      <SheetContent className="left-0 right-auto overflow-y-auto border-l-0 border-r sm:max-w-xl">
         <SheetHeader className="mb-5">
           <SheetTitle>Filters</SheetTitle>
           <SheetDescription>

@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
-import { Bookmark, MapPin } from "lucide-react";
+import { ArrowRightLeft, Bookmark, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommunityContextBadge } from "@/components/community/community-context-badge";
@@ -25,12 +25,14 @@ export function ListingCard({
   isSaved,
 }: ListingCardProps) {
   return (
-    <Card variant="interactive" className="group overflow-hidden">
+    <Card variant="interactive" className="group overflow-hidden rounded-lg">
       <div className="relative aspect-[4/3] bg-muted">
         {imageUrl ? (
-          <img
+          <Image
             src={imageUrl}
-            alt=""
+            alt={title}
+            fill
+            sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
             className="size-full object-cover transition duration-300 group-hover:scale-[1.02]"
           />
         ) : (
@@ -50,7 +52,7 @@ export function ListingCard({
       <div className="space-y-3 p-4">
         <ListingStatusBadges statuses={statuses} />
         <div>
-          <h3 className="line-clamp-2 text-base font-semibold text-foreground">
+          <h3 className="line-clamp-1 text-base font-semibold text-foreground">
             {href ? (
               <Link href={href} className="hover:text-accent">
                 {title}
@@ -65,16 +67,18 @@ export function ListingCard({
             </p>
           ) : null}
         </div>
-        <ListingPrice price={price} mode={priceMode} />
+        <div className="flex items-center justify-between gap-3">
+          <ListingPrice price={price} mode={priceMode} />
+          {location ? (
+            <span className="inline-flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="size-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">{location}</span>
+            </span>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{sellerName}</span>
           {condition ? <span>{condition}</span> : null}
-          {location ? (
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="size-3" aria-hidden="true" />
-              {location}
-            </span>
-          ) : null}
         </div>
         {communityContext.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
@@ -84,8 +88,12 @@ export function ListingCard({
           </div>
         ) : null}
         {tradeSummary ? (
-          <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-xs leading-5 text-info">
-            {tradeSummary}
+          <p className="flex items-start gap-2 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-xs leading-5 text-foreground">
+            <ArrowRightLeft
+              className="mt-0.5 size-3.5 shrink-0 text-accent"
+              aria-hidden="true"
+            />
+            <span className="line-clamp-2">{tradeSummary}</span>
           </p>
         ) : null}
       </div>

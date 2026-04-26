@@ -1,13 +1,15 @@
 import { PageShell } from "@/components/layout/page-shell";
-import { SectionHeader } from "@/components/ui/section-header";
+import { InboxPage as InboxExperience } from "@/components/inbox/inbox-page";
+import { mockListings, mockMessageThreads, mockOffers, mockProfiles } from "@/data/mock";
 
 export default function InboxPage() {
   return (
     <PageShell>
-      <SectionHeader
-        eyebrow="Inbox"
-        title="Inbox placeholder"
-        description="Messages, offers, and trade conversations will live here later. This branch only confirms routing and shell behavior."
+      <InboxExperience
+        listings={mockListings}
+        offers={mockOffers}
+        profiles={mockProfiles}
+        threads={mockMessageThreads}
       />
     </PageShell>
   );

@@ -19,7 +19,7 @@ export const mockListings: MockListing[] = [
     priceMode: "cashPlusTrade",
     location: "Portland, OR",
     sellerName: "Kyle K",
-    statuses: { forSale: true, forTrade: true },
+    statuses: { forSale: true, forTrade: true, inCollection: true },
     condition: "Excellent",
     href: "/listings/listing-strat-pro-ii",
     communityContext: ["Public Market", "Vintage Amp Circle"],

@@ -7,8 +7,9 @@ import {
   ShieldCheck,
   Settings,
 } from "lucide-react";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrustIndicators } from "@/components/profile/trust-indicators";
 
@@ -82,13 +83,13 @@ export function ProfileHeader({
                 Share
               </Button>
               {ownProfile ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  leftIcon={<Settings className="size-4" />}
+                <Link
+                  href="/settings/seller-defaults"
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
                 >
+                  <Settings className="size-4" aria-hidden="true" />
                   Edit Profile
-                </Button>
+                </Link>
               ) : null}
             </div>
           </div>

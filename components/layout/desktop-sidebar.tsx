@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FlaskConical } from "lucide-react";
 import {
   desktopNavItems,
   primaryAction,
@@ -94,9 +95,20 @@ export function DesktopSidebar() {
       </div>
 
       <Link
+        href="/dev/components"
+        className={cn(
+          "mt-auto flex min-h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-muted-foreground transition hover:bg-surface hover:text-foreground",
+          isActive(pathname, "/dev/components") && "bg-surface text-foreground",
+        )}
+      >
+        <FlaskConical className="size-3.5" aria-hidden="true" />
+        Component Lab
+      </Link>
+
+      <Link
         href={profileNavItem.href}
         className={cn(
-          "mt-auto flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-3 transition hover:border-accent/35",
+          "mt-3 flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-3 transition hover:border-accent/35",
           isActive(pathname, profileNavItem.href) && "border-accent/45",
         )}
       >

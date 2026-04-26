@@ -28,17 +28,16 @@ export function ItemBasicsStep({
 
   return (
     <FormSection
-      eyebrow="Basics"
-      title="What are you adding?"
-      description="Start with enough detail for another enthusiast to understand the item."
+      title="Item Details"
     >
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
         <FormField id="item-title" label="Title">
           <Input
             id="item-title"
+            className="h-20 text-3xl font-bold tracking-normal placeholder:text-muted-foreground/45"
             value={basics.title}
             onChange={(event) => update({ title: event.target.value })}
-            placeholder="Fender American Pro II Stratocaster"
+            placeholder="Enter item title"
           />
         </FormField>
         <FormField id="item-location" label="Location">
@@ -50,12 +49,13 @@ export function ItemBasicsStep({
           />
         </FormField>
       </div>
-      <FormField id="item-description" label="Description / notes">
+      <FormField id="item-description" label="Description">
         <Textarea
           id="item-description"
+          className="min-h-44 text-base leading-7"
           value={basics.description}
           onChange={(event) => update({ description: event.target.value })}
-          placeholder="Condition notes, provenance, setup details, or why this piece matters."
+          placeholder="Describe your item in detail..."
         />
       </FormField>
       <div className="grid gap-4 md:grid-cols-3">

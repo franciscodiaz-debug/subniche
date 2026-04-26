@@ -81,7 +81,7 @@ export function ReviewPanel(props: ReviewPanelProps) {
   ];
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-6">
+    <div id="review-panel" className="space-y-4">
       <AddItemPreviewCard {...props} />
       <div className="rounded-xl border border-border bg-surface p-5">
         <div className="flex items-center justify-between gap-3">
@@ -153,6 +153,6 @@ export function ReviewPanel(props: ReviewPanelProps) {
           </DialogContent>
         </Dialog>
       </div>
-    </aside>
+    </div>
   );
 }

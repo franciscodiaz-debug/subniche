@@ -7,7 +7,7 @@ test("add-item flow supports additive owned statuses and separate wanted mode", 
 
   await expect(
     page.getByRole("heading", {
-      name: "List it, trade it, or add it to your collection.",
+      name: "Add Item",
     }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: /In Collection/ })).toHaveAttribute(

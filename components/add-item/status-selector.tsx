@@ -44,8 +44,17 @@ export function StatusSelector({
   const isWanted = mode === "wanted";
 
   return (
-    <div className="space-y-3">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <section className="space-y-3">
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        Status
+        <span
+          className="grid size-5 place-items-center rounded-full border border-border text-xs"
+          aria-label="Owned items can be listed, traded, and collected at the same time."
+        >
+          i
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
         {ownedOptions.map((option) => {
           const Icon = option.icon;
           const active = !isWanted && statuses[option.key];
@@ -55,7 +64,7 @@ export function StatusSelector({
               key={option.key}
               type="button"
               className={cn(
-                "min-h-28 rounded-xl border border-border bg-background p-4 text-left transition hover:border-accent/45 hover:bg-muted/40",
+                "inline-flex h-12 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-semibold text-muted-foreground transition hover:border-accent/45 hover:text-foreground",
                 active && option.activeClass,
                 isWanted && "opacity-55",
               )}
@@ -69,38 +78,28 @@ export function StatusSelector({
                 onStatusesChange(nextStatuses);
               }}
             >
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Icon className="size-4" aria-hidden="true" />
-                {option.label}
-              </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                {option.description}
-              </p>
+              <Icon className="size-4" aria-hidden="true" />
+              {option.label}
             </button>
           );
         })}
+        <span
+          className="hidden h-8 w-px bg-border sm:block"
+          aria-hidden="true"
+        />
         <button
           type="button"
           className={cn(
-            "min-h-28 rounded-xl border border-border bg-background p-4 text-left transition hover:border-warning/45 hover:bg-warning/10",
+            "inline-flex h-12 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-semibold text-muted-foreground transition hover:border-warning/45 hover:text-foreground",
             isWanted && "border-warning/50 bg-warning/12 text-warning",
           )}
           aria-pressed={isWanted}
           onClick={() => onModeChange(isWanted ? "owned" : "wanted")}
         >
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Heart className="size-4" aria-hidden="true" />
-            Wanted
-          </div>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            Add something you are looking for, separate from owned inventory.
-          </p>
+          <Heart className="size-4" aria-hidden="true" />
+          Wanted
         </button>
       </div>
-      <p className="text-xs leading-5 text-muted-foreground">
-        Owned items can be in your collection and also open to sale or trade.
-        Wanted mode is separate so it is not confused with gear you own.
-      </p>
-    </div>
+    </section>
   );
 }

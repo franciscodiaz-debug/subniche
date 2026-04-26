@@ -17,42 +17,69 @@ export function ItemMediaStep({
   onSelectImage,
   selectedImage,
 }: ItemMediaStepProps) {
+  const selected = images.find((image) => image.src === selectedImage);
+
   return (
     <FormSection
-      eyebrow="Photos"
-      title="Choose a sample image"
-      description="Photo upload will connect in the production build. For now, choose a sample image."
+      title="Photos"
+      description="Choose sample photos for this prototype. Real upload and ordering will connect later."
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="overflow-hidden rounded-lg border border-border bg-background">
+        {selected ? (
+          <Image
+            src={selected.src}
+            alt={selected.alt}
+            width={720}
+            height={540}
+            sizes="(min-width: 1280px) 420px, 100vw"
+            className="aspect-[4/3] w-full object-cover"
+          />
+        ) : (
+          <div className="grid aspect-[4/3] place-items-center border border-dashed border-border text-center">
+            <div>
+              <ImagePlus
+                className="mx-auto size-8 text-accent"
+                aria-hidden="true"
+              />
+              <div className="mt-3 text-sm font-semibold text-foreground">
+                Add Photos
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-1">
         {images.map((image) => {
-          const selected = selectedImage === image.src;
+          const active = selectedImage === image.src;
 
           return (
             <button
               key={image.src}
               type="button"
               className={cn(
-                "overflow-hidden rounded-xl border border-border bg-background text-left transition hover:border-accent/45",
-                selected && "border-accent shadow-card",
+                "relative size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-background text-left transition hover:border-accent/45",
+                active && "border-accent shadow-card",
               )}
-              aria-pressed={selected}
+              aria-pressed={active}
               onClick={() => onSelectImage(image.src)}
             >
               <Image
                 src={image.src}
                 alt={image.alt}
-                width={320}
-                height={240}
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="aspect-[4/3] w-full object-cover"
+                fill
+                sizes="80px"
+                className="object-cover"
               />
             </button>
           );
         })}
-      </div>
-      <div className="flex items-center gap-3 rounded-xl border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
-        <ImagePlus className="size-5 text-accent" aria-hidden="true" />
-        Real upload, drag-and-drop, and image ordering will be wired later.
+        <button
+          type="button"
+          className="grid size-20 shrink-0 place-items-center rounded-lg border border-dashed border-border bg-background text-muted-foreground transition hover:border-accent/45 hover:text-foreground"
+          aria-label="Add another photo"
+        >
+          <ImagePlus className="size-5" aria-hidden="true" />
+        </button>
       </div>
     </FormSection>
   );

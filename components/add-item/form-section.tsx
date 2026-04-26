@@ -24,7 +24,7 @@ export function FormSection({
   title,
 }: FormSectionProps) {
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn("overflow-hidden rounded-lg", className)}>
       <CardHeader className="border-b border-border/70">
         {eyebrow ? (
           <p className="text-xs font-semibold uppercase text-accent">

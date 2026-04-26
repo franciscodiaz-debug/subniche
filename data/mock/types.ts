@@ -45,6 +45,14 @@ export type MockCommunity = {
   visibility: string;
 };
 
+export type MockCommunityMembership = {
+  id: string;
+  communityId: string;
+  profileId: string;
+  role: "member" | "moderator" | "owner";
+  joinedAt: string;
+};
+
 export type MockPublishingContext = {
   type: "public_market" | "community_market" | "profile_only";
   label: string;
@@ -97,6 +105,19 @@ export type MockTradeOpportunity = {
   otherItem: string;
   cashAdjustment?: string;
   reason: string;
+};
+
+export type MockOffer = {
+  id: string;
+  threadId: string;
+  listingId: string;
+  fromProfileId: string;
+  toProfileId: string;
+  state: "draft" | "pending" | "countered" | "accepted";
+  offeredListingIds: string[];
+  cashAdjustment?: string;
+  note: string;
+  updatedAt: string;
 };
 
 export type MockMessageThread = {

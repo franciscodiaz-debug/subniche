@@ -1,4 +1,7 @@
-import type { MockCommunity } from "@/data/mock/types";
+import type {
+  MockCommunity,
+  MockCommunityMembership,
+} from "@/data/mock/types";
 
 export const mockCommunities: MockCommunity[] = [
   {
@@ -44,5 +47,50 @@ export const mockCommunities: MockCommunity[] = [
     memberCount: "1.1k members",
     listingCount: "157",
     visibility: "Public",
+  },
+];
+
+export const mockCommunityMemberships: MockCommunityMembership[] = [
+  {
+    id: "membership-kyle-vintage-amp-circle",
+    communityId: "vintage-amp-circle",
+    profileId: "kyle-k",
+    role: "member",
+    joinedAt: "2026-01-09T18:00:00.000Z",
+  },
+  {
+    id: "membership-kyle-pedal-builders-guild",
+    communityId: "pedal-builders-guild",
+    profileId: "kyle-k",
+    role: "member",
+    joinedAt: "2026-02-14T18:00:00.000Z",
+  },
+  {
+    id: "membership-mara-pedal-builders-guild",
+    communityId: "pedal-builders-guild",
+    profileId: "mara-voss",
+    role: "moderator",
+    joinedAt: "2024-07-22T18:00:00.000Z",
+  },
+  {
+    id: "membership-mara-acoustic-corner",
+    communityId: "acoustic-corner",
+    profileId: "mara-voss",
+    role: "member",
+    joinedAt: "2025-03-11T18:00:00.000Z",
+  },
+  {
+    id: "membership-tone-semi-hollow-club",
+    communityId: "semi-hollow-club",
+    profileId: "tone-archive",
+    role: "owner",
+    joinedAt: "2023-10-02T18:00:00.000Z",
+  },
+  {
+    id: "membership-tone-vintage-amp-circle",
+    communityId: "vintage-amp-circle",
+    profileId: "tone-archive",
+    role: "moderator",
+    joinedAt: "2024-04-18T18:00:00.000Z",
   },
 ];

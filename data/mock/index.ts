@@ -3,6 +3,7 @@ export * from "@/data/mock/communities";
 export * from "@/data/mock/listings";
 export * from "@/data/mock/messages";
 export * from "@/data/mock/niches";
+export * from "@/data/mock/offers";
 export * from "@/data/mock/profiles";
 export * from "@/data/mock/trade";
 export * from "@/data/mock/types";

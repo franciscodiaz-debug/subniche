@@ -87,6 +87,8 @@ export type MockCollection = {
   description: string;
   images: string[];
   itemCount: number;
+  estimatedValue?: string;
+  aiEstimate?: string;
   visibility: string;
   href: string;
 };

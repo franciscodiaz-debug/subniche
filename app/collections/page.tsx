@@ -1,13 +1,24 @@
 import { PageShell } from "@/components/layout/page-shell";
-import { SectionHeader } from "@/components/ui/section-header";
+import { CollectionsOverview } from "@/components/collection/collections-overview";
+import {
+  getMockCollectionsForProfile,
+  getMockListingsForProfile,
+  getMockProfileById,
+} from "@/data/mock";
 
 export default function CollectionsPage() {
+  const profile = getMockProfileById("kyle-k");
+
+  if (!profile) {
+    return null;
+  }
+
   return (
     <PageShell>
-      <SectionHeader
-        eyebrow="Collections"
-        title="Collections placeholder"
-        description="Collections are a core trust and identity layer. Image-led collection cards and detail surfaces will be built in later branches."
+      <CollectionsOverview
+        collections={getMockCollectionsForProfile(profile.id)}
+        listings={getMockListingsForProfile(profile.id)}
+        profile={profile}
       />
     </PageShell>
   );

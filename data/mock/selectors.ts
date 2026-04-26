@@ -1,4 +1,5 @@
 import { mockCategories, mockNiches } from "@/data/mock/niches";
+import { mockCollections } from "@/data/mock/collections";
 import { mockCommunities } from "@/data/mock/communities";
 import { mockListings } from "@/data/mock/listings";
 import { getMockProfile, mockProfiles } from "@/data/mock/profiles";
@@ -91,4 +92,22 @@ export function getSellerListingStats(profileId: string) {
     profileStatCount:
       profile?.stats.find((stat) => stat.label === "Collection")?.value ?? "0",
   };
+}
+
+export function getMockCollectionsForProfile(profileId: string) {
+  return mockCollections.filter((collection) => collection.ownerId === profileId);
+}
+
+export function getMockListingsForProfile(profileId: string) {
+  return mockListings.filter((listing) => listing.sellerId === profileId);
+}
+
+export function getMockWishlistListingsForProfile(profileId: string) {
+  return mockListings.filter(
+    (listing) => listing.sellerId === profileId && listing.statuses.wishlist,
+  );
+}
+
+export function getMockTradeInterestsForProfile(profileId: string) {
+  return mockTradeInterests.filter((interest) => interest.profileId === profileId);
 }

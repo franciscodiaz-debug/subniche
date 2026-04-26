@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,12 +15,14 @@ export function ListingImageGallery({ images, title }: ListingImageGalleryProps)
 
   return (
     <section aria-label={`${title} images`} className="space-y-3">
-      <div className="aspect-[4/3] overflow-hidden rounded-xl border border-border bg-muted">
+      <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted">
         {selectedImage ? (
-          <img
+          <Image
             src={selectedImage}
             alt={title}
-            className="size-full object-cover"
+            fill
+            sizes="(min-width: 1024px) 420px, 100vw"
+            className="object-cover"
           />
         ) : (
           <div className="grid size-full place-items-center text-sm text-muted-foreground">
@@ -36,14 +38,14 @@ export function ListingImageGallery({ images, title }: ListingImageGalleryProps)
               type="button"
               aria-label={`Show image ${index + 1} for ${title}`}
               className={cn(
-                "size-16 shrink-0 overflow-hidden rounded-lg border bg-muted transition",
+                "relative size-16 shrink-0 overflow-hidden rounded-lg border bg-muted transition",
                 selectedIndex === index
                   ? "border-accent"
                   : "border-border hover:border-accent/45",
               )}
               onClick={() => setSelectedIndex(index)}
             >
-              <img src={image} alt="" className="size-full object-cover" />
+              <Image src={image} alt="" fill sizes="64px" className="object-cover" />
             </button>
           ))}
         </div>

@@ -70,6 +70,7 @@ export type MockListing = ListingCardProps & {
   categoryId: string;
   sellerId: string;
   brand: string;
+  description: string;
   condition: string;
   images: string[];
   attributes: MockListingAttribute[];

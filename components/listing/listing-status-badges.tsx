@@ -33,5 +33,5 @@ export function ListingStatusBadges({ statuses }: ListingStatusBadgesProps) {
     );
   }
 
-  return <div className="flex flex-wrap gap-1.5">{badges}</div>;
+  return <div className="flex flex-wrap gap-1">{badges}</div>;
 }

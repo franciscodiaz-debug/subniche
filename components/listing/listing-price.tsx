@@ -20,8 +20,8 @@ export function ListingPrice({
   className,
 }: ListingPriceProps) {
   return (
-    <div className={cn("flex items-baseline gap-2 text-lg", className)}>
-      <span className="font-semibold text-foreground">
+    <div className={cn("flex items-baseline gap-2", className)}>
+      <span className="font-semibold text-primary">
         {mode === "wanted" ? "Wanted" : price ?? "Trade"}
       </span>
       <span className="text-xs font-medium uppercase text-muted-foreground">

@@ -18,10 +18,12 @@ test("market page matches the compact v0 marketplace workflow", async ({
   await expect(page.getByText(/\d+ listings/)).toBeVisible();
 
   await page.getByRole("button", { name: "Filters" }).click();
-  await page.getByLabel("Category").selectOption("electric-guitars");
-  await page.getByRole("button", { name: "Close sheet" }).click();
+  await page.getByRole("button", { name: "Electric Guitars" }).click();
+  await page.getByRole("button", { name: "Close filters" }).click();
 
-  await expect(page.getByText("Electric Guitars")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Electric Guitars" }),
+  ).toBeVisible();
   await expect(
     page.getByText("Fender American Pro II Stratocaster").first(),
   ).toBeVisible();

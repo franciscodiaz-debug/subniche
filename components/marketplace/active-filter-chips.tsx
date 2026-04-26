@@ -26,7 +26,7 @@ export function ActiveFilterChips({
         <button
           key={chip.key}
           type="button"
-          className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-foreground transition hover:border-accent/45"
+          className="inline-flex h-8 items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-foreground transition hover:bg-primary/15"
           onClick={chip.onRemove}
         >
           {chip.label}

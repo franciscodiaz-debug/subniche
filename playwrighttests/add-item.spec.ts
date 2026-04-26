@@ -41,9 +41,9 @@ test("add-item flow supports additive owned statuses and separate wanted mode", 
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("Sale: $1749")).toBeVisible();
   await expect(
-    page.locator("p").filter({
-      hasText: "Boutique delays or clean semi-hollows.",
-    }),
+    page
+      .locator("#review-panel")
+      .getByText("Boutique delays or clean semi-hollows."),
   ).toBeVisible();
 
   await page.getByLabel("Vintage Amp Circle").check();

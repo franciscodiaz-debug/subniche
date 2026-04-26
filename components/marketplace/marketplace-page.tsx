@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Grid2X2, Plus, Telescope } from "lucide-react";
+import { Grid2X2, Plus, SlidersHorizontal, Telescope } from "lucide-react";
 import { ActiveFilterChips } from "@/components/marketplace/active-filter-chips";
+import { DesktopFilterRail } from "@/components/marketplace/desktop-filter-rail";
 import { MarketplaceGrid } from "@/components/marketplace/marketplace-grid";
 import { MarketplaceModeToggle } from "@/components/marketplace/marketplace-mode-toggle";
 import { MobileFilterSheet } from "@/components/marketplace/mobile-filter-sheet";
@@ -20,6 +21,7 @@ import {
   mockTradeOpportunities,
 } from "@/data/mock";
 import type { MockListing } from "@/data/mock/types";
+import { cn } from "@/lib/utils";
 import {
   filterListings,
   sortListings,
@@ -57,6 +59,7 @@ const communityLabels: Record<CommunityContextFilter, string> = {
 };
 
 export function MarketplacePage({ initialMode }: MarketplacePageProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [nicheId, setNicheId] = useState("all");
@@ -215,89 +218,144 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
   }
 
   return (
-    <PageShell className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-5">
-          <div className="flex items-center gap-3">
-            <Telescope className="size-8 text-accent" aria-hidden="true" />
-            <h1 className="text-3xl font-bold tracking-normal text-foreground">
-              Market
-            </h1>
+    <>
+      <DesktopFilterRail
+        open={filtersOpen}
+        filters={filters}
+        categories={mockCategories}
+        niches={mockNiches}
+        conditions={conditions}
+        activeFilterCount={activeChips.length}
+        onClose={() => setFiltersOpen(false)}
+        onClearAll={clearFilters}
+        onCategoryChange={setCategoryId}
+        onNicheChange={setNicheId}
+        onConditionChange={setCondition}
+        onStatusToggle={toggleStatus}
+        onPriceRangeChange={setPriceRange}
+        onCommunityContextChange={setCommunityContext}
+      />
+      <PageShell
+        className={cn(
+          "max-w-none space-y-5 transition-[padding] duration-300 lg:px-12",
+          filtersOpen && "lg:pl-[304px]",
+        )}
+      >
+        <div className="hidden justify-center lg:flex">
+          <SearchBar
+            placeholder="Search gear, musicians, communities..."
+            value={search}
+            onChange={setSearch}
+            className="w-full max-w-3xl"
+          />
+        </div>
+
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-5">
+            <div className="flex items-center gap-3">
+              <Telescope className="size-8 text-accent" aria-hidden="true" />
+              <h1 className="text-3xl font-bold tracking-normal text-foreground">
+                Market
+              </h1>
+            </div>
+            <MarketplaceModeToggle mode={initialMode} />
           </div>
-          <MarketplaceModeToggle mode={initialMode} />
+          <div className="sm:pt-1">
+            <Link
+              href="/add-item"
+              className={buttonVariants({ variant: "secondary", size: "lg" })}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Add Item
+            </Link>
+          </div>
+        </header>
+
+        <div className="lg:hidden">
+          <SearchBar value={search} onChange={setSearch} />
         </div>
-        <div className="sm:pt-1">
-          <Link
-            href="/add-item"
-            className={buttonVariants({ variant: "secondary", size: "lg" })}
+
+        <div className="flex flex-wrap items-start gap-2 lg:flex-nowrap">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            className={cn(
+              "hidden h-10 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:bg-secondary lg:inline-flex",
+              filtersOpen && "lg:hidden",
+            )}
           >
-            <Plus className="size-4" aria-hidden="true" />
-            Add Item
-          </Link>
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            Filters
+            {activeChips.length > 0 ? (
+              <span className="grid size-5 place-items-center rounded-full bg-primary text-xs text-primary-foreground">
+                {activeChips.length}
+              </span>
+            ) : null}
+          </button>
+          <div className="lg:hidden">
+            <MobileFilterSheet
+              activeFilterCount={activeChips.length}
+              filters={filters}
+              categories={mockCategories}
+              niches={mockNiches}
+              conditions={conditions}
+              onCategoryChange={setCategoryId}
+              onNicheChange={setNicheId}
+              onConditionChange={setCondition}
+              onStatusToggle={toggleStatus}
+              onPriceRangeChange={setPriceRange}
+              onCommunityContextChange={setCommunityContext}
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <ActiveFilterChips chips={activeChips} onClearAll={clearFilters} />
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <SortControl value={sort} onChange={setSort} />
+            <Button variant="secondary" size="icon" aria-label="Grid view">
+              <Grid2X2 className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
-      </header>
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-        <SearchBar value={search} onChange={setSearch} />
-        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          <MobileFilterSheet
-            activeFilterCount={activeChips.length}
-            filters={filters}
-            categories={mockCategories}
-            niches={mockNiches}
-            conditions={conditions}
-            onCategoryChange={setCategoryId}
-            onNicheChange={setNicheId}
-            onConditionChange={setCondition}
-            onStatusToggle={toggleStatus}
-            onPriceRangeChange={setPriceRange}
-            onCommunityContextChange={setCommunityContext}
-          />
-          <SortControl value={sort} onChange={setSort} />
-          <Button variant="secondary" size="icon" aria-label="Grid view">
-            <Grid2X2 className="size-4" aria-hidden="true" />
-          </Button>
+        <div className="flex flex-col gap-4">
+          {initialMode === "trade" ? (
+            <TradeTargetControl
+              value={tradeTarget}
+              options={tradeTargetOptions}
+              matchCount={visibleListings.length}
+              onChange={setTradeTarget}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {visibleListings.length} listings
+            </p>
+          )}
         </div>
-      </div>
 
-      <div className="flex flex-col gap-4 border-b border-border pb-5">
-        {initialMode === "trade" ? (
-          <TradeTargetControl
-            value={tradeTarget}
-            options={tradeTargetOptions}
-            matchCount={visibleListings.length}
-            onChange={setTradeTarget}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {visibleListings.length} listings
-          </p>
-        )}
-        <ActiveFilterChips chips={activeChips} onClearAll={clearFilters} />
-      </div>
-
-      <section>
-        {visibleListings.length > 0 ? (
-          <MarketplaceGrid listings={visibleListings} />
-        ) : (
-          <EmptyState
-            title="No listings match this view."
-            body="Try clearing a filter or switching modes."
-            primaryAction={
-              <Button onClick={clearFilters}>Clear filters</Button>
-            }
-            secondaryAction={
-              <Link
-                href="/add-item"
-                className={buttonVariants({ variant: "secondary" })}
-              >
-                Create Listing
-              </Link>
-            }
-          />
-        )}
-      </section>
-    </PageShell>
+        <section>
+          {visibleListings.length > 0 ? (
+            <MarketplaceGrid listings={visibleListings} />
+          ) : (
+            <EmptyState
+              title="No listings match this view."
+              body="Try clearing a filter or switching modes."
+              primaryAction={
+                <Button onClick={clearFilters}>Clear filters</Button>
+              }
+              secondaryAction={
+                <Link
+                  href="/add-item"
+                  className={buttonVariants({ variant: "secondary" })}
+                >
+                  Create Listing
+                </Link>
+              }
+            />
+          )}
+        </section>
+      </PageShell>
+    </>
   );
 }
 

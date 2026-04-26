@@ -7,7 +7,7 @@ type MarketplaceGridProps = {
 
 export function MarketplaceGrid({ listings }: MarketplaceGridProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {listings.map((listing) => (
         <ListingCard key={listing.id} {...listing} />
       ))}

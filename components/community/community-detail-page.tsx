@@ -2,12 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
+  Clock,
   Flame,
   MessageCircle,
   Plus,
   Share2,
   Shield,
   Sparkles,
+  ShoppingBag,
   Users,
 } from "lucide-react";
 import { ListingCard } from "@/components/listing/listing-card";
@@ -38,10 +41,12 @@ export function CommunityDetailPage({
   members,
   threads,
 }: CommunityDetailPageProps) {
-  const heroImage = listings[0]?.imageUrl ?? "/mock/listings/fender-twin-reverb.jpg";
+  const heroImage =
+    listings[0]?.imageUrl ?? "/mock/listings/fender-twin-reverb.jpg";
+  const memberCount = community.memberCount.replace(/\s*members?$/i, "");
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+    <div className="mx-auto w-full max-w-none px-4 py-8 sm:px-6 lg:px-12 lg:py-10">
       <Link
         href="/communities"
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
@@ -50,20 +55,26 @@ export function CommunityDetailPage({
         Back to communities
       </Link>
 
-      <section className="mt-6 overflow-hidden rounded-lg border border-border bg-surface">
-        <div className="relative min-h-64">
+      <section className="mt-6">
+        <div className="relative h-56 overflow-hidden rounded-lg border border-border bg-card md:h-72">
           <Image
             src={heroImage}
             alt=""
             fill
             priority
             sizes="(min-width: 1024px) 80vw, 100vw"
-            className="object-cover opacity-28"
+            className="object-cover opacity-70"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/45" />
-          <div className="relative p-6 lg:p-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl">
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-background/5" />
+        </div>
+
+        <Card className="relative z-10 mx-auto -mt-16 max-w-7xl rounded-lg p-5 shadow-card md:p-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex gap-4">
+              <div className="grid size-16 shrink-0 place-items-center rounded-lg border border-primary/25 bg-primary/10 text-primary md:size-20">
+                <Users className="size-8" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="default">{community.visibility}</Badge>
                   <Badge variant="outline">SN / MusicGear</Badge>
@@ -74,17 +85,28 @@ export function CommunityDetailPage({
                     </Badge>
                   ) : null}
                 </div>
-                <h1 className="mt-5 text-4xl font-semibold text-foreground">
+                <h1 className="mt-4 text-3xl font-semibold text-foreground md:text-4xl">
                   {community.name}
                 </h1>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
                   {community.description}
                 </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 lg:items-end">
+              <div className="grid grid-cols-3 gap-5">
+                <Metric label="Members" value={memberCount} />
+                <Metric label="Threads" value={threads.length.toString()} />
+                <Metric label="Listings" value={community.listingCount} />
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className={buttonVariants({ variant: "secondary", size: "sm" })}
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                  })}
                 >
                   <Share2 className="size-4" aria-hidden="true" />
                   Share
@@ -97,25 +119,38 @@ export function CommunityDetailPage({
                 </button>
               </div>
             </div>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <Metric label="Members" value={community.memberCount} />
-              <Metric label="Threads" value={threads.length.toString()} />
-              <Metric label="Listings" value={community.listingCount} />
-            </div>
           </div>
-        </div>
+
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-4">
+            <span className="rounded-md bg-secondary px-4 py-2 text-sm font-semibold text-foreground">
+              Main
+            </span>
+            <span className="rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground">
+              Talk
+              <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                {threads.length}
+              </span>
+            </span>
+            <span className="rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground">
+              Market
+              <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                {listings.length}
+              </span>
+            </span>
+          </div>
+        </Card>
       </section>
 
       <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-8">
           <section>
             <SectionHeader
+              icon={Flame}
               title="Community threads"
               href={`/communities/${community.slug}/threads/${threads[0]?.id ?? "thread"}`}
               cta="Open latest"
             />
-            <div className="space-y-3">
+            <div className="overflow-hidden rounded-lg border border-border bg-card">
               {threads.map((thread) => (
                 <ThreadRow
                   key={thread.id}
@@ -127,7 +162,12 @@ export function CommunityDetailPage({
           </section>
 
           <section>
-            <SectionHeader title="Community marketplace" href="/market" cta="View market" />
+            <SectionHeader
+              icon={ShoppingBag}
+              title="Community marketplace"
+              href="/market"
+              cta="View market"
+            />
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {listings.slice(0, 6).map((listing) => (
                 <ListingCard key={listing.id} {...listing} />
@@ -188,8 +228,10 @@ export function CommunityDetailPage({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-background/70 p-4">
-      <div className="text-2xl font-semibold text-foreground">{value}</div>
+    <div className="min-w-0">
+      <div className="truncate text-2xl font-semibold text-foreground">
+        {value}
+      </div>
       <div className="text-xs font-semibold uppercase text-muted-foreground">
         {label}
       </div>
@@ -200,17 +242,28 @@ function Metric({ label, value }: { label: string; value: string }) {
 function SectionHeader({
   cta,
   href,
+  icon: Icon,
   title,
 }: {
   cta: string;
   href: string;
+  icon: typeof Flame;
   title: string;
 }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-4">
-      <h2 className="text-2xl font-semibold text-foreground">{title}</h2>
-      <Link href={href} className="text-sm font-semibold text-accent">
+      <h2 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
+        <span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="size-5" aria-hidden="true" />
+        </span>
+        {title}
+      </h2>
+      <Link
+        href={href}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-accent"
+      >
         {cta}
+        <ArrowRight className="size-4" aria-hidden="true" />
       </Link>
     </div>
   );
@@ -227,9 +280,9 @@ function ThreadRow({
 
   return (
     <Link href={`/communities/${communitySlug}/threads/${thread.id}`}>
-      <Card variant="interactive" className="rounded-lg p-4">
+      <div className="border-b border-border p-4 transition last:border-b-0 hover:bg-secondary/35">
         <div className="flex gap-4">
-          <div className="grid size-11 shrink-0 place-items-center rounded-lg border border-accent/35 bg-accent/10 text-accent">
+          <div className="grid size-11 shrink-0 place-items-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
             <Icon className="size-5" aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
@@ -246,10 +299,17 @@ function ThreadRow({
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <span>{thread.score} votes</span>
               <span>{thread.commentCount} comments</span>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="size-3.5" aria-hidden="true" />
+                {new Date(thread.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
     </Link>
   );
 }
@@ -262,7 +322,7 @@ function MemberMiniRow({
   role: MockCommunityMembership["role"];
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/60 p-3">
       <div className="relative size-10 overflow-hidden rounded-full bg-muted">
         {profile?.avatarUrl ? (
           <Image

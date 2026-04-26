@@ -10,12 +10,18 @@ export function CollectionPreviewStrip({
   images,
   className,
 }: CollectionPreviewStripProps) {
+  const imageCount = images.length;
+
   return (
     <div className={cn("grid aspect-[4/3] grid-cols-2 gap-1", className)}>
       {images.slice(0, 4).map((image, index) => (
         <div
           key={`${image}-${index}`}
-          className="relative overflow-hidden bg-muted"
+          className={cn(
+            "relative overflow-hidden bg-muted",
+            imageCount === 1 && "col-span-2 row-span-2",
+            imageCount === 3 && index === 0 && "row-span-2",
+          )}
         >
           <Image
             src={image}

@@ -2,6 +2,19 @@
 
 This is a conceptual MVP data model. It should be updated when implementation decisions are made.
 
+## Mock data implementation
+
+The current frontend-only mock data lives in `/data/mock`.
+
+Rules:
+
+- mock data is deterministic and local to the repo
+- mock images live under `/public/mock`
+- community memberships and offers are explicit fixtures, not inferred only from labels or messages
+- the data mirrors the conceptual model below without introducing a database
+- page branches should import from `/data/mock` instead of hard-coding duplicate fixture objects
+- replacing these files with real API/database data should not require changing product component props
+
 ## Core entities
 
 ### User

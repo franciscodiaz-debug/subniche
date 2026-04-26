@@ -50,12 +50,13 @@ import { TradeMatchBadge } from "@/components/trade/trade-match-badge";
 import { TradeMatchCard } from "@/components/trade/trade-match-card";
 import { PageShell } from "@/components/layout/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
-
-const gearImages = [
-  "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?auto=format&fit=crop&w=900&q=80",
-];
+import {
+  featuredListingCards,
+  mockCollections,
+  mockCommunities,
+  mockProfiles,
+  mockTradeOpportunities,
+} from "@/data/mock";
 
 export default function ComponentLabPage() {
   return (
@@ -159,86 +160,34 @@ export default function ComponentLabPage() {
 
         <LabSection title="Listing Cards">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <ListingCard
-              id="sale"
-              title="1968 Fender Deluxe Reverb"
-              subtitle="Blackface circuit, serviced last year"
-              imageUrl={gearImages[0]}
-              price="$2,950"
-              priceMode="cash"
-              location="Portland, OR"
-              sellerName="Kyle K"
-              statuses={{ forSale: true }}
-              condition="Excellent"
-              communityContext={["Public Market", "Vintage Amp Circle"]}
-              isSaved
-            />
-            <ListingCard
-              id="trade"
-              title="Chase Bliss Mood MKII"
-              subtitle="Looking for tape delay or boutique modulation"
-              imageUrl={gearImages[1]}
-              priceMode="tradePreferred"
-              location="Seattle, WA"
-              sellerName="Mara"
-              statuses={{ forTrade: true }}
-              condition="Very Good"
-              tradeSummary="Open to EAE, Fairfield, or Asheville Music Tools."
-            />
-            <ListingCard
-              id="combo"
-              title="Collings I-35 LC"
-              subtitle="Collection piece, open to the right trade"
-              imageUrl={gearImages[2]}
-              price="$5,400"
-              priceMode="cashPlusTrade"
-              location="Bend, OR"
-              sellerName="Tone Archive"
-              statuses={{ inCollection: true, forSale: true, forTrade: true }}
-              condition="Excellent"
-              communityContext={["Semi-Hollow Club"]}
-            />
+            {featuredListingCards.slice(0, 3).map((listing) => (
+              <ListingCard key={listing.id} {...listing} />
+            ))}
           </div>
         </LabSection>
 
         <LabSection title="Profile, Collections, Trade, Community">
           <div className="space-y-4">
-            <ProfileHeader
-              displayName="Kyle K"
-              handle="@subnichefounder"
-              location="Portland, OR"
-              memberSince="Member since 2026"
-              bio="Guitar gear obsessive building a focused marketplace for people who care about provenance, condition, and trade fit."
-              stats={[
-                { label: "Listings", value: "12" },
-                { label: "Collection", value: "38" },
-                { label: "Trade interests", value: "7" },
-                { label: "Communities", value: "4" },
-              ]}
-              indicators={["Profile context", "Linked account", "Community member"]}
-              ownProfile
-            />
+            <ProfileHeader {...mockProfiles[0]} />
             <div className="grid gap-4 lg:grid-cols-3">
               <CollectionCard
-                title="Studio Workhorses"
-                ownerName="Kyle K"
-                itemCount={18}
-                description="Pieces that actually stay wired into the working studio."
-                images={gearImages}
+                title={mockCollections[0].title}
+                ownerName={mockProfiles[0].displayName}
+                itemCount={mockCollections[0].itemCount}
+                description={mockCollections[0].description}
+                images={mockCollections[0].images}
+                visibility={mockCollections[0].visibility}
+                href={mockCollections[0].href}
               />
-              <TradeMatchCard
-                matchType="trueMatch"
-                userItem="Chase Bliss Mood MKII"
-                otherItem="Fairfield Circuitry Shallow Water"
-                cashAdjustment="$125 from them"
-                reason="Both listings satisfy explicit brand and condition criteria."
-              />
+              <TradeMatchCard {...mockTradeOpportunities[0]} />
               <CommunityCard
-                name="Pedal Builders Guild"
+                name={mockCommunities[1].name}
                 niche="Music Gear"
-                description="A focused space for boutique pedal builders, collectors, and repeat traders."
-                memberCount="842 members"
-                listingCount="126"
+                description={mockCommunities[1].description}
+                memberCount={mockCommunities[1].memberCount}
+                listingCount={mockCommunities[1].listingCount}
+                visibility={mockCommunities[1].visibility}
+                href={`/communities/${mockCommunities[1].slug}`}
               />
             </div>
           </div>

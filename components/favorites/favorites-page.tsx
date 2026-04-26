@@ -117,16 +117,16 @@ export function FavoritesPage({
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col gap-6 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-lg border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold uppercase text-accent">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold uppercase text-accent">
             <Heart className="size-3.5" aria-hidden="true" />
             Following
           </div>
-          <h1 className="mt-4 text-3xl font-semibold text-foreground">
+          <h1 className="mt-4 text-4xl font-semibold text-foreground md:text-5xl">
             Favorites
           </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-3 max-w-3xl text-lg leading-8 text-muted-foreground">
             Followed listings, collections, people, and saved searches with the
             updates that explain why they matter.
           </p>
@@ -140,16 +140,26 @@ export function FavoritesPage({
 
       <Tabs defaultValue="feed" className="mt-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <TabsList className="w-full overflow-x-auto lg:w-auto">
-            <TabsTrigger value="feed">Feed</TabsTrigger>
-            <TabsTrigger value="items">Items</TabsTrigger>
-            <TabsTrigger value="collections">Collections</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="searches">Searches</TabsTrigger>
+          <TabsList className="w-full overflow-x-auto rounded-none border-0 bg-transparent p-0 lg:w-auto">
+            {[
+              ["feed", "Feed"],
+              ["items", "Items"],
+              ["collections", "Collections"],
+              ["users", "Users"],
+              ["searches", "Searches"],
+            ].map(([value, label]) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="relative mr-8 rounded-none bg-transparent px-0 py-3 text-xl font-semibold shadow-none after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
           <button
             type="button"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-muted-foreground"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-sm font-semibold text-muted-foreground"
           >
             <Clock3 className="size-4" aria-hidden="true" />
             Most recent activity

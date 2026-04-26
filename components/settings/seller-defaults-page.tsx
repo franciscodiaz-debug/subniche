@@ -27,19 +27,19 @@ export function SellerDefaultsPage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-lg border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold uppercase text-accent">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold uppercase text-accent">
             <Truck className="size-3.5" aria-hidden="true" />
             Selling
           </div>
           <div className="mt-4 flex items-center gap-3">
-            <h2 className="text-3xl font-semibold text-foreground">
+            <h1 className="text-4xl font-semibold text-foreground md:text-5xl">
               Seller defaults
-            </h2>
+            </h1>
             <Tooltip label="Defaults prefill new item forms and can still be changed per listing.">
               <Info className="size-5 text-muted-foreground" aria-hidden="true" />
             </Tooltip>
           </div>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">
             Keep common payment, logistics, and return policy details ready so
             new listings can stay focused on condition, provenance, and trade
             fit.
@@ -48,14 +48,22 @@ export function SellerDefaultsPage() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className={buttonVariants({ variant: "secondary", size: "sm" })}
+            className={buttonVariants({
+              variant: "outline",
+              size: "sm",
+              className: "rounded-full bg-transparent",
+            })}
           >
             <RotateCcw className="size-4" aria-hidden="true" />
             Reset changes
           </button>
           <button
             type="button"
-            className={buttonVariants({ variant: "primary", size: "sm" })}
+            className={buttonVariants({
+              variant: "primary",
+              size: "sm",
+              className: "rounded-full",
+            })}
           >
             <Save className="size-4" aria-hidden="true" />
             Save defaults

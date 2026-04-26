@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 import type { MarketplaceMode } from "@/lib/marketplace-filters";
 import { cn } from "@/lib/utils";
 
@@ -9,31 +8,32 @@ type MarketplaceModeToggleProps = {
 
 export function MarketplaceModeToggle({ mode }: MarketplaceModeToggleProps) {
   return (
-    <div className="grid grid-cols-2 rounded-lg border border-border bg-background p-1">
+    <nav
+      className="flex border-b border-border"
+      aria-label="Marketplace mode"
+    >
       <Link
         href="/market"
         className={cn(
-          buttonVariants({
-            variant: mode === "market" ? "primary" : "ghost",
-            size: "sm",
-          }),
-          "rounded-md",
+          "min-w-28 border-b-2 px-2 pb-4 text-lg font-semibold transition sm:min-w-36 sm:text-xl",
+          mode === "market"
+            ? "border-accent text-foreground"
+            : "border-transparent text-muted-foreground hover:text-foreground",
         )}
       >
-        Market
+        For Sale
       </Link>
       <Link
         href="/trade"
         className={cn(
-          buttonVariants({
-            variant: mode === "trade" ? "primary" : "ghost",
-            size: "sm",
-          }),
-          "rounded-md",
+          "min-w-28 border-b-2 px-2 pb-4 text-lg font-semibold transition sm:min-w-36 sm:text-xl",
+          mode === "trade"
+            ? "border-accent text-foreground"
+            : "border-transparent text-muted-foreground hover:text-foreground",
         )}
       >
         Trade
       </Link>
-    </div>
+    </nav>
   );
 }

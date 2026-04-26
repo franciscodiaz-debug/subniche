@@ -2,26 +2,24 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRightLeft, Plus } from "lucide-react";
+import { Grid2X2, Plus, Telescope } from "lucide-react";
 import { ActiveFilterChips } from "@/components/marketplace/active-filter-chips";
-import { FilterPanel } from "@/components/marketplace/filter-panel";
 import { MarketplaceGrid } from "@/components/marketplace/marketplace-grid";
 import { MarketplaceModeToggle } from "@/components/marketplace/marketplace-mode-toggle";
 import { MobileFilterSheet } from "@/components/marketplace/mobile-filter-sheet";
 import { SearchBar } from "@/components/marketplace/search-bar";
 import { SortControl } from "@/components/marketplace/sort-control";
 import { PageShell } from "@/components/layout/page-shell";
-import { TradeMatchCard } from "@/components/trade/trade-match-card";
 import { buttonVariants, Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Select } from "@/components/ui/select";
 import {
   mockCategories,
   mockListings,
   mockNiches,
   mockTradeOpportunities,
 } from "@/data/mock";
+import type { MockListing } from "@/data/mock/types";
 import {
   filterListings,
   sortListings,
@@ -32,7 +30,6 @@ import {
   type PriceRangeFilter,
   type SortOption,
 } from "@/lib/marketplace-filters";
-import { cn } from "@/lib/utils";
 
 type MarketplacePageProps = {
   initialMode: MarketplaceMode;
@@ -63,6 +60,7 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [nicheId, setNicheId] = useState("all");
+  const [tradeTarget, setTradeTarget] = useState("all");
   const [statusFilters, setStatusFilters] = useState<
     Set<ListingStatusFilter>
   >(() => new Set(initialMode === "trade" ? ["forTrade"] : []));
@@ -107,19 +105,38 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
     [],
   );
 
-  const visibleListings = useMemo(() => {
-    const filtered = filterListings(mockListings, filters, mockCategories);
-    return sortListings(filtered, sort, mockTradeOpportunities);
-  }, [filters, sort]);
-
   const tradeReadyCount = mockListings.filter(
     (listing) => listing.statuses.forTrade,
   ).length;
-  const communityListingCount = mockListings.filter((listing) =>
-    listing.publishingContexts.some(
-      (context) => context.type === "community_market",
-    ),
-  ).length;
+
+  const tradeTargetOptions = useMemo(
+    () => [
+      {
+        id: "all",
+        label: "All items",
+        meta: `${tradeReadyCount} matches`,
+      },
+      ...mockTradeOpportunities.map((opportunity) => ({
+        id: opportunity.id,
+        label: opportunity.userItem,
+        meta: `${getTradeTargetMatchCount(opportunity.id)} matches`,
+      })),
+    ],
+    [tradeReadyCount],
+  );
+
+  const filteredListings = useMemo(() => {
+    return filterListings(mockListings, filters, mockCategories);
+  }, [filters]);
+
+  const visibleListings = useMemo(() => {
+    const targetFiltered =
+      initialMode === "trade"
+        ? filterByTradeTarget(filteredListings, tradeTarget)
+        : filteredListings;
+
+    return sortListings(targetFiltered, sort, mockTradeOpportunities);
+  }, [filteredListings, initialMode, sort, tradeTarget]);
 
   const activeChips = [
     search
@@ -190,6 +207,7 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
     setSearch("");
     setCategoryId("all");
     setNicheId("all");
+    setTradeTarget("all");
     setCondition("all");
     setPriceRange("all");
     setCommunityContext("all");
@@ -198,97 +216,32 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
 
   return (
     <PageShell className="space-y-6">
-      <SectionHeader
-        eyebrow={initialMode === "trade" ? "Trade Mode" : "Music Gear Market"}
-        title={
-          initialMode === "trade"
-            ? "Find trade-ready gear."
-            : "Find the gear your people actually care about."
-        }
-        description={
-          initialMode === "trade"
-            ? "Browse items with trade intent and see the difference between true matches, inbound interest, and suggestions."
-            : "Browse niche-specific listings with trade context, collections, and community signals built in."
-        }
-        action={
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-5">
+          <div className="flex items-center gap-3">
+            <Telescope className="size-8 text-accent" aria-hidden="true" />
+            <h1 className="text-3xl font-bold tracking-normal text-foreground">
+              Market
+            </h1>
+          </div>
+          <MarketplaceModeToggle mode={initialMode} />
+        </div>
+        <div className="sm:pt-1">
           <Link
             href="/add-item"
-            className={buttonVariants({ variant: "primary" })}
+            className={buttonVariants({ variant: "secondary", size: "lg" })}
           >
             <Plus className="size-4" aria-hidden="true" />
-            Create Listing
+            Add Item
           </Link>
-        }
-      />
-
-      <div className="grid gap-3 md:grid-cols-3">
-        <ContextStat label="Niche" value="Music Gear" />
-        <ContextStat label="Trade-ready" value={`${tradeReadyCount} listings`} />
-        <ContextStat
-          label="Community context"
-          value={`${communityListingCount} listings`}
-        />
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        <CategoryPill
-          active={categoryId === "all"}
-          label="Music Gear"
-          onClick={() => setCategoryId("all")}
-        />
-        {mockCategories.map((category) => (
-          <CategoryPill
-            key={category.id}
-            active={categoryId === category.id}
-            label={category.name}
-            onClick={() => setCategoryId(category.id)}
-          />
-        ))}
-      </div>
-
-      {initialMode === "trade" ? (
-        <section className="grid gap-4 lg:grid-cols-3">
-          {mockTradeOpportunities.map((opportunity) => (
-            <TradeMatchCard key={opportunity.id} {...opportunity} />
-          ))}
-        </section>
-      ) : null}
-
-      <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
-        <SearchBar value={search} onChange={setSearch} />
-        <MarketplaceModeToggle mode={initialMode} />
-        <SortControl value={sort} onChange={setSort} />
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <ActiveFilterChips
-          chips={activeChips}
-          onClearAll={clearFilters}
-        />
-        <div className="flex items-center gap-3 sm:ml-auto">
-          <span className="text-sm text-muted-foreground">
-            {visibleListings.length} listings
-          </span>
-          <div className="lg:hidden">
-            <MobileFilterSheet
-              filters={filters}
-              categories={mockCategories}
-              niches={mockNiches}
-              conditions={conditions}
-              onCategoryChange={setCategoryId}
-              onNicheChange={setNicheId}
-              onConditionChange={setCondition}
-              onStatusToggle={toggleStatus}
-              onPriceRangeChange={setPriceRange}
-              onCommunityContextChange={setCommunityContext}
-            />
-          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="hidden lg:block">
-          <FilterPanel
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <SearchBar value={search} onChange={setSearch} />
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          <MobileFilterSheet
+            activeFilterCount={activeChips.length}
             filters={filters}
             categories={mockCategories}
             niches={mockNiches}
@@ -300,8 +253,30 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
             onPriceRangeChange={setPriceRange}
             onCommunityContextChange={setCommunityContext}
           />
-        </aside>
+          <SortControl value={sort} onChange={setSort} />
+          <Button variant="secondary" size="icon" aria-label="Grid view">
+            <Grid2X2 className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
 
+      <div className="flex flex-col gap-4 border-b border-border pb-5">
+        {initialMode === "trade" ? (
+          <TradeTargetControl
+            value={tradeTarget}
+            options={tradeTargetOptions}
+            matchCount={visibleListings.length}
+            onChange={setTradeTarget}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {visibleListings.length} listings
+          </p>
+        )}
+        <ActiveFilterChips chips={activeChips} onClearAll={clearFilters} />
+      </div>
+
+      <section>
         {visibleListings.length > 0 ? (
           <MarketplaceGrid listings={visibleListings} />
         ) : (
@@ -321,46 +296,69 @@ export function MarketplacePage({ initialMode }: MarketplacePageProps) {
             }
           />
         )}
-      </div>
+      </section>
     </PageShell>
   );
 }
 
-function ContextStat({ label, value }: { label: string; value: string }) {
+function TradeTargetControl({
+  value,
+  options,
+  matchCount,
+  onChange,
+}: {
+  value: string;
+  options: Array<{ id: string; label: string; meta: string }>;
+  matchCount: number;
+  onChange: (value: string) => void;
+}) {
   return (
-    <Card className="p-4">
-      <div className="text-xs font-semibold uppercase text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-foreground">
-        <ArrowRightLeft className="size-4 text-accent" aria-hidden="true" />
-        {value}
-      </div>
-    </Card>
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <span className="text-sm font-medium text-muted-foreground">For</span>
+      <Select
+        aria-label="Trade target"
+        className="min-w-52 bg-surface font-semibold"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label} - {option.meta}
+          </option>
+        ))}
+      </Select>
+      <span className="text-sm text-muted-foreground">
+        {matchCount} matches
+      </span>
+    </div>
   );
 }
 
-function CategoryPill({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "h-9 shrink-0 rounded-lg border px-3 text-sm font-semibold transition",
-        active
-          ? "border-accent/60 bg-primary text-primary-foreground"
-          : "border-border bg-surface text-muted-foreground hover:border-accent/45 hover:text-foreground",
-      )}
-      onClick={onClick}
-    >
-      {label}
-    </button>
+function filterByTradeTarget(
+  listings: MockListing[],
+  tradeTarget: string,
+) {
+  if (tradeTarget === "all") {
+    return listings;
+  }
+
+  const opportunity = mockTradeOpportunities.find(
+    (item) => item.id === tradeTarget,
   );
+
+  if (!opportunity) {
+    return listings;
+  }
+
+  const searchable = [opportunity.userItem, opportunity.otherItem]
+    .join(" ")
+    .toLowerCase();
+
+  return listings.filter((listing) =>
+    searchable.includes(listing.title.toLowerCase()),
+  );
+}
+
+function getTradeTargetMatchCount(tradeTarget: string) {
+  return filterByTradeTarget(mockListings, tradeTarget).length;
 }

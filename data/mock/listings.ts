@@ -13,6 +13,8 @@ export const mockListings: MockListing[] = [
     title: "Fender American Pro II Stratocaster",
     subtitle: "Sunburst, 2022, near mint",
     brand: "Fender",
+    description:
+      "A clean American Pro II Strat from Kyle's working collection. It has lived mostly in a smoke-free studio, with light play wear and a recent setup. Kyle is willing to sell, but would rather talk to someone with a serviced Fender amp or an interesting modulation trade.",
     imageUrl: "/mock/listings/fender-stratocaster-sunburst.jpg",
     images: ["/mock/listings/fender-stratocaster-sunburst.jpg"],
     price: "$1,749",
@@ -50,6 +52,8 @@ export const mockListings: MockListing[] = [
     title: "Gibson Les Paul Standard '50s",
     subtitle: "Gold Top, 2023, original case",
     brand: "Gibson",
+    description:
+      "Modern '50s Standard with the original case and paperwork. Tone Archive is listing it as a straight sale and has kept the condition notes simple so a buyer can evaluate the guitar without sorting through generic sales copy.",
     imageUrl: "/mock/listings/gibson-les-paul-goldtop.jpg",
     images: ["/mock/listings/gibson-les-paul-goldtop.jpg"],
     price: "$2,499",
@@ -77,6 +81,8 @@ export const mockListings: MockListing[] = [
     title: "Martin D-28",
     subtitle: "Solid Sitka, 2020, fresh setup",
     brand: "Martin",
+    description:
+      "A stage-ready D-28 with a fresh setup and stable neck relief. Mara kept this in rotation for writing sessions, and the listing is visible through Acoustic Corner because the condition and bracing details matter to that community.",
     imageUrl: "/mock/listings/martin-d28-natural.jpg",
     images: ["/mock/listings/martin-d28-natural.jpg"],
     price: "$3,199",
@@ -110,6 +116,8 @@ export const mockListings: MockListing[] = [
     title: "Taylor 814ce Builder's Edition",
     subtitle: "V-Class bracing, natural finish",
     brand: "Taylor",
+    description:
+      "A clean Builder's Edition 814ce with the ergonomic bevels and V-Class projection people expect from this model. The listing is meant for acoustic buyers who care about stage electronics and modern construction details.",
     imageUrl: "/mock/listings/taylor-814ce.jpg",
     images: ["/mock/listings/taylor-814ce.jpg"],
     price: "$3,899",
@@ -143,6 +151,8 @@ export const mockListings: MockListing[] = [
     title: "PRS Custom 24 10-Top",
     subtitle: "Pattern neck, cobalt blue",
     brand: "PRS",
+    description:
+      "A figured-maple PRS Custom 24 with a cobalt finish and a flexible trade posture. Mara is open to cash, but this is also a strong candidate for higher-signal trades where both sides understand the value range.",
     imageUrl: "/mock/listings/prs-custom-24-blue.jpg",
     images: ["/mock/listings/prs-custom-24-blue.jpg"],
     price: "$3,499",
@@ -172,6 +182,8 @@ export const mockListings: MockListing[] = [
     title: "Mesa Boogie Dual Rectifier",
     subtitle: "100W head, recently retubed",
     brand: "Mesa Boogie",
+    description:
+      "A reliable Dual Rectifier head from Kyle's collection. It was retubed in 2025 and is marked trade-preferred because Kyle is specifically looking for cleaner Fender-style combos, not broad 'anything interesting' offers.",
     imageUrl: "/mock/listings/mesa-dual-rectifier.jpg",
     images: ["/mock/listings/mesa-dual-rectifier.jpg"],
     price: "$1,800",
@@ -206,6 +218,8 @@ export const mockListings: MockListing[] = [
     title: "Strymon BigSky Reverb",
     subtitle: "Mint, with box and power supply",
     brand: "Strymon",
+    description:
+      "Mint BigSky with the box and power supply. Mara is listing it through Pedal Builders Guild because pedal condition, power details, and whether it has lived on a board are the kinds of context buyers ask about first.",
     imageUrl: "/mock/listings/strymon-bigsky.jpg",
     images: ["/mock/listings/strymon-bigsky.jpg"],
     price: "$479",
@@ -239,6 +253,8 @@ export const mockListings: MockListing[] = [
     title: "Fender '65 Twin Reverb Reissue",
     subtitle: "85W tube combo, Jensen speakers",
     brand: "Fender",
+    description:
+      "A loud, clean Twin Reverb reissue that Tone Archive would sell or trade down from. The trade summary is specific because this should read as an explicit trade posture, not a generic open-ended swap note.",
     imageUrl: "/mock/listings/fender-twin-reverb.jpg",
     images: ["/mock/listings/fender-twin-reverb.jpg"],
     price: "$1,699",
@@ -274,6 +290,8 @@ export const mockListings: MockListing[] = [
     title: "Rickenbacker 360 Fireglo",
     subtitle: "Excellent condition, collection piece",
     brand: "Rickenbacker",
+    description:
+      "A wanted listing for a clean Fireglo 360. This is not owned inventory; it represents what Tone Archive is actively looking for and should be treated differently from a normal item for sale.",
     imageUrl: "/mock/listings/rickenbacker-360-fireglo.jpg",
     images: ["/mock/listings/rickenbacker-360-fireglo.jpg"],
     priceMode: "wanted",

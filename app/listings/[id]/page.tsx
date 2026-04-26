@@ -1,5 +1,6 @@
-import { PageShell } from "@/components/layout/page-shell";
-import { SectionHeader } from "@/components/ui/section-header";
+import { notFound } from "next/navigation";
+import { ListingDetailPage } from "@/components/listing/listing-detail-page";
+import { getMockListingById, mockListings } from "@/data/mock";
 
 type ListingPageProps = {
   params: Promise<{
@@ -9,14 +10,17 @@ type ListingPageProps = {
 
 export default async function ListingPage({ params }: ListingPageProps) {
   const { id } = await params;
+  const listing = getMockListingById(id);
 
-  return (
-    <PageShell>
-      <SectionHeader
-        eyebrow="Listing detail"
-        title={`Listing ${id}`}
-        description="This placeholder confirms the dynamic listing route. Image gallery, seller trust context, action panel, and related listings are deferred."
-      />
-    </PageShell>
-  );
+  if (!listing) {
+    notFound();
+  }
+
+  return <ListingDetailPage listing={listing} />;
+}
+
+export function generateStaticParams() {
+  return mockListings.map((listing) => ({
+    id: listing.id,
+  }));
 }

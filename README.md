@@ -22,3 +22,40 @@ The product combines:
 Build from shared product rules, design-system rules, and reusable components.
 
 Do not build isolated one-off pages that drift from the rest of the product.
+
+## Local development
+
+This project uses Next.js App Router, React, TypeScript, Tailwind CSS, and local shadcn-style primitives.
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the local app:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```txt
+http://localhost:3000
+```
+
+Useful checks:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Branch workflow:
+
+- Work in focused `feature/*` branches.
+- Merge feature branches into `develop`.
+- Keep `main` protected and production-safe.
+- Treat `/v0-reference` as reference material only, not production source.

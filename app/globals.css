@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-card: var(--shadow-card);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+:root {
+  color-scheme: dark;
+  --background: #090d14;
+  --foreground: #f5f2ea;
+  --sidebar: #0d121b;
+  --surface: #131a25;
+  --muted: #1b2533;
+  --muted-foreground: #9aa4b2;
+  --border: #273244;
+  --primary: #d7a84f;
+  --primary-foreground: #141008;
+  --accent: #d7a84f;
+  --success: #78b892;
+  --info: #7aa7d9;
+  --warning: #d5a24a;
+  --destructive: #e06f6f;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --shadow-soft: 0 20px 60px rgb(0 0 0 / 0.3);
+  --shadow-card: 0 12px 32px rgb(0 0 0 / 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgb(215 168 79 / 0.12), transparent 34rem),
+    radial-gradient(circle at bottom right, rgb(122 167 217 / 0.08), transparent 30rem),
+    var(--background);
+  color: var(--foreground);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgb(215 168 79 / 0.28);
+  color: var(--foreground);
+}

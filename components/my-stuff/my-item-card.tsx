@@ -311,11 +311,11 @@ export function MyItemGridCard({ item }: { item: MyItem }) {
   const imageSrc = item.images[0] || "/placeholder.svg"
 
   return (
-    <div className={cn("group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/50", item.sold && "opacity-75 hover:opacity-100")}>
+    <div className={cn("group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/40", item.sold && "opacity-75 hover:opacity-100")}>
       <div className="relative">
         <Link href={href} className="block">
           <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-            <Image src={imageSrc} alt={item.title} fill className="object-cover transition-transform group-hover:scale-[1.02]" />
+            <Image src={imageSrc} alt={item.title} fill className="object-cover transition-transform group-hover:scale-105" />
           </div>
         </Link>
         <div className="absolute right-2 top-2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">

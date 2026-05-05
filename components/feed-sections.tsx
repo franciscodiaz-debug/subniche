@@ -62,7 +62,7 @@ export function TrendingSection() {
       <HomeSectionHeader
         icon={<TrendingUp className="h-5 w-5 text-primary" />}
         title="Trending Now"
-        href="/explore?sort=trending"
+        href="/market?sort=trending"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
@@ -143,7 +143,7 @@ export function JustListedSection() {
       <HomeSectionHeader
         icon={<Zap className="h-5 w-5 text-primary" />}
         title="Just Listed"
-        href="/explore?sort=just-listed"
+        href="/market?sort=just-listed"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
@@ -253,7 +253,7 @@ export function FollowedItemsSection() {
       <HomeSectionHeader
         icon={<Heart className="h-5 w-5 text-primary" />}
         title="Items You're Following"
-        href="/explore?sort=following"
+        href="/market?sort=following"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">

@@ -151,11 +151,10 @@ export default function HomePage() {
           <FollowedItemsSection />
           <CollectionsSection />
           <CommunitiesSection />
-
-          <CaughtUpDivider />
-
           <TrendingSection />
           <JustListedSection />
+
+          <CaughtUpDivider />
         </div>
       </>
     )
@@ -178,11 +177,10 @@ export default function HomePage() {
         <FollowedItemsSection />
         <CollectionsSection />
         <CommunitiesSection />
-
-        <CaughtUpDivider />
-
         <TrendingSection />
         <JustListedSection />
+
+        <CaughtUpDivider />
       </div>
     </>
   )

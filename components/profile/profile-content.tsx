@@ -32,7 +32,7 @@ import type {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { CollectionCard } from "@/components/collection-card"
-import { ListingCard } from "@/components/listing-card"
+import { ItemCard } from "@/components/item-card"
 import { ProfileEditView } from "./profile-edit-view"
 import { ProfileMobileSheet } from "./profile-mobile-sheet"
 import { ProfileNicheSwitcher } from "./profile-niche-switcher"
@@ -269,12 +269,15 @@ export function ProfileContent() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {profilePageData.forSaleItems.map((item) => (
-              <ListingCard
+              <ItemCard
                 key={item.id}
+                id={item.id}
                 image={item.imageUrl}
                 title={item.title}
                 subtitle={item.subtitle}
                 price={item.price}
+                forSale={item.forSale}
+                forTrade={item.forTrade}
                 href={`/listings/${item.id}`}
               />
             ))}
@@ -314,11 +317,13 @@ export function ProfileContent() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {profilePageData.lookingForItems.map((item) => (
-                  <ListingCard
+                  <ItemCard
                     key={item.id}
+                    id={item.id}
                     image={item.imageUrl}
                     title={item.title}
                     subtitle={item.subtitle}
+                    href={`/listings/${item.id}`}
                   />
                 ))}
               </div>

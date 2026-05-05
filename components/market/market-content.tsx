@@ -14,7 +14,9 @@ import {
 import { cn } from "@/lib/utils"
 import { exploreItems, type ExploreItem } from "@/lib/explore-data"
 import { ItemCard } from "@/components/item-card"
+import { GridDensitySelector } from "@/components/shared/grid-density-selector"
 import { MarketTabs } from "@/components/shared/market-tabs"
+import { gridDensityConfig, useGridDensity } from "@/hooks/use-grid-density"
 import { useRequestNavCollapse } from "@/hooks/use-nav-collapse-request"
 import {
   MarketFilterSidebar,
@@ -53,6 +55,7 @@ export function MarketContent() {
   const [sort, setSort] = useState<SortMode>(initialSort)
   const [secondarySort, setSecondarySort] = useState<SecondarySort>("default")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { gridDensity } = useGridDensity()
   const [filters, setFilters] = useState<MarketFilterState>(initialMarketFilters)
 
   useRequestNavCollapse("market-filters", sidebarOpen)
@@ -162,7 +165,7 @@ export function MarketContent() {
           sidebarOpen ? "lg:ml-[280px]" : "lg:ml-0",
         )}
       >
-        <div className="mx-auto max-w-7xl p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl px-4 pb-8 pt-3 md:px-8">
           <div className="mb-4">
             <div className="flex items-center gap-2">
               <Telescope className="h-6 w-6 text-primary" />
@@ -215,7 +218,8 @@ export function MarketContent() {
               })}
             </div>
 
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <GridDensitySelector />
               <label className="sr-only" htmlFor="market-secondary-sort">
                 Sort
               </label>
@@ -241,7 +245,7 @@ export function MarketContent() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className={gridDensityConfig[gridDensity].gridClass}>
               {items.map((item) => (
                 <ItemCard
                   key={item.id}

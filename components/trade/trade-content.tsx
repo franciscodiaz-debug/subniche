@@ -19,7 +19,7 @@ import {
   gridDensityConfig,
   useGridDensity,
 } from "@/hooks/use-grid-density"
-import { TradeInterestCard } from "@/components/trade-interest-card"
+import { ItemCard } from "@/components/item-card"
 import { TradeItemSelector } from "@/components/trade/trade-item-selector"
 import { TradeInterestsView } from "@/components/trade/trade-interests-view"
 
@@ -201,7 +201,7 @@ export function TradeContent() {
   }
 
   return (
-    <div className="px-4 pb-6 pt-3 md:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-8 pt-3 md:px-8">
       <div className="mb-4 flex items-center gap-2">
         <Telescope className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">Market</h1>
@@ -249,23 +249,34 @@ export function TradeContent() {
         </div>
       ) : (
         <div className={gridDensityConfig[gridDensity].gridClass}>
-          {displayEntries.map((entry) =>
-            entry.kind === "perfect" ? (
-              <TradeInterestCard
+          {displayEntries.map((entry) => {
+            const item = entry.data.their_item
+            const href = `/${item.type === "listing" ? "listings" : "collection"}/${item.id}`
+            return (
+              <ItemCard
                 key={entry.key}
-                type="perfect"
-                data={entry.data as (typeof tradePerfectMatches)[number]}
-                matchedItems={entry.matchedItems}
+                id={item.id}
+                image={item.images[0] ?? ""}
+                title={item.title}
+                subtitle={item.subtitle}
+                price={item.price}
+                location={item.user?.location}
+                forTrade
+                href={href}
+                collections={item.published_groups?.map((g) => ({
+                  id: g.id,
+                  name: g.name,
+                  icon: g.icon,
+                }))}
+                match={{
+                  score: entry.data.match_score,
+                  matchedItems: entry.matchedItems,
+                  fallbackItemTitle: entry.data.my_item.title,
+                  direction: entry.kind === "perfect" ? "mutual" : "inbound",
+                }}
               />
-            ) : (
-              <TradeInterestCard
-                key={entry.key}
-                type="inbound"
-                data={entry.data as (typeof tradeInboundInterests)[number]}
-                matchedItems={entry.matchedItems}
-              />
-            ),
-          )}
+            )
+          })}
         </div>
       )}
 

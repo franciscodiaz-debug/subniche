@@ -12,6 +12,7 @@ import {
   Pencil,
   Repeat2,
   Share2,
+  Tag,
   Trash2,
 } from "lucide-react"
 
@@ -309,39 +310,51 @@ export function MyItemRow({ item }: { item: MyItem }) {
 export function MyItemGridCard({ item }: { item: MyItem }) {
   const href = `/listings/${item.id}`
   const imageSrc = item.images[0] || "/placeholder.svg"
+  const hasStatus = item.for_sale || item.for_trade
 
   return (
-    <div className={cn("group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/40", item.sold && "opacity-75 hover:opacity-100")}>
-      <div className="relative">
-        <Link href={href} className="block">
-          <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-            <Image src={imageSrc} alt={item.title} fill className="object-cover transition-transform group-hover:scale-105" />
-          </div>
+    <div className={cn("group rounded-lg border border-border bg-card transition-all hover:border-primary/50", item.sold && "opacity-75")}>
+      <div className="relative aspect-[4/3] rounded-t-lg">
+        <Link href={href} className="absolute inset-0 block overflow-hidden rounded-t-lg">
+          <Image src={imageSrc} alt={item.title} fill className="object-cover transition-transform group-hover:scale-105" />
         </Link>
-        <div className="absolute right-2 top-2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+        <div className="absolute right-2 top-2 z-20 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
           <ActionsMenu item={item} variant="overlay" />
         </div>
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <Link href={href} className="block min-w-0">
-          <h3 className="truncate font-medium text-foreground transition-colors group-hover:text-primary">{item.title}</h3>
-          {item.subtitle && <p className="mt-0.5 truncate text-sm text-muted-foreground">{item.subtitle}</p>}
+
+      <div className="space-y-1.5 p-3">
+        <Link href={href} className="block">
+          <h3 className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+            {item.title}
+          </h3>
+          {item.subtitle ? (
+            <p className="truncate text-xs text-muted-foreground">{item.subtitle}</p>
+          ) : null}
         </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+
+        <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
           <CollectionChip item={item} />
         </div>
-        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-          <span className={cn("font-medium", item.price != null ? "text-foreground" : "text-muted-foreground")}>
-            {item.price != null ? `$${item.price.toLocaleString()}` : "Unknown"}
-          </span>
-          {item.for_sale || item.for_trade ? (
-            <span className="inline-flex items-center gap-1.5">
-              {item.for_sale && <DollarSign className="h-3.5 w-3.5 text-status-success" strokeWidth={2.25} aria-label="Listed for sale" />}
-              {item.for_trade && <Repeat2 className="h-3.5 w-3.5 text-status-info" strokeWidth={2.25} aria-label="Open to trades" />}
+
+        <div className="flex items-center gap-2">
+          {hasStatus ? (
+            <span className="inline-flex items-center gap-1">
+              {item.for_sale ? (
+                <span title="For Sale" aria-label="For Sale" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-status-success/15 text-status-success">
+                  <Tag className="h-2.5 w-2.5" />
+                </span>
+              ) : null}
+              {item.for_trade ? (
+                <span title="For Trade" aria-label="For Trade" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-status-info/15 text-status-info">
+                  <Repeat2 className="h-2.5 w-2.5" />
+                </span>
+              ) : null}
             </span>
-          ) : (
-            <span className="text-xs font-medium text-muted-foreground">Private</span>
-          )}
+          ) : null}
+          {item.price != null ? (
+            <p className="text-sm font-semibold text-primary">${item.price.toLocaleString()}</p>
+          ) : null}
         </div>
       </div>
     </div>

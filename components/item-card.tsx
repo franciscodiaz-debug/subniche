@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronDown, Heart, MapPin, Repeat2, Tag } from "lucide-react"
+import { ArrowRightFromLine, ChevronDown, Heart, MapPin, Repeat2, Tag } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -25,6 +25,7 @@ export interface ItemCardMatch {
   matchedItems: ItemCardMatchedItem[]
   fallbackItemTitle?: string
   showScoreOnboarding?: boolean
+  direction?: "mutual" | "inbound"
 }
 
 export interface ItemCardProps {
@@ -102,6 +103,8 @@ function WatchlistButton({
 function MatchBadge({ match }: { match: ItemCardMatch }) {
   const [open, setOpen] = useState(false)
   const isMulti = match.matchedItems.length > 1
+  const direction = match.direction ?? "mutual"
+  const MatchIcon = direction === "inbound" ? ArrowRightFromLine : Repeat2
   const singleItemTitle =
     match.matchedItems[0]?.title ?? match.fallbackItemTitle ?? ""
 
@@ -139,16 +142,21 @@ function MatchBadge({ match }: { match: ItemCardMatch }) {
     ? `${match.matchedItems.length} of yours`
     : singleItemTitle
 
+  const pillColor =
+    direction === "inbound"
+      ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+      : getScoreColor(match.score)
+
   const pill = (
     <span
       className={cn(
         "inline-flex max-w-[200px] items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[11px] font-semibold shadow-sm backdrop-blur",
-        getScoreColor(match.score),
+        pillColor,
       )}
       data-onboarding={match.showScoreOnboarding ? "match-score" : undefined}
     >
       <span className="inline-flex items-center gap-0.5">
-        <Repeat2 className="h-3 w-3" />
+        <MatchIcon className="h-3 w-3" />
         <span>{match.score.toFixed(1)}</span>
       </span>
       <span className="h-3 w-px bg-current opacity-30" aria-hidden />
@@ -347,23 +355,22 @@ export function ItemCard({
   return (
     <div
       className={cn(
-        "group relative rounded-lg border border-border bg-card transition-all hover:border-primary/50",
+        "group rounded-lg border border-border bg-card transition-all hover:border-primary/50",
         className,
       )}
     >
-      <Link href={href} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
+      <div className="relative aspect-[4/3] rounded-t-lg">
+        <Link href={href} className="absolute inset-0 block overflow-hidden rounded-t-lg">
           <Image
             src={image || "/placeholder.svg"}
             alt={title}
             fill
             className="object-cover transition-transform group-hover:scale-105"
           />
-        </div>
-      </Link>
-
-      <WatchlistButton id={id} isWatched={isWatched} onToggle={onToggleWatch} />
-      {match ? <MatchBadge match={match} /> : null}
+        </Link>
+        <WatchlistButton id={id} isWatched={isWatched} onToggle={onToggleWatch} />
+        {match ? <MatchBadge match={match} /> : null}
+      </div>
 
       <div className="space-y-1.5 p-3">
         <Link href={href} className="block">

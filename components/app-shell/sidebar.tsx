@@ -182,14 +182,15 @@ export function Sidebar({
             </Link>
           ) : (
             <Link
-              href="/signup"
+              href="/create-listing"
               className={cn(
-                "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 py-3 text-primary transition-colors hover:bg-primary/20",
+                "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
                 collapsed ? "px-0" : "px-4",
               )}
-              title={collapsed ? "Sign in" : undefined}
+              title={collapsed ? "Add Item" : undefined}
             >
-              {!collapsed ? <span className="text-sm font-medium">Sign in to get started</span> : <Plus className="h-5 w-5" />}
+              <Plus className="h-5 w-5 text-primary" />
+              {!collapsed ? <span>Add Item</span> : null}
             </Link>
           )}
         </div>

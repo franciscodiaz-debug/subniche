@@ -41,7 +41,7 @@ export function HeroLoggedOut() {
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Button asChild size="lg" className="rounded-xl">
-            <Link href="/signup">Get started — it&apos;s free</Link>
+            <Link href="/create-listing">List your gear</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-xl border-border/50 bg-card/60 backdrop-blur">
             <Link href="/market?tab=for-sale">Browse the market</Link>

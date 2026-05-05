@@ -53,7 +53,9 @@ export function Sidebar({
   const isFavoritesArea =
     pathname === "/favorites" || pathname.startsWith("/favorites/");
   const isProfileActive =
-    pathname === "/profile" || pathname.startsWith("/profile/");
+    pathname === "/profile" ||
+    pathname === `/profile/${currentUser.username}` ||
+    pathname.startsWith(`/profile/${currentUser.username}/`);
 
   useEffect(() => {
     if (mobileOpen && onMobileClose) {

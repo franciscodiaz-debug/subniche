@@ -363,7 +363,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
 
         <Divider />
 
-        <section className="py-5 opacity-95">
+        <section id="settings-section" className="py-5 opacity-95">
           <div className="mb-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/70">
               Settings

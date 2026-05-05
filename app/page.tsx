@@ -33,7 +33,7 @@ const actionRequiredItems: ActionCardProps[] = [
   {
     avatar: 'https://i.pravatar.cc/150?img=1',
     username: 'johnsmith',
-    actionType: 'trade',
+    actionType: 'offer',
     itemTitle: 'Gibson SG',
     description: '@johnsmith offered a 1974 Fender Twin Reverb for your Gibson SG.',
     timestamp: '12m ago',
@@ -49,9 +49,9 @@ const actionRequiredItems: ActionCardProps[] = [
   {
     avatar: 'https://i.pravatar.cc/150?img=3',
     username: 'guitar_collector',
-    actionType: 'approved',
+    actionType: 'offer_accepted',
     itemTitle: 'Jazzmaster',
-    description: '@guitar_collector approved your trade request for the Jazzmaster.',
+    description: '@guitar_collector accepted your trade offer for the Jazzmaster.',
     timestamp: '2h ago',
   },
   {
@@ -65,10 +65,18 @@ const actionRequiredItems: ActionCardProps[] = [
   {
     avatar: 'https://i.pravatar.cc/150?img=10',
     username: 'sarahc',
-    actionType: 'trade',
+    actionType: 'cash_offer',
     itemTitle: 'Big Sky',
-    description: '@sarahc wants to trade her Strymon Timeline for your Big Sky.',
+    description: '@sarahc offered $420 for your Strymon Big Sky.',
     timestamp: '4h ago',
+  },
+  {
+    avatar: 'https://i.pravatar.cc/150?img=8',
+    username: 'vintagetones',
+    actionType: 'offer_declined',
+    itemTitle: 'Klon Centaur',
+    description: '@vintagetones declined your trade offer for the Klon Centaur.',
+    timestamp: '6h ago',
   },
 ]
 

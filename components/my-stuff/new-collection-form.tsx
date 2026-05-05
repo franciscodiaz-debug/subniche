@@ -68,14 +68,29 @@ const initialState: FormState = {
   is_wishlist: false,
 }
 
-export function NewCollectionForm() {
+interface NewCollectionFormProps {
+  initialData?: Collection
+}
+
+export function NewCollectionForm({ initialData }: NewCollectionFormProps = {}) {
+  const isEditing = !!initialData
   const router = useRouter()
   const nameId = useId()
   const descriptionId = useId()
   const tagsId = useId()
   const wishlistId = useId()
 
-  const [form, setForm] = useState<FormState>(initialState)
+  const [form, setForm] = useState<FormState>(
+    initialData
+      ? {
+          name: initialData.name,
+          description: initialData.description ?? "",
+          tags: initialData.tags ?? [],
+          visibility: initialData.visibility ?? "private",
+          is_wishlist: initialData.is_wishlist ?? false,
+        }
+      : initialState,
+  )
   const [tagDraft, setTagDraft] = useState("")
   const [error, setError] = useState<string | null>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
@@ -113,6 +128,10 @@ export function NewCollectionForm() {
     }
   }
 
+  const backHref = isEditing
+    ? `/collection/${initialData!.id}`
+    : "/my-stuff?tab=collections"
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!trimmedName) {
@@ -131,6 +150,13 @@ export function NewCollectionForm() {
       !form.tags.some((t) => t.toLowerCase() === pendingTag.toLowerCase())
         ? [...form.tags, pendingTag]
         : form.tags
+
+    if (isEditing) {
+      // In production: call API to update collection
+      console.log("[todo] save collection edits", initialData!.id, { ...form, tags: finalTags })
+      router.push(`/collection/${initialData!.id}`)
+      return
+    }
 
     const created: Collection = {
       id: `col-new-${Date.now()}`,
@@ -173,7 +199,7 @@ export function NewCollectionForm() {
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3 md:px-8">
           <Button asChild variant="ghost" size="sm" className="h-9 -ml-2 rounded-md px-2 text-muted-foreground hover:text-foreground">
-            <Link href="/my-stuff?tab=collections" aria-label="Back to collections">
+            <Link href={backHref} aria-label="Back">
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back</span>
             </Link>
@@ -184,17 +210,16 @@ export function NewCollectionForm() {
               My Stuff / Collections
             </p>
             <h1 className="truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
-              Create new collection
+              {isEditing ? `Edit — ${initialData!.name}` : "Create new collection"}
             </h1>
           </div>
 
           <div className="flex items-center gap-2">
             <Button asChild type="button" variant="ghost" size="sm" className="hidden h-9 rounded-md px-3 text-sm font-medium text-muted-foreground hover:text-foreground sm:inline-flex">
-              <Link href="/my-stuff?tab=collections">Cancel</Link>
+              <Link href={backHref}>Cancel</Link>
             </Button>
             <Button type="submit" size="sm" disabled={!isValid} className="h-9 rounded-md px-4 text-sm font-medium">
-              <Plus className="mr-1 h-4 w-4" />
-              Create
+              {isEditing ? "Save" : <><Plus className="mr-1 h-4 w-4" />Create</>}
             </Button>
           </div>
         </div>
@@ -344,11 +369,10 @@ export function NewCollectionForm() {
           {/* Mobile footer */}
           <div className="flex items-center gap-2 border-t border-border pt-4 lg:hidden">
             <Button asChild type="button" variant="ghost" size="sm" className="h-10 flex-1 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground">
-              <Link href="/my-stuff?tab=collections">Cancel</Link>
+              <Link href={backHref}>Cancel</Link>
             </Button>
             <Button type="submit" size="sm" disabled={!isValid} className="h-10 flex-1 rounded-md text-sm font-medium">
-              <Plus className="mr-1 h-4 w-4" />
-              Create collection
+              {isEditing ? "Save changes" : <><Plus className="mr-1 h-4 w-4" />Create collection</>}
             </Button>
           </div>
         </div>

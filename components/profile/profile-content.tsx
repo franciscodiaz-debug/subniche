@@ -353,56 +353,6 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
         profile={profile}
         isOwnProfile={isOwnProfile}
       />
-      <DevViewToggle viewMode={viewMode} onChange={setViewMode} />
-    </div>
-  )
-}
-
-// ── Dev toggle ────────────────────────────────────────────────────────────────
-
-function DevViewToggle({
-  viewMode,
-  onChange,
-}: {
-  viewMode: ProfileViewMode
-  onChange: (next: ProfileViewMode) => void
-}) {
-  return (
-    <div
-      role="region"
-      aria-label="Prototype dev controls"
-      className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs shadow-lg backdrop-blur"
-    >
-      <span className="font-mono uppercase tracking-wide text-muted-foreground">Dev</span>
-      <span className="text-muted-foreground">View as:</span>
-      <div className="inline-flex overflow-hidden rounded-md border border-border">
-        <button
-          type="button"
-          onClick={() => onChange("own")}
-          aria-pressed={viewMode === "own"}
-          className={cn(
-            "px-2 py-1 transition-colors",
-            viewMode === "own"
-              ? "bg-primary text-primary-foreground"
-              : "bg-transparent text-muted-foreground hover:text-foreground",
-          )}
-        >
-          Own
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange("other")}
-          aria-pressed={viewMode === "other"}
-          className={cn(
-            "px-2 py-1 transition-colors",
-            viewMode === "other"
-              ? "bg-primary text-primary-foreground"
-              : "bg-transparent text-muted-foreground hover:text-foreground",
-          )}
-        >
-          Other user
-        </button>
-      </div>
     </div>
   )
 }

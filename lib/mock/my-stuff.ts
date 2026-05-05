@@ -153,6 +153,27 @@ export const myCollections: Collection[] = [
   },
 ]
 
+export const collectionMeta: Record<
+  string,
+  { categories: string[]; subcategories: string[]; followingCountLabel: string }
+> = {
+  "col-guitars": {
+    categories: ["Guitars"],
+    subcategories: ["Electric", "Semi-Hollow"],
+    followingCountLabel: "1.2K following",
+  },
+  "col-pedalboard": {
+    categories: ["Effects"],
+    subcategories: ["Drive", "Modulation"],
+    followingCountLabel: "412 following",
+  },
+  "col-dream": {
+    categories: ["Guitars"],
+    subcategories: ["Electric", "Amps"],
+    followingCountLabel: "86 following",
+  },
+}
+
 export const collectionPreviewImages: Record<string, string[]> = {
   "col-guitars": [
     "https://images.unsplash.com/photo-1550985616-10810253b84d?w=400&h=400&fit=crop",

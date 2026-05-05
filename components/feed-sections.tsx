@@ -1,6 +1,6 @@
-import { Bookmark, Heart, Layers, Search, TrendingUp, Zap, Users } from 'lucide-react'
+import { Heart, Layers, Search, TrendingUp, Zap, Users } from 'lucide-react'
 import { HomeSectionHeader } from '@/components/home/home-section-header'
-import { ListingCard } from '@/components/listing-card'
+import { ItemCard } from '@/components/item-card'
 import { CollectionCard } from '@/components/collection-card'
 import type { Collection } from '@/lib/types'
 
@@ -12,6 +12,8 @@ const trendingListings = [
     title: 'Fender Stratocaster',
     subtitle: '2020 American Pro II',
     price: 1450,
+    location: 'Brooklyn, NY',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=400&h=300&fit=crop',
   },
   {
@@ -19,6 +21,9 @@ const trendingListings = [
     title: 'Gibson Les Paul',
     subtitle: 'Standard, Honey Burst',
     price: 2100,
+    location: 'Austin, TX',
+    forSale: true,
+    forTrade: true,
     image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=300&fit=crop',
   },
   {
@@ -26,6 +31,8 @@ const trendingListings = [
     title: 'Strymon Timeline',
     subtitle: 'Near mint, all presets',
     price: 380,
+    location: 'Portland, OR',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=300&fit=crop',
   },
   {
@@ -33,6 +40,8 @@ const trendingListings = [
     title: 'PRS SE Custom 24',
     subtitle: 'Whale Blue, excellent',
     price: 740,
+    location: 'Chicago, IL',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1550985616-10810253b84d?w=400&h=300&fit=crop',
   },
   {
@@ -40,6 +49,9 @@ const trendingListings = [
     title: 'Martin 000-15M',
     subtitle: 'Satin mahogany, like new',
     price: 680,
+    location: 'Nashville, TN',
+    forSale: true,
+    forTrade: true,
     image: 'https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=400&h=300&fit=crop',
   },
 ]
@@ -50,19 +62,23 @@ export function TrendingSection() {
       <HomeSectionHeader
         icon={<TrendingUp className="h-5 w-5 text-primary" />}
         title="Trending Now"
-        href="/market?tab=for-sale"
+        href="/explore?sort=trending"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {trendingListings.map((item) => (
-          <ListingCard
+          <ItemCard
             key={item.id}
+            id={item.id}
             image={item.image}
             title={item.title}
             subtitle={item.subtitle}
             price={item.price}
-            href="/market?tab=for-sale"
-            className="w-[180px] flex-shrink-0"
+            location={item.location}
+            forSale={item.forSale}
+            forTrade={item.forTrade}
+            href={`/listings/${item.id}`}
+            className="w-[220px] flex-shrink-0 md:w-[240px]"
           />
         ))}
       </div>
@@ -78,6 +94,8 @@ const justListedItems = [
     title: 'Epiphone Casino',
     subtitle: 'Natural finish, P90s',
     price: 650,
+    location: 'Seattle, WA',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=400&h=300&fit=crop',
   },
   {
@@ -85,6 +103,8 @@ const justListedItems = [
     title: 'Ibanez RG550',
     subtitle: 'Road Flare Red, 1990',
     price: 850,
+    location: 'Denver, CO',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=400&h=300&fit=crop',
   },
   {
@@ -92,6 +112,9 @@ const justListedItems = [
     title: 'Boss DD-500',
     subtitle: 'Excellent, box + manual',
     price: 250,
+    location: 'Brooklyn, NY',
+    forSale: true,
+    forTrade: true,
     image: 'https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=300&fit=crop',
   },
   {
@@ -99,6 +122,8 @@ const justListedItems = [
     title: 'Gretsch G2622',
     subtitle: 'Streamliner, Claret Burst',
     price: 420,
+    location: 'Austin, TX',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=300&fit=crop',
   },
   {
@@ -106,6 +131,8 @@ const justListedItems = [
     title: 'Taylor 214ce',
     subtitle: 'Grand Auditorium, w/ case',
     price: 1100,
+    location: 'Portland, OR',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=400&h=300&fit=crop',
   },
 ]
@@ -116,19 +143,23 @@ export function JustListedSection() {
       <HomeSectionHeader
         icon={<Zap className="h-5 w-5 text-primary" />}
         title="Just Listed"
-        href="/market?tab=for-sale"
+        href="/explore?sort=just-listed"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {justListedItems.map((item) => (
-          <ListingCard
+          <ItemCard
             key={item.id}
+            id={item.id}
             image={item.image}
             title={item.title}
             subtitle={item.subtitle}
             price={item.price}
-            href="/market?tab=for-sale"
-            className="w-[180px] flex-shrink-0"
+            location={item.location}
+            forSale={item.forSale}
+            forTrade={item.forTrade}
+            href={`/listings/${item.id}`}
+            className="w-[220px] flex-shrink-0 md:w-[240px]"
           />
         ))}
       </div>
@@ -181,32 +212,38 @@ const followedItems = [
     title: '1961 ES-335',
     subtitle: 'Cherry, original PAFs',
     price: 12000,
+    location: 'Nashville, TN',
+    forSale: true,
+    forTrade: true,
     image: 'https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=400&h=300&fit=crop',
-    isNew: true,
   },
   {
     id: 'fi2',
     title: 'Klon Centaur',
     subtitle: 'Gold, horsie, w/ box',
     price: 3800,
+    location: 'Brooklyn, NY',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=300&fit=crop',
-    isNew: false,
   },
   {
     id: 'fi3',
     title: 'Dumble ODS 50',
     subtitle: 'Clone by Howard Dumble',
     price: 7500,
+    location: 'Los Angeles, CA',
+    forSale: true,
     image: 'https://images.unsplash.com/photo-1550985616-10810253b84d?w=400&h=300&fit=crop',
-    isNew: true,
   },
   {
     id: 'fi4',
     title: 'Pre-CBS Telecaster',
     subtitle: '1964, Dakota Red',
     price: 18000,
+    location: 'Austin, TX',
+    forSale: true,
+    forTrade: true,
     image: 'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=400&h=300&fit=crop',
-    isNew: false,
   },
 ]
 
@@ -216,20 +253,23 @@ export function FollowedItemsSection() {
       <HomeSectionHeader
         icon={<Heart className="h-5 w-5 text-primary" />}
         title="Items You're Following"
-        href="/favorites"
+        href="/explore?sort=following"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {followedItems.map((item) => (
-          <ListingCard
+          <ItemCard
             key={item.id}
+            id={item.id}
             image={item.image}
             title={item.title}
             subtitle={item.subtitle}
             price={item.price}
-            badge={item.isNew ? 'Updated' : undefined}
-            href="/market?tab=for-sale"
-            className="w-[180px] flex-shrink-0"
+            location={item.location}
+            forSale={item.forSale}
+            forTrade={item.forTrade}
+            href={`/listings/${item.id}`}
+            className="w-[220px] flex-shrink-0 md:w-[240px]"
           />
         ))}
       </div>

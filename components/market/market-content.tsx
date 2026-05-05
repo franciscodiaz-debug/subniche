@@ -11,8 +11,12 @@ import {
   Zap,
 } from "lucide-react"
 
+import Image from "next/image"
+import Link from "next/link"
+
 import { cn } from "@/lib/utils"
 import { exploreItems, type ExploreItem } from "@/lib/explore-data"
+import { searchCollections, searchUsers } from "@/lib/search-data"
 import { ItemCard } from "@/components/item-card"
 import { GridDensitySelector } from "@/components/shared/grid-density-selector"
 import { MarketTabs } from "@/components/shared/market-tabs"
@@ -23,6 +27,8 @@ import {
   initialMarketFilters,
   type MarketFilterState,
 } from "./market-filter-sidebar"
+
+type SearchResultTab = "items" | "collections" | "users"
 
 type SortMode = "all" | "trending" | "just-listed" | "following"
 type SecondarySort = "default" | "recent" | "price-low" | "price-high"
@@ -51,6 +57,9 @@ export function MarketContent() {
   const rawSort = searchParams?.get("sort")
   const initialSort: SortMode = isSortMode(rawSort) ? rawSort : "all"
   const queryFromUrl = (searchParams?.get("q") ?? "").trim()
+  const rawType = searchParams?.get("type")
+  const searchTab: SearchResultTab =
+    rawType === "collections" || rawType === "users" ? rawType : "items"
 
   const [sort, setSort] = useState<SortMode>(initialSort)
   const [secondarySort, setSecondarySort] = useState<SecondarySort>("default")
@@ -130,6 +139,22 @@ export function MarketContent() {
     return list
   }, [sort, secondarySort, queryFromUrl, filters])
 
+  const collectionResults = useMemo(() => {
+    if (!queryFromUrl) return []
+    const needle = queryFromUrl.toLowerCase()
+    return searchCollections.filter((c) => c.name.toLowerCase().includes(needle))
+  }, [queryFromUrl])
+
+  const userResults = useMemo(() => {
+    if (!queryFromUrl) return []
+    const needle = queryFromUrl.toLowerCase()
+    return searchUsers.filter(
+      (u) =>
+        u.name.toLowerCase().includes(needle) ||
+        u.username.toLowerCase().includes(needle),
+    )
+  }, [queryFromUrl])
+
   const updateSort = (next: SortMode) => {
     setSort(next)
     const params = new URLSearchParams(searchParams?.toString() ?? "")
@@ -142,9 +167,24 @@ export function MarketContent() {
     router.replace(`/market${qs ? `?${qs}` : ""}`, { scroll: false })
   }
 
+  const updateType = (next: SearchResultTab) => {
+    const params = new URLSearchParams(searchParams?.toString() ?? "")
+    if (next === "items") {
+      params.delete("type")
+    } else {
+      params.set("type", next)
+    }
+    const qs = params.toString()
+    router.replace(`/market${qs ? `?${qs}` : ""}`, { scroll: false })
+  }
+
   const heading = queryFromUrl ? `Results for "${queryFromUrl}"` : "Market"
   const subheading = queryFromUrl
-    ? `${items.length} item${items.length === 1 ? "" : "s"} matching your search`
+    ? searchTab === "collections"
+      ? `${collectionResults.length} collection${collectionResults.length === 1 ? "" : "s"} matching your search`
+      : searchTab === "users"
+      ? `${userResults.length} user${userResults.length === 1 ? "" : "s"} matching your search`
+      : `${items.length} item${items.length === 1 ? "" : "s"} matching your search`
     : "Discover items across the marketplace"
 
   return (
@@ -176,8 +216,52 @@ export function MarketContent() {
             ) : null}
           </div>
 
-          <MarketTabs className="mb-5" />
+          {queryFromUrl ? (
+            <div className="mb-5 flex gap-1 border-b border-border">
+              {(["items", "collections", "users"] as SearchResultTab[]).map((tab) => {
+                const count =
+                  tab === "items"
+                    ? items.length
+                    : tab === "collections"
+                    ? collectionResults.length
+                    : userResults.length
+                const label =
+                  tab === "items" ? "Items" : tab === "collections" ? "Collections" : "Users"
+                const active = searchTab === tab
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => updateType(tab)}
+                    className={cn(
+                      "-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
+                      active
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {label}
+                    {count > 0 ? (
+                      <span
+                        className={cn(
+                          "ml-1.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium",
+                          active
+                            ? "bg-primary/10 text-primary"
+                            : "bg-secondary text-muted-foreground",
+                        )}
+                      >
+                        {count}
+                      </span>
+                    ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <MarketTabs className="mb-5" />
+          )}
 
+          {(!queryFromUrl || searchTab === "items") && (
           <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border pb-4">
             {!sidebarOpen ? (
               <button
@@ -236,41 +320,103 @@ export function MarketContent() {
               </select>
             </div>
           </div>
+          )}
 
-          {items.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
-              <p className="font-medium text-foreground">No items match your filters</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Try removing a filter or switching the sort mode.
-              </p>
-            </div>
-          ) : (
-            <div className={gridDensityConfig[gridDensity].gridClass}>
-              {items.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  subtitle={item.subtitle}
-                  image={item.image}
-                  price={item.price}
-                  location={item.location}
-                  forSale={item.forSale}
-                  forTrade={item.forTrade}
-                  collections={item.collections}
-                  match={
-                    item.match
-                      ? {
-                          score: item.match.score,
-                          matchedItems: item.match.matchedItems,
-                          fallbackItemTitle: item.match.matchedItems[0]?.title,
-                        }
-                      : undefined
-                  }
-                  href={`/listings/${item.id}`}
-                />
-              ))}
-            </div>
+          {(!queryFromUrl || searchTab === "items") && (
+            items.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
+                <p className="font-medium text-foreground">No items match your filters</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try removing a filter or switching the sort mode.
+                </p>
+              </div>
+            ) : (
+              <div className={gridDensityConfig[gridDensity].gridClass}>
+                {items.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    id={item.id}
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    image={item.image}
+                    price={item.price}
+                    location={item.location}
+                    forSale={item.forSale}
+                    forTrade={item.forTrade}
+                    collections={item.collections}
+                    match={
+                      item.match
+                        ? {
+                            score: item.match.score,
+                            matchedItems: item.match.matchedItems,
+                            fallbackItemTitle: item.match.matchedItems[0]?.title,
+                          }
+                        : undefined
+                    }
+                    href={`/listings/${item.id}`}
+                  />
+                ))}
+              </div>
+            )
+          )}
+
+          {queryFromUrl && searchTab === "collections" && (
+            collectionResults.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
+                <p className="font-medium text-foreground">No collections found</p>
+                <p className="mt-1 text-sm text-muted-foreground">Try a different search term.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {collectionResults.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/collection/${c.id}`}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-primary/40 hover:bg-card/80"
+                  >
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary text-xl">
+                      {c.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.memberCount.toLocaleString()} members
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )
+          )}
+
+          {queryFromUrl && searchTab === "users" && (
+            userResults.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
+                <p className="font-medium text-foreground">No users found</p>
+                <p className="mt-1 text-sm text-muted-foreground">Try a different search term.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {userResults.map((u) => (
+                  <Link
+                    key={u.id}
+                    href={`/profile/${u.username}`}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-primary/40 hover:bg-card/80"
+                  >
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-secondary">
+                      <Image src={u.avatar} alt={u.name} fill sizes="40px" className="object-cover" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{u.name}</p>
+                      <p className="text-xs text-muted-foreground">@{u.username}</p>
+                      {u.location ? (
+                        <p className="text-xs text-muted-foreground">{u.location}</p>
+                      ) : null}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>

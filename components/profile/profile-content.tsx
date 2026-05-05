@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Clock,
   ExternalLink,
+  FolderOpen,
   Heart,
   Mail,
   MoreHorizontal,

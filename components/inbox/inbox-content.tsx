@@ -23,8 +23,7 @@ export function InboxContent() {
   const [filter, setFilter] = useState<"all" | "received" | "sent">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileView, setMobileView] = useState<"list" | "chat" | "profile" | "offer-detail" | "counter" | "cash-counter">("list")
-  const [showCounterModal, setShowCounterModal] = useState(false)
-  const [showCashCounterModal, setShowCashCounterModal] = useState(false)
+  const [desktopCounterActive, setDesktopCounterActive] = useState(false)
 
   const selectedConversation = conversations.find((c) => c.id === conversationId) ?? null
 
@@ -164,8 +163,7 @@ export function InboxContent() {
       if (typeof window !== "undefined" && window.innerWidth < 1024) {
         setMobileView(isCashOnlyOffer ? "cash-counter" : "counter")
       } else {
-        if (isCashOnlyOffer) setShowCashCounterModal(true)
-        else setShowCounterModal(true)
+        setDesktopCounterActive(true)
       }
     }
   }
@@ -234,7 +232,17 @@ export function InboxContent() {
           mobileView === "chat" ? "flex" : "hidden lg:flex",
         )}
       >
-        {selectedConversation ? (
+        {selectedConversation && desktopCounterActive && selectedConversation.active_offer ? (
+          <CounterOfferModal
+            originalOffer={selectedConversation.active_offer}
+            otherPartyUsername={selectedConversation.participant.username}
+            onClose={() => setDesktopCounterActive(false)}
+            onCounterSent={(o) => {
+              handleCounterSent(o)
+              setDesktopCounterActive(false)
+            }}
+          />
+        ) : selectedConversation ? (
           <ChatPanel
             conversation={selectedConversation}
             messages={messages[selectedConversation.id] || []}
@@ -411,10 +419,7 @@ export function InboxContent() {
         <div className="fixed inset-0 z-50 bg-background lg:hidden">
           <CounterOfferModal
             originalOffer={selectedConversation.active_offer}
-            otherPartyId={selectedConversation.participant.id}
             otherPartyUsername={selectedConversation.participant.username}
-            open={true}
-            fullScreen
             onClose={handleBackFromCounter}
             onCounterSent={(o) => {
               handleCounterSent(o)
@@ -427,7 +432,6 @@ export function InboxContent() {
         <div className="fixed inset-0 z-50 bg-background lg:hidden">
           <CashCounterOfferModal
             open={true}
-            fullScreen
             onClose={handleBackFromCounter}
             originalOffer={selectedConversation.active_offer}
             otherPartyUsername={selectedConversation.participant.username}
@@ -437,33 +441,6 @@ export function InboxContent() {
             }}
           />
         </div>
-      )}
-
-      {/* Modals */}
-      {selectedConversation?.active_offer && (
-        <>
-          <CounterOfferModal
-            originalOffer={selectedConversation.active_offer}
-            otherPartyId={selectedConversation.participant.id}
-            otherPartyUsername={selectedConversation.participant.username}
-            open={showCounterModal}
-            onClose={() => setShowCounterModal(false)}
-            onCounterSent={(o) => {
-              handleCounterSent(o)
-              setShowCounterModal(false)
-            }}
-          />
-          <CashCounterOfferModal
-            open={showCashCounterModal}
-            onClose={() => setShowCashCounterModal(false)}
-            originalOffer={selectedConversation.active_offer}
-            otherPartyUsername={selectedConversation.participant.username}
-            onCounterSent={(o) => {
-              handleCounterSent(o)
-              setShowCashCounterModal(false)
-            }}
-          />
-        </>
       )}
     </div>
   )

@@ -67,6 +67,7 @@ import type {
 } from "@/lib/types/item-status"
 
 interface CreateListingInlineProps {
+  isAuthenticated?: boolean
   initialStatus?: string
   initialCollectionId?: string
   initialCollectionName?: string
@@ -645,6 +646,7 @@ export function CategorySelector({
 }
 
 export function CreateListingInline({
+  isAuthenticated = true,
   initialStatus,
   initialCollectionId,
   initialCollectionName,
@@ -961,6 +963,10 @@ export function CreateListingInline({
    * once the user is actually ready.
    */
   const handleOpenPublishConfirm = () => {
+    if (!isAuthenticated) {
+      router.push('/login?redirect=/create-listing')
+      return
+    }
     if (!canPublish()) {
       setShowMissingError(true)
       return

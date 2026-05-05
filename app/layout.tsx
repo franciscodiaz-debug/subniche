@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const authState = getAuthState()
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const authState = await getAuthState()
   const isAuthenticated = authState !== 'logged-out'
 
   return (

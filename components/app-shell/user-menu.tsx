@@ -7,6 +7,7 @@ import { LogOut, Package, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { currentUser } from "@/lib/current-user"
+import { logoutAction } from "@/app/actions/auth"
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
@@ -105,15 +106,16 @@ export function UserMenu() {
           </div>
 
           <div className="border-t border-border py-1">
-            <button
-              type="button"
-              onClick={() => { close(); console.log("[stub] sign out") }}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
-              role="menuitem"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </button>
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
+                role="menuitem"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </form>
           </div>
         </div>
       ) : null}

@@ -19,6 +19,10 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  if (pathname === '/login' || pathname === '/signup') {
+    return <>{children}</>
+  }
+
   const isInboxPage = pathname === "/inbox" || pathname.startsWith("/inbox/");
   const collapseRequested = useIsNavCollapseRequested();
   const sidebarCollapsed = isInboxPage || collapseRequested;

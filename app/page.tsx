@@ -72,8 +72,8 @@ const actionRequiredItems: ActionCardProps[] = [
   },
 ]
 
-export default function HomePage() {
-  const authState = getAuthState()
+export default async function HomePage() {
+  const authState = await getAuthState()
 
   // ── LOGGED OUT ──────────────────────────────────────────────────────────────
   if (authState === 'logged-out') {

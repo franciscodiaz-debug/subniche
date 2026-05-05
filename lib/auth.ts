@@ -1,7 +1,12 @@
+import { cookies } from 'next/headers'
+
 export type AuthState = 'logged-out' | 'onboarding' | 'logged-in'
 
-// Replace this with a real session check (e.g. next-auth, Supabase, Clerk).
-// Toggle the return value to preview each home state.
-export function getAuthState(): AuthState {
-  return 'logged-in'
+export async function getAuthState(): Promise<AuthState> {
+  const cookieStore = await cookies()
+  const state = cookieStore.get('subniche_auth')?.value
+  if (state === 'logged-in' || state === 'onboarding' || state === 'logged-out') {
+    return state as AuthState
+  }
+  return 'logged-out'
 }

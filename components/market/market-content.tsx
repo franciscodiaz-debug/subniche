@@ -344,6 +344,7 @@ export function MarketContent() {
                     forSale={item.forSale}
                     forTrade={item.forTrade}
                     collections={item.collections}
+                    compact={gridDensity === "compact"}
                     match={
                       item.match
                         ? {

@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { MessageCircle, Repeat2, CheckCircle2, ArrowLeftRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -26,11 +27,16 @@ export function ActionCard({ avatar, username, actionType, description, timestam
     <div className="flex min-w-[260px] flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
+          <Link href={`/profile/${username}`} className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
             <Image src={avatar} alt={username} fill sizes="32px" className="object-cover" />
-          </div>
+          </Link>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{username}</p>
+            <Link
+              href={`/profile/${username}`}
+              className="truncate text-sm font-semibold text-foreground hover:underline"
+            >
+              @{username}
+            </Link>
           </div>
         </div>
         <span
@@ -48,12 +54,12 @@ export function ActionCard({ avatar, username, actionType, description, timestam
 
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-muted-foreground/60">{timestamp}</span>
-        <button
-          type="button"
+        <Link
+          href={`/inbox`}
           className="rounded-lg border border-border bg-secondary px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary/70"
         >
           View
-        </button>
+        </Link>
       </div>
     </div>
   )

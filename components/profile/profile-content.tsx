@@ -55,12 +55,12 @@ function formatActivityTime(value: string) {
   })
 }
 
-export function ProfileContent() {
+export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: ProfileViewMode }) {
   const [ownProfileState, setOwnProfileState] = useState<ProfileSummaryReference>(ownProfile)
   const [otherProfileState] = useState<ProfileSummaryReference>(otherProfile)
   const [activeTab, setActiveTab] = useState<ProfileTab>("collections")
   const [isEditing, setIsEditing] = useState(false)
-  const [viewMode, setViewMode] = useState<ProfileViewMode>("own")
+  const [viewMode, setViewMode] = useState<ProfileViewMode>(initialViewMode)
   const [isFollowing, setIsFollowing] = useState(false)
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false)
 

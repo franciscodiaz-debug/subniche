@@ -263,6 +263,7 @@ export function TradeContent() {
                 location={item.user?.location}
                 forTrade
                 href={href}
+                compact={gridDensity === "compact"}
                 collections={item.published_groups?.map((g) => ({
                   id: g.id,
                   name: g.name,

@@ -42,6 +42,7 @@ export interface ItemCardProps {
   isWatched?: boolean
   onToggleWatch?: (id: string) => void
   match?: ItemCardMatch
+  compact?: boolean
   className?: string
 }
 
@@ -178,7 +179,7 @@ function MatchBadge({ match }: { match: ItemCardMatch }) {
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="absolute bottom-2 left-2 right-2 z-20 flex justify-end"
+      className="relative inline-flex"
     >
       {isMulti ? (
         <button
@@ -346,6 +347,7 @@ export function ItemCard({
   isWatched,
   onToggleWatch,
   match,
+  compact = false,
   className,
 }: ItemCardProps) {
   const hasPrice = (forSale || forTrade) && price != null
@@ -369,7 +371,6 @@ export function ItemCard({
           />
         </Link>
         <WatchlistButton id={id} isWatched={isWatched} onToggle={onToggleWatch} />
-        {match ? <MatchBadge match={match} /> : null}
       </div>
 
       <div className="space-y-1.5 p-3">
@@ -399,14 +400,25 @@ export function ItemCard({
           </p>
         ) : null}
 
-        {hasStatus || hasPrice ? (
-          <div className="flex items-center gap-2">
-            <StatusIcons forSale={forSale} forTrade={forTrade} />
-            {hasPrice ? (
-              <p className="text-sm font-semibold text-primary">
-                ${price!.toLocaleString()}
-              </p>
+        {hasStatus || hasPrice || match ? (
+          <div
+            className={cn(
+              compact
+                ? "space-y-1"
+                : "flex items-center justify-between gap-2",
+            )}
+          >
+            {(hasStatus || hasPrice) ? (
+              <div className="flex items-center gap-2">
+                <StatusIcons forSale={forSale} forTrade={forTrade} />
+                {hasPrice ? (
+                  <p className="text-sm font-semibold text-primary">
+                    ${price!.toLocaleString()}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
+            {match ? <MatchBadge match={match} /> : null}
           </div>
         ) : null}
       </div>

@@ -18,13 +18,12 @@ interface ClientLayoutProps {
 export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const collapseRequested = useIsNavCollapseRequested();
 
-  if (pathname === '/login' || pathname === '/signup') {
-    return <>{children}</>
-  }
+  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/welcome';
+  if (isAuthPage) return <>{children}</>;
 
   const isInboxPage = pathname === "/inbox" || pathname.startsWith("/inbox/");
-  const collapseRequested = useIsNavCollapseRequested();
   const sidebarCollapsed = isInboxPage || collapseRequested;
 
   return (

@@ -15,7 +15,6 @@ import {
   RepeatIcon,
   RefreshCw,
   ExternalLink,
-  Info,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -303,7 +302,8 @@ export function ChatPanel({
           </button>
           <button
             onClick={onViewProfile}
-            className="flex min-w-0 flex-1 items-center gap-3 xl:pointer-events-none"
+            className="flex-shrink-0 xl:pointer-events-none"
+            aria-label="View profile"
           >
             <Avatar className="h-7 w-7">
               <AvatarImage src={participant.avatar_url || "/placeholder.svg"} />
@@ -311,17 +311,15 @@ export function ChatPanel({
                 {participant.username.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-foreground">{participant.username}</p>
-            </div>
           </button>
-          <button
-            onClick={onViewProfile}
-            className="rounded-lg p-2 transition-colors hover:bg-card lg:hidden"
-            aria-label="View profile"
-          >
-            <Info className="h-5 w-5 text-muted-foreground" />
-          </button>
+          <div className="min-w-0 flex-1">
+            <Link
+              href={`/profile/${participant.username}`}
+              className="truncate font-semibold text-foreground hover:underline"
+            >
+              {participant.username}
+            </Link>
+          </div>
         </div>
       </div>
 

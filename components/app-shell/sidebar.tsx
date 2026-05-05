@@ -283,7 +283,7 @@ export function Sidebar({
                   </AvatarFallback>
                 </Avatar>
               </span>
-              {!collapsed ? <span>Profile</span> : null}
+              {!collapsed ? <span className="hover:underline">Profile</span> : null}
             </Link>
           ) : null}
         </nav>

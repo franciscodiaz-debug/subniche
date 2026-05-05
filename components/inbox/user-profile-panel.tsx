@@ -14,7 +14,6 @@ import {
   Phone,
   ShieldCheck,
   Check,
-  ExternalLink,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { ConversationParticipant } from "@/lib/inbox-types"
@@ -39,15 +38,11 @@ export function UserProfilePanel({ participant }: UserProfilePanelProps) {
         </Avatar>
         <div className="flex min-w-0 flex-col gap-0.5 pt-0">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-lg font-bold leading-tight text-foreground">
-              {participant.username}
-            </h2>
             <Link
               href={`/profile/${participant.id}`}
-              className="text-muted-foreground transition-colors hover:text-primary"
-              title="View full profile"
+              className="text-lg font-bold leading-tight text-foreground hover:underline"
             >
-              <ExternalLink className="h-4 w-4" />
+              {participant.username}
             </Link>
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">{participant.location}</p>

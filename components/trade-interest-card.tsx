@@ -408,7 +408,7 @@ function PerfectMatchLayout({
           <div className="flex items-center gap-1.5">
             {typeof match.their_item.price === "number" ? (
               <p className="text-sm font-semibold text-primary">
-                ${match.their_item.price.toLocaleString()}
+                ${match.their_item.price.toLocaleString('en-US')}
               </p>
             ) : null}
             <Repeat2Icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -501,7 +501,7 @@ function InboundInterestLayout({
           <div className="flex items-center gap-1.5">
             {typeof interest.their_item.price === "number" ? (
               <p className="text-sm font-semibold text-primary">
-                ${interest.their_item.price.toLocaleString()}
+                ${interest.their_item.price.toLocaleString('en-US')}
               </p>
             ) : null}
             <Repeat2Icon className="h-3.5 w-3.5 text-muted-foreground" />

@@ -225,7 +225,7 @@ export function MyItemListHeader() {
 export function MyItemRow({ item }: { item: MyItem }) {
   const href = `/listings/${item.id}`
   const imageSrc = item.images[0] || "/placeholder.svg"
-  const priceLabel = item.price != null ? `$${item.price.toLocaleString()}` : "—"
+  const priceLabel = item.price != null ? `$${item.price.toLocaleString('en-US')}` : "—"
   const hasStatus = item.for_sale || item.for_trade
 
   return (
@@ -282,7 +282,7 @@ export function MyItemRow({ item }: { item: MyItem }) {
           </div>
         </Link>
         <div className="col-span-2 text-sm font-semibold text-foreground">
-          {item.price != null ? `$${item.price.toLocaleString()}` : <span className="text-muted-foreground">—</span>}
+          {item.price != null ? `$${item.price.toLocaleString('en-US')}` : <span className="text-muted-foreground">—</span>}
         </div>
         <div className="col-span-2 flex flex-wrap items-center gap-1.5">
           {hasStatus ? (
@@ -353,7 +353,7 @@ export function MyItemGridCard({ item }: { item: MyItem }) {
             </span>
           ) : null}
           {item.price != null ? (
-            <p className="text-sm font-semibold text-primary">${item.price.toLocaleString()}</p>
+            <p className="text-sm font-semibold text-primary">${item.price.toLocaleString('en-US')}</p>
           ) : null}
         </div>
       </div>

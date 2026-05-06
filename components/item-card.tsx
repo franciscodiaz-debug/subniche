@@ -413,7 +413,7 @@ export function ItemCard({
                 <StatusIcons forSale={forSale} forTrade={forTrade} />
                 {hasPrice ? (
                   <p className="text-sm font-semibold text-primary">
-                    ${price!.toLocaleString()}
+                    ${price!.toLocaleString('en-US')}
                   </p>
                 ) : null}
               </div>

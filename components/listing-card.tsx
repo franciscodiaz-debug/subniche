@@ -60,7 +60,7 @@ export function ListingCard({
           <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{subtitle}</p>
         ) : null}
         {price != null ? (
-          <p className="mt-1.5 text-sm font-bold text-primary">${price.toLocaleString()}</p>
+          <p className="mt-1.5 text-sm font-bold text-primary">${price.toLocaleString('en-US')}</p>
         ) : null}
       </div>
     </>

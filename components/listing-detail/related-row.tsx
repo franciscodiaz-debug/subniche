@@ -73,7 +73,7 @@ function RelatedCard({ item }: { item: MockRelatedCard }) {
         <div className="flex items-center justify-between">
           {typeof item.price === "number" ? (
             <span className="text-sm font-semibold text-primary">
-              ${item.price.toLocaleString()}
+              ${item.price.toLocaleString('en-US')}
             </span>
           ) : (
             <span className="text-xs text-muted-foreground">Collection</span>

@@ -99,7 +99,7 @@ export function CashCounterOfferModal({
                 <div className="min-w-0 flex-1">
                   <h3 className="line-clamp-2 font-semibold text-foreground">{item.title}</h3>
                   <p className="mt-0.5 text-base font-bold text-primary">
-                    ${listingPrice.toLocaleString()}
+                    ${listingPrice.toLocaleString('en-US')}
                   </p>
                 </div>
               </div>
@@ -113,7 +113,7 @@ export function CashCounterOfferModal({
                 {otherPartyUsername}&apos;s offer
               </span>
               <span className="font-semibold text-foreground">
-                ${originalValue.toLocaleString()}
+                ${originalValue.toLocaleString('en-US')}
               </span>
             </div>
           </div>
@@ -212,14 +212,14 @@ export function CashCounterOfferModal({
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="line-clamp-2 font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-1 text-lg font-bold text-primary">${listingPrice.toLocaleString()}</p>
+                <p className="mt-1 text-lg font-bold text-primary">${listingPrice.toLocaleString('en-US')}</p>
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-3">
             <span className="text-sm text-muted-foreground">{otherPartyUsername}&apos;s offer</span>
-            <span className="font-semibold text-foreground">${originalValue.toLocaleString()}</span>
+            <span className="font-semibold text-foreground">${originalValue.toLocaleString('en-US')}</span>
           </div>
 
           <div>

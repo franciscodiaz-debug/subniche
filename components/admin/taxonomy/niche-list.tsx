@@ -42,7 +42,7 @@ export function NicheList({ niches, selectedId, onSelect }: NicheListProps) {
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                {niche.itemCount.toLocaleString()} items · {niche.categoryCount} cat
+                {niche.itemCount.toLocaleString('en-US')} items · {niche.categoryCount} cat
               </p>
             </div>
           </li>

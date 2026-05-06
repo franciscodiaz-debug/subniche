@@ -321,7 +321,7 @@ export function InboxContent() {
                         <p className="truncate text-sm font-medium">{item.title}</p>
                         {item.price != null && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString()}
+                            ${item.price.toLocaleString('en-US')}
                           </p>
                         )}
                       </div>
@@ -329,7 +329,7 @@ export function InboxContent() {
                   ))}
                   {selectedConversation.active_offer.cash_adjustment > 0 && (
                     <p className="pl-[62px] text-sm font-medium text-primary">
-                      + ${selectedConversation.active_offer.cash_adjustment.toLocaleString()} cash
+                      + ${selectedConversation.active_offer.cash_adjustment.toLocaleString('en-US')} cash
                     </p>
                   )}
                 </div>
@@ -338,7 +338,7 @@ export function InboxContent() {
               <div className="p-4">
                 <p className="mb-1 text-xs text-muted-foreground">Their offer</p>
                 <p className="text-2xl font-bold text-primary">
-                  ${selectedConversation.active_offer.cash_adjustment.toLocaleString()}
+                  ${selectedConversation.active_offer.cash_adjustment.toLocaleString('en-US')}
                 </p>
               </div>
             )}
@@ -368,7 +368,7 @@ export function InboxContent() {
                       <p className="truncate text-sm font-medium">{item.title}</p>
                       {item.price != null && (
                         <p className="text-xs text-muted-foreground">
-                          ${item.price.toLocaleString()}
+                          ${item.price.toLocaleString('en-US')}
                         </p>
                       )}
                     </div>

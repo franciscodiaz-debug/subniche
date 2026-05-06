@@ -176,7 +176,7 @@ export function MarketFilterSidebar({
                         : "text-muted-foreground",
                     )}
                   >
-                    {cat.count.toLocaleString()}
+                    {cat.count.toLocaleString('en-US')}
                   </span>
                 </button>
                 {filters.category === cat.id ? (

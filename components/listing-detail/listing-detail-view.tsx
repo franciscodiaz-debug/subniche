@@ -97,7 +97,7 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
       ) : null}
       {typeof price === "number" ? (
         <p className="mt-4 font-display text-3xl font-semibold tabular-nums text-primary md:text-4xl">
-          ${price.toLocaleString()}
+          ${price.toLocaleString('en-US')}
         </p>
       ) : null}
       {markedAsSold ? (

@@ -1,34 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Bike,
   Check,
   ChevronDown,
-  Disc3,
-  Globe,
-  Guitar,
   Plus,
   Search,
-  Wine,
 } from "lucide-react";
 
 import { cn } from "../../lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-
-interface Niche {
-  id: string;
-  name: string;
-  icon: ReactNode;
-}
-
-const platformNiches: Niche[] = [
-  { id: "guitars", name: "Guitars", icon: <Guitar className="h-4 w-4" /> },
-  { id: "motorcycles", name: "Motorcycles", icon: <Bike className="h-4 w-4" /> },
-  { id: "disc-golf", name: "Disc Golf", icon: <Disc3 className="h-4 w-4" /> },
-  { id: "wines", name: "Wines", icon: <Wine className="h-4 w-4" /> },
-];
+import { useAdminSettings } from "@/lib/admin-settings-context";
 
 type NicheSwitcherVariant = "rail" | "chip";
 
@@ -50,11 +33,19 @@ export function NicheSwitcher({
   collapsed = false,
   user,
 }: NicheSwitcherProps) {
+  const { niches, currentNicheSlug, setCurrentNicheSlug } = useAdminSettings();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentNiche, setCurrentNiche] = useState<Niche>(platformNiches[0]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const activeNiches = niches.filter((n) => n.status === "active");
+  const currentNiche = niches.find((n) => n.slug === currentNicheSlug) ?? activeNiches[0] ?? niches[0];
+
+  const filteredNiches = activeNiches.filter((niche) =>
+    niche.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -66,7 +57,6 @@ export function NicheSwitcher({
         setSearchQuery("");
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -77,15 +67,24 @@ export function NicheSwitcher({
     }
   }, [isOpen]);
 
-  const filteredNiches = platformNiches.filter((niche) =>
-    niche.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // If active niches change and currentNicheSlug is no longer active, reset to first active
+  useEffect(() => {
+    const stillActive = activeNiches.find((n) => n.slug === currentNicheSlug);
+    if (!stillActive && activeNiches[0]) {
+      setCurrentNicheSlug(activeNiches[0].slug);
+    }
+  }, [niches]);
 
-  const handleNicheSelect = (niche: Niche) => {
-    setCurrentNiche(niche);
+  function handleNicheSelect(slug: string) {
+    setCurrentNicheSlug(slug);
     setIsOpen(false);
     setSearchQuery("");
-  };
+    router.push(`/niche/${slug}`);
+  }
+
+  function nicheInitial(name: string) {
+    return name.charAt(0).toUpperCase();
+  }
 
   const isChip = variant === "chip";
 
@@ -110,7 +109,7 @@ export function NicheSwitcher({
           )}
           aria-haspopup="menu"
           aria-expanded={isOpen}
-          title={`Switch niche — currently ${currentNiche.name}`}
+          title={`Switch niche — currently ${currentNiche?.name ?? ""}`}
         >
           <Avatar className="h-9 w-9 border border-border">
             <AvatarImage src={user.avatarUrl} alt={user.displayName} />
@@ -144,11 +143,21 @@ export function NicheSwitcher({
             collapsed && "justify-center",
             isOpen && "bg-muted/50",
           )}
-          title={collapsed ? currentNiche.name : undefined}
+          title={currentNiche?.name ?? "Switch niche"}
         >
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
-            <Globe className="h-5 w-5 text-muted-foreground" />
-          </div>
+          {currentNiche ? (
+            <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-xs font-bold text-muted-foreground">
+              {nicheInitial(currentNiche.name)}
+            </div>
+          ) : null}
+          {!collapsed && currentNiche && (
+            <span className="flex-1 truncate text-left text-sm text-muted-foreground">
+              {currentNiche.name}
+            </span>
+          )}
+          {!collapsed && (
+            <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
+          )}
         </button>
       )}
 
@@ -178,13 +187,12 @@ export function NicheSwitcher({
 
           <div className="max-h-48 overflow-y-auto py-1">
             {filteredNiches.map((niche) => {
-              const isSelected = niche.id === currentNiche.id;
-
+              const isSelected = niche.slug === currentNicheSlug;
               return (
                 <button
                   key={niche.id}
                   type="button"
-                  onClick={() => handleNicheSelect(niche)}
+                  onClick={() => handleNicheSelect(niche.slug)}
                   className={cn(
                     "flex w-full items-center gap-2 px-3 py-1.5 text-left transition-colors",
                     isSelected
@@ -194,11 +202,11 @@ export function NicheSwitcher({
                 >
                   <span
                     className={cn(
-                      "flex-shrink-0",
+                      "flex h-4 w-4 flex-shrink-0 items-center justify-center text-xs font-bold",
                       isSelected ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    {niche.icon}
+                    {nicheInitial(niche.name)}
                   </span>
                   <span className="flex-1 truncate text-xs font-medium">
                     {niche.name}
@@ -212,7 +220,7 @@ export function NicheSwitcher({
 
             {filteredNiches.length === 0 ? (
               <p className="px-3 py-2 text-center text-xs text-muted-foreground">
-                No niches found
+                No active niches
               </p>
             ) : null}
           </div>

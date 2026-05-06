@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   FolderTree,
   LayoutDashboard,
+  Palette,
   Settings,
   Shield,
   Sparkles,
@@ -52,6 +53,12 @@ const sections: NavSection[] = [
     label: "Configuration",
     items: [
       { href: "/admin/niche-config", icon: Settings, label: "Niche Config" },
+    ],
+  },
+  {
+    label: "Design",
+    items: [
+      { href: "/admin/design-system", icon: Palette, label: "Design System" },
     ],
   },
 ]

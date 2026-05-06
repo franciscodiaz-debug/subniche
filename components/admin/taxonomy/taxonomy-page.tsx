@@ -2,15 +2,15 @@
 
 import { useState } from "react"
 
-import { mockNiches, mockCategories, type AdminNiche, type AdminCategory, type AdminSubcategory } from "@/lib/admin/mock-taxonomy"
+import { type AdminNiche, type AdminCategory, type AdminSubcategory } from "@/lib/admin/mock-taxonomy"
+import { useAdminSettings } from "@/lib/admin-settings-context"
 import { NicheList } from "./niche-list"
 import { CategoryTree } from "./category-tree"
 import { AttributeList } from "./attribute-list"
 
 export function TaxonomyPage() {
-  const [niches, setNiches] = useState<AdminNiche[]>(mockNiches)
-  const [categories, setCategories] = useState<AdminCategory[]>(mockCategories)
-  const [selectedNiche, setSelectedNiche] = useState<AdminNiche | null>(mockNiches[0] ?? null)
+  const { niches, categories, setNiches, setCategories } = useAdminSettings()
+  const [selectedNiche, setSelectedNiche] = useState<AdminNiche | null>(niches[0] ?? null)
   const [selectedCategory, setSelectedCategory] = useState<AdminCategory | null>(null)
   const [selectedSubcategory, setSelectedSubcategory] = useState<AdminSubcategory | null>(null)
 
@@ -35,8 +35,8 @@ export function TaxonomyPage() {
   }
 
   function handleUpdateNicheCategories(updated: AdminCategory[]) {
-    setCategories((prev) => [
-      ...prev.filter((c) => c.nicheId !== selectedNiche?.id),
+    setCategories([
+      ...categories.filter((c) => c.nicheId !== selectedNiche?.id),
       ...updated,
     ])
     if (selectedCategory) {
@@ -46,7 +46,7 @@ export function TaxonomyPage() {
   }
 
   function handleUpdateCategory(updated: AdminCategory) {
-    setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+    setCategories(categories.map((c) => (c.id === updated.id ? updated : c)))
     if (selectedCategory?.id === updated.id) {
       setSelectedCategory(updated)
       // Keep selectedSubcategory in sync if it still exists in the updated category

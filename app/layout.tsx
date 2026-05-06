@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Geist_Mono, Source_Serif_4 } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ClientLayout } from '@/components/app-shell/client-layout'
+import { AdminSettingsProvider } from '@/lib/admin-settings-context'
 import { getAuthState } from '@/lib/auth'
 import './globals.css'
 
@@ -33,7 +34,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={`dark bg-background ${inter.variable} ${geistMono.variable} ${sourceSerif.variable}`}
     >
       <body className="font-sans antialiased bg-background text-foreground">
-        <ClientLayout isAuthenticated={isAuthenticated}>{children}</ClientLayout>
+        <AdminSettingsProvider>
+          <ClientLayout isAuthenticated={isAuthenticated}>{children}</ClientLayout>
+        </AdminSettingsProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

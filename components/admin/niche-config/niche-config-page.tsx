@@ -6,12 +6,13 @@ import { Plus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { mockNiches, type AdminNiche } from "@/lib/admin/mock-taxonomy"
+import { type AdminNiche } from "@/lib/admin/mock-taxonomy"
+import { useAdminSettings } from "@/lib/admin-settings-context"
 import { NicheFormDialog } from "@/components/admin/taxonomy/niche-form-dialog"
 import { NicheConfigCard } from "./niche-config-card"
 
 export function NicheConfigPage() {
-  const [niches, setNiches] = useState<AdminNiche[]>(mockNiches)
+  const { niches, setNiches } = useAdminSettings()
   const [selectedId, setSelectedId] = useState<string>(niches[0]?.id ?? "")
   const [addOpen, setAddOpen] = useState(false)
 

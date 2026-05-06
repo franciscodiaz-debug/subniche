@@ -20,6 +20,7 @@ import { currentUser } from "../../lib/current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { NicheSwitcher } from "./niche-switcher";
 import { SubnicheLogo } from "./subniche-logo";
+import { useAdminSettings } from "@/lib/admin-settings-context";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -42,6 +43,7 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { currentNicheSlug } = useAdminSettings();
 
   const isMyStuffArea =
     pathname === "/my-stuff" || pathname.startsWith("/my-stuff/");
@@ -63,8 +65,10 @@ export function Sidebar({
     }
   }, [mobileOpen, onMobileClose, pathname]);
 
+  const nicheHomeHref = currentNicheSlug ? `/niche/${currentNicheSlug}` : "/"
+
   const desktopNavItems = [
-    { href: "/", icon: Home, label: "Home" },
+    { href: nicheHomeHref, icon: Home, label: "Home" },
     { href: "/market", icon: Telescope, label: "Market" },
     {
       href: "/trade",
@@ -74,7 +78,7 @@ export function Sidebar({
   ];
 
   const mobileNavItems = [
-    { href: "/", icon: Home, label: "Home" },
+    { href: nicheHomeHref, icon: Home, label: "Home" },
     {
       href: "/market",
       icon: Telescope,
@@ -93,6 +97,8 @@ export function Sidebar({
         isActive = isMobileOnly ? isMarketArea : isDiscoverArea;
       } else if (item.label === "Trade") {
         isActive = isTradeArea;
+      } else if (item.label === "Home") {
+        isActive = pathname === item.href || pathname.startsWith("/niche/");
       } else {
         isActive =
           pathname === item.href ||

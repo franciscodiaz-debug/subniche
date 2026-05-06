@@ -1,14 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { Sparkles, Shield } from "lucide-react"
+import { Sparkles, Shield, RotateCcw } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   adminStats,
   adminActivityLog,
   type ActivityLogEntry,
 } from "@/lib/admin/mock-admin-dashboard"
+import { useAdminSettings } from "@/lib/admin-settings-context"
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -25,13 +27,27 @@ const activityIcon: Record<ActivityLogEntry["type"], React.ReactNode> = {
 }
 
 export function AdminDashboard() {
+  const { niches, resetToDefaults } = useAdminSettings()
+  const activeNicheCount = niches.filter((n) => n.status === "active").length
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Platform overview and recent activity.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Platform overview and recent activity.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-muted-foreground"
+          onClick={resetToDefaults}
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          Reset to defaults
+        </Button>
       </div>
 
       {/* Stats row */}
@@ -53,7 +69,7 @@ export function AdminDashboard() {
         />
         <StatCard
           label="Active Niches"
-          value={adminStats.niches}
+          value={activeNicheCount}
           trend="+1 this month"
           href="/admin/niche-config"
         />

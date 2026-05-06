@@ -1,0 +1,76 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: Next.js 15 (App Router), React 19, TypeScript 5, Prisma v6, PostgreSQL/Supabase, Zod v4, Tailwind CSS 4
+  Architecture: Layered (Route Handlers -> Controllers -> Services -> Repositories -> Prisma), Mapper pattern for DTO serialization
+  Testing: Vitest v4, unit tests co-located in server/ (controllers, services, validators, utils)
+  Style: ESLint 9, TypeScript strict mode; no Prettier configured
+  Auth: Supabase SSR + JWT (jose); auth_token stored in localStorage
+  CI/CD: GitHub Actions -> Vercel (develop, qa, production branches)
+
+strict_tdd: true
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected layers (models, validators, mappers, repos, services, controllers, routes)
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - Follow layered architecture: Route -> Controller -> Service -> Mapper -> Repository -> Prisma
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing patterns: extend BaseController / BaseService / BaseRepository
+    - For new resources, follow the 11-step checklist in .claude/agents/backend.md
+    - Import Prisma types from .prisma/client (not @prisma/client)
+    - Use Zod v4 top-level validators: z.uuid(), z.iso.datetime() (NOT z.string().uuid())
+    - Load .claude/agents/frontend.md BEFORE any frontend/component work
+  verify:
+    - Run npm test (vitest run) to verify unit tests
+    - Run npx tsc --noEmit for type checking
+    - Run npm run lint for linting
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas (large removals)
+
+testing:
+  strict_tdd: true
+  detected: "2026-04-27"
+  runner:
+    command: "npm test"
+    framework: "vitest v4"
+    watch_command: "npm run test:watch"
+  layers:
+    unit:
+      available: true
+      tool: vitest
+    integration:
+      available: false
+      note: "no @testing-library/* installed"
+    e2e:
+      available: false
+      note: "no playwright or cypress installed"
+  coverage:
+    available: true
+    command: "npx vitest run --coverage"
+    provider: v8
+    scope: "server/**/*.ts"
+  quality:
+    linter:
+      available: true
+      command: "npm run lint"
+      tool: "eslint@9"
+    type_checker:
+      available: true
+      command: "npx tsc --noEmit"
+      tool: "typescript@5"
+    formatter:
+      available: false
+      note: "no prettier config detected"

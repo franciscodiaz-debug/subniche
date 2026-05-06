@@ -1,0 +1,89 @@
+name: Database Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        description: 'Target environment to migrate'
+        required: true
+        default: 'develop'
+        options:
+          - production
+          - qa
+          - develop
+          - preview
+  push:
+    branches: ["develop", "qa", "production", "feat/**", "fix/**"]
+    paths:
+      - "supabase/migrations/**"
+      - "prisma/migrations/**"
+      - "prisma/schema.prisma"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # Supabase migrations run on the main branches only (global schema creation, auth config).
+  # feat/* and fix/* branches share the preview schema, so no supabase push is needed there.
+  migrate-supabase:
+    name: Supabase migrations
+    runs-on: ubuntu-latest
+    if: contains(fromJSON('["refs/heads/develop", "refs/heads/qa", "refs/heads/production"]'), github.ref) || (github.event_name == 'workflow_dispatch' && github.event.inputs.target != 'preview')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Run Supabase migrations
+        run: |
+          if [[ -z "$SUPABASE_PROJECT_REF" ]]; then
+            echo "::warning::SUPABASE_PROJECT_REF not set — skipping Supabase migrations"
+            exit 0
+          fi
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+  # Prisma migrations run on all branches and target the schema that matches the branch.
+  # Branch → schema mapping:
+  #   production  → production
+  #   qa          → qa
+  #   develop     → dev
+  #   feat/* fix/* → preview
+  #
+  # Required GitHub secrets (shared across all environments):
+  #   DB_HOST     — aws-x-region.pooler.supabase.com
+  #   DB_USER     — postgres.your-project-ref
+  #   DB_PASSWORD — your database password
+  #
+  # DB_SCHEMA is resolved from the branch name via the job-level env expression.
+  migrate-prisma:
+    name: Prisma migrations
+    runs-on: ubuntu-latest
+    env:
+      DB_SCHEMA: ${{ (github.ref_name == 'production' || github.event.inputs.target == 'production') && 'production' || (github.ref_name == 'qa' || github.event.inputs.target == 'qa') && 'qa' || (github.ref_name == 'develop' || github.event.inputs.target == 'develop') && 'dev' || 'preview' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build connection URLs
+        run: |
+          BASE="postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}"
+          echo "DATABASE_URL=${BASE}:6543/postgres?pgbouncer=true&sslmode=require&schema=${DB_SCHEMA}" >> $GITHUB_ENV
+          echo "DIRECT_URL=${BASE}:5432/postgres?sslmode=require&schema=${DB_SCHEMA}" >> $GITHUB_ENV
+
+      - name: Deploy Prisma migrations
+        run: npx prisma migrate deploy

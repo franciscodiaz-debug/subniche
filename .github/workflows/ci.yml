@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        description: 'Deployment target for manual runs'
+        required: true
+        default: 'develop'
+        options:
+          - production
+          - qa
+          - develop
+          - preview
+      vercel_args:
+        description: 'Optional extra Vercel CLI args'
+        required: false
+        default: ''
+  push:
+    branches: ["develop", "qa", "production", "feat/**", "fix/**"]
+  pull_request:
+    branches: ["develop", "qa", "production"]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    environment: ${{ github.event.inputs.target == 'production' && 'production' || github.event.inputs.target == 'qa' && 'qa' || github.event.inputs.target == 'develop' && 'development' || github.event.inputs.target == 'preview' && 'preview' || github.ref_name == 'production' && 'production' || github.ref_name == 'qa' && 'qa' || github.ref_name == 'develop' && 'development' || 'preview' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Resolve deployment target
+        id: target
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TARGET: ${{ github.event.inputs.target }}
+          SECRET_VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SECRET_VERCEL_QA_PROJECT_ID: ${{ secrets.VERCEL_QA_PROJECT_ID }}
+          SECRET_VERCEL_DEV_PROJECT_ID: ${{ secrets.VERCEL_DEV_PROJECT_ID }}
+        run: |
+          TARGET="${INPUT_TARGET:-$REF_NAME}"
+          if [[ "$TARGET" == "production" ]]; then
+            echo "env=production"                        >> $GITHUB_OUTPUT
+            echo "prod_flag=--prod"                      >> $GITHUB_OUTPUT
+            echo "project_id=$SECRET_VERCEL_PROJECT_ID"  >> $GITHUB_OUTPUT
+          elif [[ "$TARGET" == "qa" ]]; then
+            echo "env=preview"                               >> $GITHUB_OUTPUT
+            echo "prod_flag="                                >> $GITHUB_OUTPUT
+            echo "project_id=$SECRET_VERCEL_QA_PROJECT_ID"  >> $GITHUB_OUTPUT
+          elif [[ "$TARGET" == "develop" ]]; then
+            echo "env=preview"                               >> $GITHUB_OUTPUT
+            echo "prod_flag="                                >> $GITHUB_OUTPUT
+            echo "project_id=$SECRET_VERCEL_DEV_PROJECT_ID" >> $GITHUB_OUTPUT
+          else
+            echo "env=preview"                               >> $GITHUB_OUTPUT
+            echo "prod_flag="                                >> $GITHUB_OUTPUT
+            echo "project_id=$SECRET_VERCEL_PROJECT_ID"     >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pull Vercel environment
+        run: npx vercel pull --yes --environment=${{ steps.target.outputs.env }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ steps.target.outputs.project_id }}
+
+      - name: Build
+        run: npx vercel build ${{ steps.target.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ steps.target.outputs.project_id }}
+
+      - name: Deploy
+        run: npx vercel deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ steps.target.outputs.project_id }}

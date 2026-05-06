@@ -1,0 +1,7 @@
+#!/bin/sh
+echo "Running pre-commit hooks..."
+npm run lint || exit 1
+echo "Linting completed successfully"
+npx tsc || exit 1
+echo "Type checking completed successfully"
+echo "Pre-commit hooks completed successfully"

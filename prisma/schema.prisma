@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  superadmin
+  admin
+  member
+}
+
+model Niche {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String     @db.VarChar(255)
+  slug          String     @unique @db.VarChar(255)
+  description   String?    @db.VarChar(1000)
+  order         Int
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+
+  categories      Category[]
+  listings        Listing[]
+  specifications  Specification[]
+  profiles        NicheProfile[]
+
+  @@map("niches")
+}
+
+model Category {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title      String     @db.VarChar(255)
+  slug       String     @db.VarChar(255)
+  niche_id   String     @db.Uuid
+  parent_id  String?    @db.Uuid
+  order      Int
+  bitpos     BigInt     @default(1)
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+
+  niche      Niche      @relation(fields: [niche_id], references: [id], onDelete: Cascade)
+  parent     Category?  @relation("CategoryChildren", fields: [parent_id], references: [id])
+  children   Category[] @relation("CategoryChildren")
+  listings   Listing[]
+  specification_category_values SpecificationCategoryValue[]
+
+  @@unique([niche_id, slug])
+  @@unique([niche_id, bitpos])
+  @@map("categories")
+}
+
+model Example {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.VarChar(1000)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("examples")
+}
+
+model Location {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  country      String   @db.VarChar(255)
+  country_code String   @db.VarChar(3)
+  state        String   @db.VarChar(255)
+  state_code   String   @db.VarChar(3)
+  capital      String   @db.VarChar(255)
+  city         String   @db.VarChar(255)
+  city_code    String   @db.VarChar(8)
+  zip_code     String   @db.VarChar(10)
+  latitude     Decimal  @db.Decimal(10, 8)
+  longitude    Decimal  @db.Decimal(11, 8)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  users        User[]
+
+  @@map("locations")
+}
+
+model User {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  first_name           String?        @db.VarChar(100)
+  last_name            String?        @db.VarChar(100)
+  email                String?        @unique @db.VarChar(255)
+  email_verified_at    DateTime?      @db.Timestamptz(6)
+  phone                String?        @db.VarChar(50)
+  bio                  String?        @db.VarChar(1000)
+  location_id          String?        @db.Uuid
+  code                 String         @unique @db.VarChar(6)
+  code_updated_at      DateTime?      @db.Timestamptz(6)
+  role                 Role           @default(member)
+  banned_at            DateTime?      @db.Timestamptz(6)
+  created_at           DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
+
+  location             Location?      @relation(fields: [location_id], references: [id])
+  identities           UserIdentity[]
+  media                Media[]
+  listings             Listing[]
+  niche_profiles       NicheProfile[]
+
+  @@map("users")
+}
+
+model EmailVerificationToken {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String    @db.VarChar(255)
+  token_hash     String    @unique @db.VarChar(255)
+  suggested_code String    @unique @db.VarChar(15)
+  expires_at     DateTime  @db.Timestamptz(6)
+  verified_at    DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@map("email_verification_tokens")
+}
+
+model Attribute {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type         String   @db.VarChar(15)
+  name         String   @db.VarChar(45)
+  code         String   @db.VarChar(45)
+  allow_values Boolean  @default(false)
+  order        Int      @default(0)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  condition_listings  Listing[]          @relation("ListingCondition")
+  listing_attributes  ListingAttribute[] @relation("ListingAttribute")
+
+  @@unique([type, code])
+  @@map("attributes")
+}
+
+model Status {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(45)
+  code       String   @unique @db.VarChar(45)
+  icon       String   @db.VarChar(45)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  listing_statuses ListingStatus[]
+
+  @@map("statuses")
+}
+
+model UserIdentity {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String        @db.Uuid
+  provider        String        @db.VarChar(50)
+  provider_id     String?       @db.VarChar(255)
+  identify_name   String        @db.VarChar(50)
+  identify_value  String        @db.VarChar(100)
+  password_hash   String?       @db.VarChar(255)
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_id])
+  @@map("user_identities")
+}
+
+model Media {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String   @db.Uuid
+  mediable_type  String   @db.VarChar(50)
+  mediable_id    String   @db.Uuid
+  file_name      String   @db.VarChar(255)
+  mime_type      String   @db.VarChar(50)
+  disk           String   @default("local") @db.VarChar(20)
+  path           String   @db.VarChar(500)
+  file_size      Int
+  order          Int      @default(0)
+  variants       Json?    @db.JsonB
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user           User     @relation(fields: [user_id], references: [id])
+
+  @@index([mediable_type, mediable_id])
+  @@map("media")
+}
+
+model Listing {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  niche_id      String    @db.Uuid
+  user_id       String    @db.Uuid
+  category_id   String?   @db.Uuid
+  condition_id  String?   @db.Uuid
+  title         String    @db.VarChar(255)
+  slug          String    @unique @db.VarChar(255)
+  price         Decimal?  @db.Decimal(10, 2)
+  subtitle      String?   @db.VarChar(255)
+  description      String?   @db.Text
+  return_policy    String?   @db.Text
+  condition_notes  String?   @db.Text
+  is_draft         Boolean   @default(true)
+  published_at  DateTime? @db.Timestamptz(6)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  niche      Niche              @relation(fields: [niche_id], references: [id])
+  user       User               @relation(fields: [user_id], references: [id])
+  category   Category?          @relation(fields: [category_id], references: [id])
+  condition  Attribute?         @relation("ListingCondition", fields: [condition_id], references: [id])
+  statuses   ListingStatus[]
+  attributes ListingAttribute[]
+  specification_values  ListingSpecificationValue[]
+  spec_bitmasks         ListingSpecBitmask[]
+  category_bitmask      ListingCategoryBitmask?
+
+  @@index([niche_id])
+  @@index([user_id])
+  @@index([category_id])
+  @@index([condition_id])
+  @@index([is_draft])
+  @@index([price])
+  @@map("listings")
+}
+
+model ListingStatus {
+  listing_id String  @db.Uuid
+  status_id  String  @db.Uuid
+  listing    Listing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  status     Status  @relation(fields: [status_id], references: [id])
+
+  @@id([listing_id, status_id])
+  @@map("listing_statuses")
+}
+
+model ListingAttribute {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing_id   String    @db.Uuid
+  attribute_id String    @db.Uuid
+  value        String?   @db.VarChar(255)
+  listing      Listing   @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  attribute    Attribute @relation("ListingAttribute", fields: [attribute_id], references: [id])
+
+  @@map("listing_attributes")
+}
+
+model Specification {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  niche_id     String   @db.Uuid
+  name         String   @db.VarChar(255)
+  type         String   @db.VarChar(15)
+  field_config Json?    @db.JsonB
+  order        Int      @default(0)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  niche           Niche                       @relation(fields: [niche_id], references: [id], onDelete: Cascade)
+  values          SpecificationValue[]
+  listing_values  ListingSpecificationValue[]
+  listing_bitmasks ListingSpecBitmask[]
+
+  @@unique([niche_id, name])
+  @@index([niche_id])
+  @@map("specifications")
+}
+
+model SpecificationValue {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  specification_id String   @db.Uuid
+  value            String   @db.VarChar(255)
+  bitpos           BigInt   @default(1)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  specification    Specification               @relation(fields: [specification_id], references: [id], onDelete: Cascade)
+  category_values  SpecificationCategoryValue[]
+
+  @@unique([specification_id, bitpos])
+  @@index([specification_id])
+  @@map("specification_values")
+}
+
+model SpecificationCategoryValue {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id            String   @db.Uuid
+  specification_value_id String   @db.Uuid
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  category             Category           @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  specification_value  SpecificationValue @relation(fields: [specification_value_id], references: [id], onDelete: Cascade)
+  listing_values       ListingSpecificationValue[]
+
+  @@unique([category_id, specification_value_id])
+  @@index([category_id])
+  @@map("specification_category_values")
+}
+
+model ListingSpecificationValue {
+  id                              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing_id                      String   @db.Uuid
+  specification_id                String   @db.Uuid
+  specification_category_value_id String?  @db.Uuid
+  value                           String?  @db.VarChar(255)
+  created_at                      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                      DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  listing                      Listing                     @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  specification                Specification               @relation(fields: [specification_id], references: [id], onDelete: Cascade)
+  specification_category_value SpecificationCategoryValue? @relation(fields: [specification_category_value_id], references: [id], onDelete: SetNull)
+
+  @@index([listing_id])
+  @@index([specification_id])
+  @@map("listing_specification_values")
+}
+
+model ListingSpecBitmask {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing_id       String   @db.Uuid
+  specification_id String   @db.Uuid
+  hash             BigInt
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  listing       Listing       @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  specification Specification @relation(fields: [specification_id], references: [id], onDelete: Cascade)
+
+  @@unique([listing_id, specification_id])
+  @@index([listing_id])
+  @@map("listing_spec_bitmasks")
+}
+
+model ListingCategoryBitmask {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing_id String   @unique @db.Uuid
+  hash       BigInt
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  @@map("listing_category_bitmasks")
+}
+
+model NicheProfile {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String   @db.Uuid
+  niche_id     String   @db.Uuid
+  display_name String   @db.VarChar(50)
+  bio          String?  @db.VarChar(1000)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  niche Niche @relation(fields: [niche_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, niche_id])
+  @@unique([niche_id, display_name])
+  @@map("niche_profiles")
+}

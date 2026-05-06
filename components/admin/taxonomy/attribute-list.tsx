@@ -243,17 +243,18 @@ export function AttributeList({ category, subcategory, nicheId, allCategories, o
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
         <div>
-          {subcategory ? (
-            <>
-              <p className="text-xs text-muted-foreground">{category.name} /</p>
-              <p className="font-medium text-foreground">{subcategory.name}</p>
-            </>
-          ) : (
-            <>
-              <p className="text-xs text-muted-foreground">Attributes for</p>
-              <p className="font-medium text-foreground">{category.name}</p>
-            </>
-          )}
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attributes</p>
+          <p className="mt-0.5 text-sm font-medium text-foreground">
+            {subcategory ? (
+              <>
+                <span className="text-muted-foreground">{category.name}</span>
+                <span className="mx-1.5 text-muted-foreground/40">/</span>
+                {subcategory.name}
+              </>
+            ) : (
+              category.name
+            )}
+          </p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

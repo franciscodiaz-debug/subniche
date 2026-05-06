@@ -1,0 +1,30 @@
+{
+    "permissions": {
+      "allow": [
+        "Bash(curl -L \"https://github.com/supabase/cli/releases/download/v2.84.2/supabase_windows_amd64.tar.gz\" -o \"C:/Users/SHAM/AppData/Local/supabase-cli/supabase_windows_amd64.tar.gz\")",
+        "Bash(tar -xzf \"C:/Users/SHAM/AppData/Local/supabase-cli/supabase_windows_amd64.tar.gz\" -C \"C:/Users/SHAM/AppData/Local/supabase-cli/\")",
+        "Bash(export PATH=\"/c/Users/SHAM/AppData/Local/supabase-cli:$PATH\")",
+        "Bash(supabase --version)",
+        "Bash(supabase db:*)",
+        "Bash(npm test:*)",
+        "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(p.type || ''commonjs''\\)\")",
+        "Bash(npx prisma:*)",
+        "Bash(node -e \"const p = require\\(''@prisma/client''\\); console.log\\(Object.keys\\(p\\).filter\\(k => k.toLowerCase\\(\\).includes\\(''example''\\)\\)\\)\")",
+        "Bash(grep -rn \"type Example\\\\|interface Example\" d:/www/darwoft/subniche/node_modules/@prisma/client/ --include=*.d.ts)",
+        "Bash(node -e \"const { z } = require\\(''zod''\\); console.log\\(typeof z.toJSONSchema\\)\")",
+        "Bash(node -e \":*)",
+        "Bash(python3 -)",
+        "Bash(where python:*)",
+        "Bash(where python3:*)",
+        "Bash(where py:*)",
+        "Bash(C:\\\\Python313\\\\python.exe \"d:/www/darwoft/subniche/convert_locations.py\")",
+        "Bash(powershell -Command \"& 'C:\\\\Python313\\\\python.exe' 'd:\\\\www\\\\darwoft\\\\subniche\\\\convert_locations.py'\")",
+        "Bash(npx tsc *)",
+        "WebFetch(domain:raw.githubusercontent.com)"
+      ],
+      "additionalDirectories": [
+        "d:\\www\\darwoft\\subniche\\app\\api\\location",
+        "C:\\Users\\SHAM\\.gstack\\projects\\SubNiche-subniche"
+      ]
+    }
+  }

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(scoop --version)",
+      "Bash(winget --version)",
+      "Bash(winget install:*)",
+      "Bash(winget search:*)",
+      "Bash(curl -sL https://github.com/supabase/cli/releases/latest)",
+      "Bash(curl -sL -o \"C:/Users/SHAM/AppData/Local/supabase.exe\" \"https://github.com/supabase/cli/releases/download/v2.84.2/supabase_windows_amd64.exe\")",
+      "Bash(mkdir -p \"/c/Users/SHAM/AppData/Local/supabase-cli\")",
+      "Bash(mv \"/c/Users/SHAM/AppData/Local/supabase.exe\" \"/c/Users/SHAM/AppData/Local/supabase-cli/supabase.exe\")",
+      "Bash(\"/c/Users/SHAM/AppData/Local/supabase-cli/supabase.exe\" --version)",
+      "Read(//c/Users/SHAM/AppData/Local/supabase-cli/**)",
+      "Bash(curl -sI \"https://github.com/supabase/cli/releases/download/v2.84.2/supabase_windows_amd64.exe\")",
+      "Bash(curl -sL \"https://api.github.com/repos/supabase/cli/releases/latest\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(a[''''name''''], a[''''browser_download_url'''']\\) for a in d[''''assets'''']]\")",
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(''''/dev/stdin'''',''''utf8''''\\); const j=JSON.parse\\(d\\); j.assets.forEach\\(a=>console.log\\(a.name, a.browser_download_url\\)\\)\")",
+      "Bash(curl -sL \"https://api.github.com/repos/supabase/cli/releases/latest\" -o /tmp/release.json)",
+      "Bash(node -e \"const j=require\\(''/tmp/release.json''\\); j.assets.forEach\\(a=>console.log\\(a.name\\)\\)\")",
+      "Bash(curl -sL \"https://api.github.com/repos/supabase/cli/releases/latest\" -o \"C:/Users/SHAM/AppData/Local/release.json\")",
+      "Bash(node -e \"const j=require\\(''C:/Users/SHAM/AppData/Local/release.json''\\); j.assets.forEach\\(a=>console.log\\(a.name\\)\\)\")",
+      "Bash(node -e \"const j=require\\(''C:/Users/SHAM/AppData/Local/release.json''\\); const a=j.assets.find\\(a=>a.name===''supabase_windows_amd64.tar.gz''\\); console.log\\(a.browser_download_url\\)\")"
+    ],
+    "additionalDirectories": [
+      "d:\\www\\darwoft\\subniche\\server"
+    ]
+  }
+}

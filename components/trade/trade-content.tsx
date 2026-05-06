@@ -31,6 +31,7 @@ const tradeOnboardingSteps: OnboardingStep[] = [
     description:
       "This tab shows perfect matches and inbound interest on items you've marked as tradeable. Jump to For Sale anytime.",
     position: "bottom",
+    tooltipAlign: "left",
   },
   {
     id: "trade-item-selector",

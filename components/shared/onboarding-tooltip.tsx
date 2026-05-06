@@ -11,7 +11,6 @@ export interface OnboardingStep {
   title: string
   description: string
   position?: "top" | "bottom" | "left" | "right" | "center"
-  tooltipAlign?: "left" | "center"
 }
 
 interface OnboardingTooltipProps {
@@ -19,15 +18,6 @@ interface OnboardingTooltipProps {
   storageKey: string
   onComplete?: () => void
   delayMs?: number
-}
-
-type Side = "top" | "bottom" | "left" | "right" | "center"
-
-interface TooltipLayout {
-  tooltipStyle: React.CSSProperties
-  side: Side
-  arrowX: number
-  arrowY: number
 }
 
 export function OnboardingTooltip({
@@ -99,19 +89,13 @@ export function OnboardingTooltip({
   const step = steps[currentStep]
   const isLastStep = currentStep === steps.length - 1
 
-  const resolveTooltip = (): TooltipLayout => {
-    if (typeof window === "undefined")
-      return { tooltipStyle: {}, side: "center", arrowX: 0, arrowY: 0 }
+  const getTooltipStyle = (): React.CSSProperties => {
+    if (typeof window === "undefined") return {}
     if (step.position === "center" || !targetRect) {
-      return {
-        tooltipStyle: { top: "50%", left: "50%", transform: "translate(-50%, -50%)" },
-        side: "center",
-        arrowX: 0,
-        arrowY: 0,
-      }
+      return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }
     }
 
-    const padding = 20
+    const padding = 12
     const margin = 16
     const tooltipRect = tooltipRef.current?.getBoundingClientRect()
     const tooltipWidth = tooltipRect?.width || 288
@@ -167,35 +151,20 @@ export function OnboardingTooltip({
       }
     }
 
-    const clamp = (val: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, val))
-
     switch (bestPosition) {
       case "top": {
         let left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2
         if (left < margin) left = margin
         else if (left + tooltipWidth > viewportWidth - margin)
           left = viewportWidth - tooltipWidth - margin
-        return {
-          tooltipStyle: { bottom: viewportHeight - targetRect.top + padding, left },
-          side: "top",
-          arrowX: clamp(elementCenterX, left + 16, left + tooltipWidth - 16),
-          arrowY: targetRect.top - padding,
-        }
+        return { bottom: viewportHeight - targetRect.top + padding, left }
       }
       case "bottom": {
-        let left =
-          step.tooltipAlign === "left"
-            ? targetRect.left
-            : targetRect.left + targetRect.width / 2 - tooltipWidth / 2
+        let left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2
         if (left < margin) left = margin
         else if (left + tooltipWidth > viewportWidth - margin)
           left = viewportWidth - tooltipWidth - margin
-        return {
-          tooltipStyle: { top: targetRect.bottom + padding, left },
-          side: "bottom",
-          arrowX: clamp(elementCenterX, left + 16, left + tooltipWidth - 16),
-          arrowY: targetRect.bottom + padding,
-        }
+        return { top: targetRect.bottom + padding, left }
       }
       case "left": {
         const right = viewportWidth - targetRect.left + padding
@@ -203,13 +172,7 @@ export function OnboardingTooltip({
         if (top < margin + tooltipHeight / 2) top = margin + tooltipHeight / 2
         else if (top + tooltipHeight / 2 > viewportHeight - margin)
           top = viewportHeight - margin - tooltipHeight / 2
-        const tooltipTopEdge = top - tooltipHeight / 2
-        return {
-          tooltipStyle: { top, right, transform: "translateY(-50%)" },
-          side: "left",
-          arrowX: targetRect.left - padding,
-          arrowY: clamp(elementCenterY, tooltipTopEdge + 16, tooltipTopEdge + tooltipHeight - 16),
-        }
+        return { top, right, transform: "translateY(-50%)" }
       }
       case "right": {
         let left = targetRect.right + padding
@@ -219,48 +182,10 @@ export function OnboardingTooltip({
         if (top < margin + tooltipHeight / 2) top = margin + tooltipHeight / 2
         else if (top + tooltipHeight / 2 > viewportHeight - margin)
           top = viewportHeight - margin - tooltipHeight / 2
-        const tooltipTopEdge = top - tooltipHeight / 2
-        return {
-          tooltipStyle: { top, left, transform: "translateY(-50%)" },
-          side: "right",
-          arrowX: targetRect.right + padding,
-          arrowY: clamp(elementCenterY, tooltipTopEdge + 16, tooltipTopEdge + tooltipHeight - 16),
-        }
+        return { top, left, transform: "translateY(-50%)" }
       }
       default:
-        return { tooltipStyle: {}, side: "center", arrowX: 0, arrowY: 0 }
-    }
-  }
-
-  const { tooltipStyle, side, arrowX, arrowY } = resolveTooltip()
-
-  const renderArrow = () => {
-    if (side === "center" || !targetRect) return null
-
-    const size = 14
-    const half = size / 2
-    const bdr = "1px solid var(--border)"
-
-    const base: React.CSSProperties = {
-      position: "absolute",
-      width: size,
-      height: size,
-      background: "var(--card)",
-      transform: "rotate(45deg)",
-      left: arrowX - half,
-      top: arrowY - half,
-      zIndex: 9,
-    }
-
-    switch (side) {
-      case "bottom":
-        return <div style={{ ...base, borderLeft: bdr, borderTop: bdr }} />
-      case "top":
-        return <div style={{ ...base, borderRight: bdr, borderBottom: bdr }} />
-      case "right":
-        return <div style={{ ...base, borderLeft: bdr, borderBottom: bdr }} />
-      case "left":
-        return <div style={{ ...base, borderRight: bdr, borderTop: bdr }} />
+        return {}
     }
   }
 
@@ -303,12 +228,10 @@ export function OnboardingTooltip({
         />
       ) : null}
 
-      {renderArrow()}
-
       <div
         ref={tooltipRef}
         className="pointer-events-auto absolute z-10 w-72 rounded-lg border border-border bg-card shadow-2xl"
-        style={tooltipStyle}
+        style={getTooltipStyle()}
       >
         <div className="flex items-center justify-between px-4 pb-2 pt-3">
           <div className="flex gap-1.5">

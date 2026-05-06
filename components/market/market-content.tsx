@@ -42,6 +42,7 @@ const marketOnboardingSteps: OnboardingStep[] = [
     description:
       "Switch between For Sale listings and Trade matches on items you're open to swapping.",
     position: "bottom",
+    tooltipAlign: "left",
   },
   {
     id: "market-filters",

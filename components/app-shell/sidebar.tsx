@@ -10,6 +10,7 @@ import {
   Package,
   Plus,
   Repeat2,
+  Shield,
   Telescope,
   Users,
   X,
@@ -269,6 +270,19 @@ export function Sidebar({
               </Avatar>
             </span>
             {!collapsed ? <span>Profile</span> : null}
+          </Link>
+
+          <Link
+            href="/admin"
+            className={cn(
+              "mb-1 flex items-center gap-3 rounded-lg transition-colors",
+              collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
+              "text-muted-foreground/40 hover:bg-card/50 hover:text-muted-foreground/60",
+            )}
+            title={collapsed ? "Admin" : undefined}
+          >
+            <Shield className="h-5 w-5 flex-shrink-0" />
+            {!collapsed ? <span className="flex-1 text-left text-xs">Admin</span> : null}
           </Link>
         </nav>
 

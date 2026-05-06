@@ -23,7 +23,12 @@ interface AdminSettingsCtx {
 function loadFromStorage(): StoredState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as StoredState
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed?.niches) && Array.isArray(parsed?.categories)) {
+        return parsed as StoredState
+      }
+    }
   } catch {}
   return null
 }

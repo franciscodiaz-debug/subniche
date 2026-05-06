@@ -25,7 +25,7 @@ export function OnboardingTooltip({ steps, storageKey, onComplete }: OnboardingT
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const hasCompleted = typeof window !== "undefined" ? localStorage.getItem(storageKey) : "done"
+    const hasCompleted = localStorage.getItem(storageKey)
     if (!hasCompleted) {
       const timer = setTimeout(() => setIsVisible(true), 500)
       return () => clearTimeout(timer)

@@ -202,7 +202,7 @@ export function ReviewQueuePage() {
                   <TableCell className="text-sm text-muted-foreground">
                     @{item.submittedByUsername}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  <TableCell suppressHydrationWarning className="text-xs text-muted-foreground">
                     {timeAgo(item.submittedAt)}
                   </TableCell>
                   <TableCell>{statusBadge[item.status]}</TableCell>

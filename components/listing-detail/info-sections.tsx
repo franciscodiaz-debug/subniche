@@ -236,7 +236,7 @@ export function ShippingBlock({
                     ? "—"
                     : option.price === 0
                       ? "Free"
-                      : `$${option.price.toLocaleString()}`}
+                      : `$${option.price.toLocaleString('en-US')}`}
                 </span>
               </li>
             ))}

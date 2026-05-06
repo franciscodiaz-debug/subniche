@@ -118,7 +118,7 @@ export function ChatPanel({
                   <span className="font-medium text-foreground">{participant.username}</span>
                   {" offered "}
                   <span className="font-bold text-green-600">
-                    ${offer.cash_adjustment.toLocaleString()}
+                    ${offer.cash_adjustment.toLocaleString('en-US')}
                   </span>
                   {" for your"}
                 </span>
@@ -136,7 +136,7 @@ export function ChatPanel({
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{item.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      ${item.price?.toLocaleString()}
+                      ${item.price?.toLocaleString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export function ChatPanel({
                         <p className="text-sm font-medium">{item.title}</p>
                         {item.price && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString()}
+                            ${item.price.toLocaleString('en-US')}
                           </p>
                         )}
                       </div>
@@ -171,8 +171,8 @@ export function ChatPanel({
                     <div className="flex items-center gap-2 text-sm @[400px]:pl-[88px]">
                       <span className="font-medium text-primary">
                         {offer.cash_adjustment > 0
-                          ? `plus $${offer.cash_adjustment.toLocaleString()} cash`
-                          : `minus $${Math.abs(offer.cash_adjustment).toLocaleString()} cash`}
+                          ? `plus $${offer.cash_adjustment.toLocaleString('en-US')} cash`
+                          : `minus $${Math.abs(offer.cash_adjustment).toLocaleString('en-US')} cash`}
                       </span>
                     </div>
                   )}
@@ -200,7 +200,7 @@ export function ChatPanel({
                         <p className="text-sm font-medium">{item.title}</p>
                         {item.price && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString()}
+                            ${item.price.toLocaleString('en-US')}
                           </p>
                         )}
                       </div>
@@ -341,7 +341,7 @@ export function ChatPanel({
             <span className="truncate font-medium text-foreground">{subject.title}</span>
             {subject.price && (
               <span className="flex-shrink-0 text-muted-foreground">
-                · ${subject.price.toLocaleString()}
+                · ${subject.price.toLocaleString('en-US')}
               </span>
             )}
           </Link>
@@ -376,7 +376,7 @@ export function ChatPanel({
                 {(() => {
                   const yourSide = `your ${active_offer.your_items[0]?.title ?? "item"}`
                   if (active_offer.their_items.length === 0) {
-                    return `$${active_offer.cash_adjustment.toLocaleString()} → ${yourSide}`
+                    return `$${active_offer.cash_adjustment.toLocaleString('en-US')} → ${yourSide}`
                   }
                   const extraCount = active_offer.their_items.length - 1
                   const itemPart =
@@ -385,7 +385,7 @@ export function ChatPanel({
                       : active_offer.their_items[0].title
                   const cashPart =
                     active_offer.cash_adjustment > 0
-                      ? ` · +$${active_offer.cash_adjustment.toLocaleString()} cash`
+                      ? ` · +$${active_offer.cash_adjustment.toLocaleString('en-US')} cash`
                       : ""
                   return `${itemPart}${cashPart} → ${yourSide}`
                 })()}
@@ -418,7 +418,7 @@ export function ChatPanel({
                 <p className="truncate text-sm font-medium text-foreground">{subject.title}</p>
                 {subject.price && (
                   <p className="text-xs text-muted-foreground">
-                    ${subject.price.toLocaleString()}
+                    ${subject.price.toLocaleString('en-US')}
                   </p>
                 )}
               </div>

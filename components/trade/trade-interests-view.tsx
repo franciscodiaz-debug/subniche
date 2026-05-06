@@ -387,7 +387,7 @@ export function TradeInterestsView({
           </div>
           {typeof selectedItem.price === "number" ? (
             <p className="flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
-              ${selectedItem.price.toLocaleString()}
+              ${selectedItem.price.toLocaleString('en-US')}
             </p>
           ) : null}
         </div>
@@ -815,7 +815,7 @@ function InterestRow({
     const min = interest.valueMin?.trim()
     const max = interest.valueMax?.trim()
     if (min || max) {
-      const fmt = (v: string) => `$${Number(v).toLocaleString()}`
+      const fmt = (v: string) => `$${Number(v).toLocaleString('en-US')}`
       const value =
         min && max
           ? `${fmt(min)} – ${fmt(max)}`

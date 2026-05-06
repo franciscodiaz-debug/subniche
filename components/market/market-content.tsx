@@ -381,7 +381,7 @@ export function MarketContent() {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">{c.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {c.memberCount.toLocaleString()} members
+                        {c.memberCount.toLocaleString('en-US')} members
                       </p>
                     </div>
                   </Link>

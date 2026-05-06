@@ -142,7 +142,7 @@ export function DiscoverListingCard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-semibold text-primary">
-                    ${listing.price.toLocaleString()}
+                    ${listing.price.toLocaleString('en-US')}
                   </p>
                   {listing.for_trade ? (
                     <Repeat2Icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -236,7 +236,7 @@ export function DiscoverListingCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <p className="text-sm font-semibold text-primary">
-              ${listing.price.toLocaleString()}
+              ${listing.price.toLocaleString('en-US')}
             </p>
             {listing.for_trade ? (
               <Repeat2Icon className="h-3.5 w-3.5 text-muted-foreground" />

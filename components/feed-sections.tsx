@@ -381,7 +381,7 @@ export function CommunitiesSection() {
             <div>
               <p className="text-sm font-medium text-foreground">{community.name}</p>
               <p className="text-[10px] text-muted-foreground">
-                {community.members.toLocaleString()} members
+                {community.members.toLocaleString('en-US')} members
               </p>
             </div>
           </a>

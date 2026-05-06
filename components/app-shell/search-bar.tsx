@@ -174,7 +174,7 @@ export function SearchBar() {
                       {c.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {c.memberCount.toLocaleString()} members
+                      {c.memberCount.toLocaleString('en-US')} members
                     </p>
                   </div>
                 </Link>

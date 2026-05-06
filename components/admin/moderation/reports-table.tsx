@@ -133,7 +133,7 @@ function ReportSection({
                     <TableCell className="max-w-[240px]">
                       <p className="truncate text-sm text-muted-foreground">{report.reason}</p>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell suppressHydrationWarning className="text-xs text-muted-foreground">
                       {timeAgo(report.reportedAt)}
                     </TableCell>
                     <TableCell>

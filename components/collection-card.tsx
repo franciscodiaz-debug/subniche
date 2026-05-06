@@ -99,11 +99,11 @@ export function CollectionCard({
 
       <div className="flex-shrink-0 text-right">
         <p className="text-sm font-medium text-foreground">
-          ${(collection.total_user_value || 0).toLocaleString()}
+          ${(collection.total_user_value || 0).toLocaleString('en-US')}
         </p>
         {(collection.total_ai_value || 0) > 0 ? (
           <p className="text-xs text-muted-foreground">
-            AI: ${(collection.total_ai_value || 0).toLocaleString()}
+            AI: ${(collection.total_ai_value || 0).toLocaleString('en-US')}
           </p>
         ) : null}
       </div>
@@ -181,7 +181,7 @@ export function CollectionCard({
           {(collection.total_user_value || 0) > 0 ? (
             <>
               <span aria-hidden>·</span>
-              <span>${(collection.total_user_value || 0).toLocaleString()}</span>
+              <span>${(collection.total_user_value || 0).toLocaleString('en-US')}</span>
             </>
           ) : null}
         </div>

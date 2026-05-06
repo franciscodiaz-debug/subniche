@@ -285,7 +285,7 @@ export function CollectionOwnerView({
                   $
                   {totalValue >= 1000
                     ? `${Math.round(totalValue / 1000)}k`
-                    : totalValue.toLocaleString()}{" "}
+                    : totalValue.toLocaleString('en-US')}{" "}
                   value
                 </span>
               </>

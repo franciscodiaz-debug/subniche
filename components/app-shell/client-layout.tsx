@@ -21,7 +21,8 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
   const collapseRequested = useIsNavCollapseRequested();
 
   const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/welcome';
-  if (isAuthPage) return <>{children}</>;
+  const isAdminPage = pathname === '/admin' || pathname.startsWith('/admin/');
+  if (isAuthPage || isAdminPage) return <>{children}</>;
 
   const isInboxPage = pathname === "/inbox" || pathname.startsWith("/inbox/");
   const sidebarCollapsed = isInboxPage || collapseRequested;

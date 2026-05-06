@@ -41,6 +41,7 @@ export interface Collection {
   cover_image?: string | null
   visibility?: CollectionVisibility
   is_wishlist?: boolean
+  tags?: string[]
   item_count?: number
   total_user_value?: number
   total_ai_value?: number

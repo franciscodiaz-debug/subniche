@@ -20,6 +20,7 @@ import { currentUser } from "../../lib/current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { NicheSwitcher } from "./niche-switcher";
 import { SubnicheLogo } from "./subniche-logo";
+import { useAdminSettings } from "@/lib/admin-settings-context";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -28,6 +29,7 @@ interface SidebarProps {
   brandName?: string;
   createHref?: string;
   profileImageSrc?: string;
+  isAuthenticated?: boolean;
 }
 
 export function Sidebar({
@@ -37,22 +39,25 @@ export function Sidebar({
   brandName = "SubNiche",
   createHref = "/create-listing",
   profileImageSrc = "/avatar-jordan.jpg",
+  isAuthenticated = true,
 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { currentNicheSlug } = useAdminSettings();
 
   const isMyStuffArea =
     pathname === "/my-stuff" || pathname.startsWith("/my-stuff/");
   const isCommunitiesArea =
     pathname === "/communities" || pathname.startsWith("/communities/");
   const isMarketArea = pathname === "/market" || pathname.startsWith("/market/");
-  const isDiscoverArea = isMarketArea && searchParams?.get("tab") === "for-sale";
-  const isTradeArea =
-    isMarketArea && searchParams?.get("tab") === "trade-matches";
+  const isDiscoverArea = isMarketArea;
+  const isTradeArea = pathname === "/trade" || pathname.startsWith("/trade/");
   const isFavoritesArea =
     pathname === "/favorites" || pathname.startsWith("/favorites/");
   const isProfileActive =
-    pathname === "/profile" || pathname.startsWith("/profile/");
+    pathname === "/profile" ||
+    pathname === `/profile/${currentUser.username}` ||
+    pathname.startsWith(`/profile/${currentUser.username}/`);
 
   useEffect(() => {
     if (mobileOpen && onMobileClose) {
@@ -60,20 +65,22 @@ export function Sidebar({
     }
   }, [mobileOpen, onMobileClose, pathname]);
 
+  const nicheHomeHref = currentNicheSlug ? `/niche/${currentNicheSlug}` : "/"
+
   const desktopNavItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/market?tab=for-sale", icon: Telescope, label: "Market" },
+    { href: nicheHomeHref, icon: Home, label: "Home" },
+    { href: "/market", icon: Telescope, label: "Market" },
     {
-      href: "/market?tab=trade-matches",
+      href: "/trade",
       icon: Repeat2,
       label: "Trade",
     },
   ];
 
   const mobileNavItems = [
-    { href: "/", icon: Home, label: "Home" },
+    { href: nicheHomeHref, icon: Home, label: "Home" },
     {
-      href: "/market?tab=for-sale",
+      href: "/market",
       icon: Telescope,
       label: "Market",
     },
@@ -90,6 +97,8 @@ export function Sidebar({
         isActive = isMobileOnly ? isMarketArea : isDiscoverArea;
       } else if (item.label === "Trade") {
         isActive = isTradeArea;
+      } else if (item.label === "Home") {
+        isActive = pathname === item.href || pathname.startsWith("/niche/");
       } else {
         isActive =
           pathname === item.href ||
@@ -167,17 +176,31 @@ export function Sidebar({
         </div>
 
         <div className={cn("mb-6", collapsed ? "px-2" : "px-4")}>
-          <Link
-            href={createHref}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
-              collapsed ? "px-0" : "px-4",
-            )}
-            title={collapsed ? "Add Item" : undefined}
-          >
-            <Plus className="h-5 w-5 text-primary" />
-            {!collapsed ? <span>Add Item</span> : null}
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href={createHref}
+              className={cn(
+                "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
+                collapsed ? "px-0" : "px-4",
+              )}
+              title={collapsed ? "Add Item" : undefined}
+            >
+              <Plus className="h-5 w-5 text-primary" />
+              {!collapsed ? <span>Add Item</span> : null}
+            </Link>
+          ) : (
+            <Link
+              href="/create-listing"
+              className={cn(
+                "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
+                collapsed ? "px-0" : "px-4",
+              )}
+              title={collapsed ? "Add Item" : undefined}
+            >
+              <Plus className="h-5 w-5 text-primary" />
+              {!collapsed ? <span>Add Item</span> : null}
+            </Link>
+          )}
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2">
@@ -200,11 +223,11 @@ export function Sidebar({
           </Link>
 
           <Link
-            href="/favorites"
+            href={isAuthenticated ? "/favorites" : "/login"}
             className={cn(
               "relative mb-1 flex items-center gap-3 rounded-lg transition-colors",
               collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
-              isFavoritesArea
+              isAuthenticated && isFavoritesArea
                 ? "bg-card text-foreground"
                 : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
             )}
@@ -215,11 +238,11 @@ export function Sidebar({
           </Link>
 
           <Link
-            href="/my-stuff"
+            href={isAuthenticated ? "/my-stuff" : "/login"}
             className={cn(
               "relative mb-1 flex items-center gap-3 rounded-lg transition-colors",
               collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
-              isMyStuffArea
+              isAuthenticated && isMyStuffArea
                 ? "bg-card text-foreground"
                 : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
             )}
@@ -230,11 +253,11 @@ export function Sidebar({
           </Link>
 
           <Link
-            href="/inbox"
+            href={isAuthenticated ? "/inbox" : "/login"}
             className={cn(
               "relative mb-1 flex items-center gap-3 rounded-lg transition-colors",
               collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
-              pathname === "/inbox" || pathname.startsWith("/inbox/")
+              isAuthenticated && (pathname === "/inbox" || pathname.startsWith("/inbox/"))
                 ? "bg-card text-foreground"
                 : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
             )}
@@ -244,32 +267,34 @@ export function Sidebar({
             {!collapsed ? <span className="flex-1 text-left">Inbox</span> : null}
           </Link>
 
-          <Link
-            href={currentUser.profileHref}
-            className={cn(
-              "mb-1 flex items-center gap-3 rounded-lg transition-colors",
-              collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
-              isProfileActive
-                ? "bg-card text-foreground"
-                : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
-            )}
-            title={collapsed ? "Profile" : undefined}
-          >
-            <span className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center">
-              <Avatar
-                className={cn(
-                  "h-8 w-8 border",
-                  isProfileActive ? "border-primary" : "border-transparent",
-                )}
-              >
-                <AvatarImage src={currentUser.avatarUrl} alt={currentUser.displayName} />
-                <AvatarFallback className="text-xs">
-                  {currentUser.displayName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </span>
-            {!collapsed ? <span>Profile</span> : null}
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href={currentUser.profileHref}
+              className={cn(
+                "mb-1 flex items-center gap-3 rounded-lg transition-colors",
+                collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
+                isProfileActive
+                  ? "bg-card text-foreground"
+                  : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
+              )}
+              title={collapsed ? "Profile" : undefined}
+            >
+              <span className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center">
+                <Avatar
+                  className={cn(
+                    "h-8 w-8 border",
+                    isProfileActive ? "border-primary" : "border-transparent",
+                  )}
+                >
+                  <AvatarImage src={currentUser.avatarUrl} alt={currentUser.displayName} />
+                  <AvatarFallback className="text-xs">
+                    {currentUser.displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </span>
+              {!collapsed ? <span className="hover:underline">Profile</span> : null}
+            </Link>
+          ) : null}
         </nav>
 
         <div className="border-t border-border px-2 py-2">

@@ -12,6 +12,7 @@ interface CollectionCardProps {
   onClick?: () => void
   itemImages?: string[]
   href?: string
+  className?: string
 }
 
 const visibilityConfig = {
@@ -26,6 +27,7 @@ export function CollectionCard({
   onClick,
   itemImages = [],
   href,
+  className,
 }: CollectionCardProps) {
   const visibility = collection.visibility || "private"
   const { icon: VisibilityIcon, label: visibilityLabel, color: visibilityColor } =
@@ -110,15 +112,15 @@ export function CollectionCard({
 
   const gridContent = (
     <>
-      <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
+      <div className="p-1">
         {gridImages.length > 0 ? (
-          <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-0.5">
+          <div className="grid grid-cols-4 gap-0.5">
             {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="overflow-hidden bg-secondary">
+              <div key={index} className="relative aspect-square overflow-hidden rounded bg-secondary">
                 {gridImages[index] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={gridImages[index] || "/placeholder.svg"}
+                    src={gridImages[index]}
                     alt=""
                     className="h-full w-full object-cover"
                   />
@@ -129,75 +131,72 @@ export function CollectionCard({
             ))}
           </div>
         ) : collection.cover_image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={collection.cover_image || "/placeholder.svg"}
-            alt={collection.name}
-            className="h-full w-full object-cover"
-          />
-        ) : collection.is_wishlist ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <Heart className="h-12 w-12 text-chart-5/50" />
+          <div className="grid grid-cols-4 gap-0.5">
+            {[0, 1, 2, 3].map((index) => (
+              <div key={index} className="relative aspect-square overflow-hidden rounded bg-secondary">
+                {index === 0 ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={collection.cover_image!}
+                    alt={collection.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-secondary/50" />
+                )}
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <FolderOpen className="h-12 w-12 text-primary/50" />
+          <div className="flex h-16 items-center justify-center rounded bg-muted">
+            {collection.is_wishlist ? (
+              <Heart className="h-6 w-6 text-chart-5/60" />
+            ) : (
+              <FolderOpen className="h-6 w-6 text-primary/40" />
+            )}
           </div>
         )}
-
-        {collection.is_wishlist ? (
-          <div className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-background/80 px-2 py-1 backdrop-blur-sm">
-            <Heart className="h-3 w-3 fill-current text-chart-5" />
-            <span className="text-[10px] font-medium text-chart-5">Wishlist</span>
-          </div>
-        ) : null}
       </div>
 
-      <div className="p-4">
+      <div className="px-3 pb-3 pt-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-medium text-foreground">{collection.name}</h3>
+            <h3 className="truncate text-sm font-medium text-foreground">{collection.name}</h3>
             {collection.description ? (
-              <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              <p className="truncate text-xs text-muted-foreground">
                 {collection.description}
               </p>
             ) : null}
           </div>
-
-          <div className="flex-shrink-0 text-right" title={visibilityLabel}>
-            <VisibilityIcon className={cn("h-4 w-4", visibilityColor)} />
+          <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
+            {collection.is_wishlist ? (
+              <Heart className="h-3.5 w-3.5 fill-current text-chart-5" />
+            ) : null}
+            <VisibilityIcon className={cn("h-3.5 w-3.5", visibilityColor)} />
           </div>
         </div>
 
-        <p className="mt-1 text-xs text-muted-foreground">
-          {collection.item_count || 0} items
-        </p>
-
-        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Your Estimate</p>
-            <p className="font-medium text-foreground">
-              ${(collection.total_user_value || 0).toLocaleString()}
-            </p>
-          </div>
-
-          {(collection.total_ai_value || 0) > 0 ? (
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">AI Estimate</p>
-              <p className="font-medium text-chart-2">
-                ${(collection.total_ai_value || 0).toLocaleString()}
-              </p>
-            </div>
+        <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{collection.item_count || 0} items</span>
+          {(collection.total_user_value || 0) > 0 ? (
+            <>
+              <span aria-hidden>·</span>
+              <span>${(collection.total_user_value || 0).toLocaleString()}</span>
+            </>
           ) : null}
         </div>
       </div>
     </>
   )
 
-  const listClassName =
-    "w-full flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary/50"
-  const gridClassName =
-    "group block overflow-hidden rounded-lg border border-border bg-card text-left transition-colors hover:border-primary/50"
+  const listClassName = cn(
+    "w-full flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary/50",
+    className,
+  )
+  const gridClassName = cn(
+    "group block overflow-hidden rounded-xl border border-border bg-card text-left transition-colors hover:border-primary/40",
+    className,
+  )
 
   if (view === "list") {
     if (href) {

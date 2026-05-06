@@ -1,0 +1,283 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import { ArrowUpDown, LayoutGrid, List, Plus, Search, X } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { CollectionCard } from "@/components/collection-card"
+import { NEW_COLLECTION_DRAFT_KEY } from "@/components/my-stuff/new-collection-form"
+import type { Collection } from "@/lib/types"
+
+type SortKey = "recent" | "name" | "items" | "value"
+type View = "grid" | "list"
+
+const sortLabels: Record<SortKey, string> = {
+  recent: "Newest",
+  name: "Name A-Z",
+  items: "Most items",
+  value: "Highest value",
+}
+
+function StatCard({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="text-sm text-muted-foreground">{label}</div>
+      <p className="mt-1 text-xl font-semibold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function buildStats(collections: Collection[]) {
+  return {
+    total: collections.length,
+    items: collections.reduce((sum, c) => sum + (c.item_count || 0), 0),
+    public: collections.filter((c) => c.visibility === "public").length,
+    wishlists: collections.filter((c) => c.is_wishlist).length,
+  }
+}
+
+function DesktopStatsGrid({ collections }: { collections: Collection[] }) {
+  const stats = buildStats(collections)
+  return (
+    <div className="hidden grid-cols-4 gap-3 @3xl/mystuff:grid">
+      <StatCard label="Total" value={stats.total} />
+      <StatCard label="Items" value={stats.items} />
+      <StatCard label="Public" value={stats.public} />
+      <StatCard label="Wishlists" value={stats.wishlists} />
+    </div>
+  )
+}
+
+function CompactStatsRow({ collections }: { collections: Collection[] }) {
+  const s = buildStats(collections)
+  const stats = [
+    { label: s.total === 1 ? "collection" : "collections", value: s.total },
+    { label: s.items === 1 ? "item" : "items", value: s.items },
+    { label: "public", value: s.public },
+    { label: s.wishlists === 1 ? "wishlist" : "wishlists", value: s.wishlists },
+  ]
+  return (
+    <p className={cn(
+      "flex h-8 items-center gap-1.5 overflow-x-auto whitespace-nowrap text-xs text-muted-foreground",
+      "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+      "@3xl/mystuff:hidden",
+    )}>
+      {stats.map((stat, i) => (
+        <span key={stat.label} className="inline-flex items-center gap-1.5">
+          {i > 0 ? <span aria-hidden="true" className="text-muted-foreground/40">·</span> : null}
+          <span>
+            <span className="font-medium tabular-nums text-foreground">{stat.value}</span>{" "}
+            <span>{stat.label}</span>
+          </span>
+        </span>
+      ))}
+    </p>
+  )
+}
+
+function NewCollectionButton({ className }: { className?: string }) {
+  return (
+    <Button
+      asChild
+      size="sm"
+      variant="outline"
+      className={cn(
+        "h-9 shrink-0 rounded-md border-border bg-card px-3 text-sm font-medium text-foreground shadow-none transition-colors hover:border-primary/40",
+        className,
+      )}
+    >
+      <Link href="/my-stuff/collections/new">
+        <Plus className="mr-1 h-4 w-4" />
+        New collection
+      </Link>
+    </Button>
+  )
+}
+
+function SortDropdown({ value, onChange }: { value: SortKey; onChange: (v: SortKey) => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+        <span>{sortLabels[value]}</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Sort by</DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={value} onValueChange={(v) => onChange(v as SortKey)}>
+          {(Object.keys(sortLabels) as SortKey[]).map((k) => (
+            <DropdownMenuRadioItem key={k} value={k}>{sortLabels[k]}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function ViewToggleSegment({ view, setView }: { view: View; setView: (v: View) => void }) {
+  return (
+    <div className="inline-flex h-9 shrink-0 items-center rounded-lg border border-border bg-card p-0.5">
+      {(["grid", "list"] as const).map((v) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => setView(v)}
+          aria-pressed={view === v}
+          aria-label={`${v} view`}
+          className={cn(
+            "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+            view === v ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {v === "grid" ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+interface CollectionsTabProps {
+  collections: Collection[]
+  previewImages?: Record<string, string[]>
+}
+
+export function CollectionsTab({ collections, previewImages = {} }: CollectionsTabProps) {
+  const isMobile = useIsMobile()
+  const [query, setQuery] = useState("")
+  const [sort, setSort] = useState<SortKey>("recent")
+  const [userView, setUserView] = useState<View | null>(null)
+  const view: View = userView ?? (isMobile ? "list" : "grid")
+  const setView = (v: View) => setUserView(v)
+  const [drafts, setDrafts] = useState<Collection[]>([])
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(NEW_COLLECTION_DRAFT_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw) as Collection[]
+        if (Array.isArray(parsed) && parsed.length) setDrafts(parsed)
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const allCollections = useMemo(() => [...drafts, ...collections], [drafts, collections])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const bySearch = q
+      ? allCollections.filter(
+          (c) =>
+            c.name.toLowerCase().includes(q) ||
+            c.description?.toLowerCase().includes(q) ||
+            c.tags?.some((t) => t.toLowerCase().includes(q)),
+        )
+      : allCollections
+
+    const sorted = [...bySearch]
+    if (sort === "name") sorted.sort((a, b) => a.name.localeCompare(b.name))
+    else if (sort === "items") sorted.sort((a, b) => (b.item_count || 0) - (a.item_count || 0))
+    else if (sort === "value") sorted.sort((a, b) => (b.total_user_value || 0) - (a.total_user_value || 0))
+    return sorted
+  }, [allCollections, query, sort])
+
+  return (
+    <div className="@container/mystuff flex flex-col gap-3 @3xl/mystuff:gap-5">
+      <CompactStatsRow collections={allCollections} />
+      <DesktopStatsGrid collections={allCollections} />
+
+      {/* Mobile toolbar */}
+      <div className="flex flex-col gap-2 @3xl/mystuff:hidden">
+        <div className="flex items-center gap-2">
+          <NewCollectionButton />
+          <div className="ml-auto flex items-center gap-2">
+            <SortDropdown value={sort} onChange={setSort} />
+            <ViewToggleSegment view={view} setView={setView} />
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search your collections"
+            className="h-9 rounded-md border-border bg-card pl-9 pr-9"
+          />
+          {query.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Desktop toolbar */}
+      <div className="hidden flex-wrap items-center gap-2 @3xl/mystuff:flex">
+        <NewCollectionButton />
+        <div className="relative min-w-[200px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search your collections"
+            className="h-9 rounded-md border-border bg-card pl-9"
+          />
+        </div>
+        <SortDropdown value={sort} onChange={setSort} />
+        <ViewToggleSegment view={view} setView={setView} />
+      </div>
+
+      {filtered.length === 0 ? (
+        <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
+          <EmptyHeader>
+            <EmptyTitle>No collections yet</EmptyTitle>
+            <EmptyDescription>
+              {query
+                ? "Nothing matches your search. Try a different term."
+                : "Group your items into collections to showcase them or track wishlists."}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <NewCollectionButton />
+          </EmptyContent>
+        </Empty>
+      ) : view === "grid" ? (
+        <div className="grid grid-cols-1 gap-4 @3xl/mystuff:grid-cols-2 @5xl/mystuff:grid-cols-3 @7xl/mystuff:grid-cols-4">
+          {filtered.map((c) => (
+            <CollectionCard key={c.id} collection={c} view="grid" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {filtered.map((c) => (
+            <CollectionCard key={c.id} collection={c} view="list" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

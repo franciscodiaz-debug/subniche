@@ -1,0 +1,166 @@
+import type { ProfilePageReferenceData } from "@/lib/profile-page-types"
+
+export const ownProfile: ProfilePageReferenceData["profile"] = {
+  username: "JillMusic",
+  ownerHandle: "jek116",
+  avatarLabel: "JM",
+  avatarUrl: "/avatar-jordan.jpg",
+  location: "Los Angeles, CA",
+  memberSince: "2022-06-12T00:00:00.000Z",
+  bio: "Producer and DJ. Collecting vinyl, vintage synths, and studio outboard. Always trading.",
+  stats: { totalItems: 18, totalCollections: 4, totalTrades: 6, totalFollowing: 23 },
+  verification: { email: true, phone: false, id: false },
+  linkedAccounts: [
+    { platform: "spotify", username: "jillmusic", verified: true },
+    { platform: "soundcloud", username: "jillmusic", verified: false },
+    { platform: "instagram", username: "jill.music", verified: true },
+  ],
+}
+
+export const otherProfile: ProfilePageReferenceData["profile"] = {
+  username: "guitar_collector",
+  ownerHandle: "guitar_collector",
+  avatarLabel: "GC",
+  avatarUrl: "/profile/avatar-guitar-collector.jpg",
+  location: "Nashville, TN",
+  memberSince: "2023-01-15T00:00:00.000Z",
+  bio: "Vintage guitar enthusiast and tube amp collector. Always looking for pre-CBS Fenders, old Marshalls, and original PAF pickups.",
+  stats: { totalItems: 27, totalCollections: 3, totalTrades: 12, totalFollowing: 8 },
+  verification: { email: true, phone: true, id: false },
+  linkedAccounts: [
+    { platform: "reddit", username: "guitar_collector_92", verified: true },
+    { platform: "ebay", username: "vintageguitars_nash", verified: false },
+    { platform: "reverb", username: "NashvilleVintage", verified: false },
+  ],
+}
+
+export const profilePageData: ProfilePageReferenceData = {
+  profile: otherProfile,
+  collections: [
+    {
+      id: "collection-1",
+      name: "Vintage Guitars",
+      description: "Pre-1970 American classics",
+      visibility: "public",
+      itemCount: 8,
+      totalValue: 185000,
+      isWishlist: false,
+      previewLabels: ["Strat", "Burst", "Tele", "335"],
+      previewImages: [
+        "https://images.unsplash.com/photo-1550985616-10810253b84d?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=200&h=200&fit=crop",
+      ],
+    },
+    {
+      id: "collection-2",
+      name: "Tube Amplifiers",
+      description: "Fender, Marshall, Vox",
+      visibility: "public",
+      itemCount: 5,
+      totalValue: 24500,
+      isWishlist: false,
+      previewLabels: ["Twin", "Plexi", "AC30", "Deluxe"],
+      previewImages: [
+        "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1558098329-a11cff621064?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=200&h=200&fit=crop",
+      ],
+    },
+    {
+      id: "collection-3",
+      name: "Pedal Board",
+      description: "Current touring setup",
+      visibility: "unlisted",
+      itemCount: 12,
+      totalValue: 4800,
+      isWishlist: false,
+      previewLabels: ["Klon", "Time", "TU", "Muff"],
+      previewImages: [
+        "https://images.unsplash.com/photo-1558098329-a11cff621064?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1550985616-10810253b84d?w=200&h=200&fit=crop",
+      ],
+    },
+  ],
+  forSaleItems: [
+    {
+      id: "sale-1",
+      title: "1962 Fender Stratocaster",
+      subtitle: "Sunburst, all original",
+      imageLabel: "Strat",
+      imageUrl: "https://images.unsplash.com/photo-1550985616-10810253b84d?w=800&h=600&fit=crop",
+      price: 48000,
+      forSale: true,
+      forTrade: true,
+      listedAt: "2024-01-10T00:00:00.000Z",
+    },
+    {
+      id: "sale-2",
+      title: "Marshall JCM800 2203",
+      subtitle: "1982, fully serviced",
+      imageLabel: "JCM800",
+      imageUrl: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&h=600&fit=crop",
+      price: 2800,
+      forSale: true,
+      forTrade: false,
+      listedAt: "2024-01-08T00:00:00.000Z",
+    },
+  ],
+  tradeInterests: [
+    {
+      id: "trade-1",
+      name: "Pre-CBS Fender Electrics",
+      description: "Open to trades for any original, unmodified pre-1965 Fender guitar.",
+      addedAt: "2024-01-14T00:00:00.000Z",
+      criteria: [
+        { label: "Category", value: "Electric Guitars" },
+        { label: "Brand", value: "Fender" },
+        { label: "Era", value: "1954 - 1964" },
+        { label: "Condition", value: "All original" },
+        { label: "Budget", value: "$15k - $60k" },
+      ],
+    },
+  ],
+  lookingForItems: [
+    {
+      id: "wish-1",
+      title: "1959 Gibson Les Paul Standard",
+      subtitle: "Sunburst, original PAFs",
+      imageLabel: "Burst",
+      imageUrl: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=800&h=600&fit=crop",
+      addedAt: "2024-01-12T00:00:00.000Z",
+    },
+    {
+      id: "wish-2",
+      title: "Dumble Overdrive Special",
+      subtitle: "Any year, working condition",
+      imageLabel: "Dumble",
+      imageUrl: "https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=800&h=600&fit=crop",
+      addedAt: "2024-01-10T00:00:00.000Z",
+    },
+  ],
+  activity: [
+    {
+      id: "activity-1",
+      type: "listing",
+      description: "Listed 1962 Fender Stratocaster for sale",
+      timestamp: "2024-01-10T14:30:00.000Z",
+    },
+    {
+      id: "activity-2",
+      type: "trade",
+      description: "Completed trade with @vintagegearnyc",
+      timestamp: "2024-01-08T10:15:00.000Z",
+    },
+    {
+      id: "activity-3",
+      type: "collection",
+      description: "Added Marshall JCM800 to Tube Amplifiers collection",
+      timestamp: "2024-01-07T16:45:00.000Z",
+    },
+  ],
+}

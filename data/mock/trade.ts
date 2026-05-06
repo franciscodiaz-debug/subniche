@@ -62,6 +62,15 @@ export const mockTradeOpportunities: MockTradeOpportunity[] = [
       "Mara saved Kyle's Strat as a possible match, but Kyle has not marked PRS as an active target.",
   },
   {
+    id: "trade-true-match-2",
+    matchType: "trueMatch",
+    userItem: "Martin D-28",
+    otherItem: "Taylor 814ce Builder's Edition",
+    cashAdjustment: "$300 from them",
+    reason:
+      "Both sides have acoustic trade criteria that overlap on dreadnought and grand auditorium stage instruments.",
+  },
+  {
     id: "trade-suggested-1",
     matchType: "suggested",
     userItem: "Strymon BigSky Reverb",

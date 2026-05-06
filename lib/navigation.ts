@@ -52,7 +52,7 @@ export const desktopNavItems: NavItem[] = [
     description: "Favorites, follows, and saved searches",
   },
   {
-    href: "/collections",
+    href: "/my-stuff",
     label: "My Stuff",
     icon: Package,
     description: "Curated ownership and taste",

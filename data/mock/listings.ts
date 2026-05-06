@@ -16,7 +16,11 @@ export const mockListings: MockListing[] = [
     description:
       "A clean American Pro II Strat from Kyle's working collection. It has lived mostly in a smoke-free studio, with light play wear and a recent setup. Kyle is willing to sell, but would rather talk to someone with a serviced Fender amp or an interesting modulation trade.",
     imageUrl: "/mock/listings/fender-stratocaster-sunburst.jpg",
-    images: ["/mock/listings/fender-stratocaster-sunburst.jpg"],
+    images: [
+      "/mock/listings/fender-stratocaster-sunburst.jpg",
+      "/mock/listings/fender-twin-reverb.jpg",
+      "/mock/listings/strymon-bigsky.jpg",
+    ],
     price: "$1,749",
     priceMode: "cashPlusTrade",
     location: "Portland, OR",
@@ -282,6 +286,113 @@ export const mockListings: MockListing[] = [
     createdAt: "2026-03-14T17:05:00.000Z",
   },
   {
+    id: "listing-gretsch-6120",
+    slug: "gretsch-g6120t-55-vintage-select",
+    nicheId: "music-gear",
+    categoryId: "electric-guitars",
+    sellerId: "tone-archive",
+    title: "Gretsch G6120T-55 Vintage Select",
+    subtitle: "Hollow Body, orange stain",
+    brand: "Gretsch",
+    description:
+      "A clean hollow-body Gretsch with Filter'Tron chime and stage-ready setup. Tone Archive is open to cash or a focused trade for another vintage-leaning electric.",
+    imageUrl: "/mock/listings/gretsch-6120-orange.jpg",
+    images: ["/mock/listings/gretsch-6120-orange.jpg"],
+    price: "$3,299",
+    priceMode: "cashPlusTrade",
+    location: "Memphis, TN",
+    sellerName: "Tone Archive",
+    statuses: { forSale: true, forTrade: true },
+    condition: "Excellent",
+    href: "/listings/listing-gretsch-6120",
+    communityContext: ["Vintage Vibes"],
+    tradeSummary: "Interested in clean Fender or Rickenbacker-style offsets.",
+    attributes: [
+      { label: "Body", value: "Hollow Body" },
+      { label: "Finish", value: "Orange stain" },
+      { label: "Case", value: "Original hardshell" },
+    ],
+    publishingContexts: [
+      {
+        type: "community_market",
+        label: "Vintage Vibes",
+        communityId: "vintage-vibes",
+      },
+    ],
+    createdAt: "2026-03-11T13:40:00.000Z",
+  },
+  {
+    id: "listing-martin-f55",
+    slug: "martin-f-55-hollow-body",
+    nicheId: "music-gear",
+    categoryId: "electric-guitars",
+    sellerId: "mara-voss",
+    title: "Martin F-55 Hollow Body",
+    subtitle: "Hollow Body, natural finish",
+    brand: "Martin",
+    description:
+      "A rare Martin electric hollow body with a warm acoustic-leaning voice. The listing is meant to support the market filter prototype's brand and subcategory combinations.",
+    imageUrl: "/mock/listings/martin-d28-natural.jpg",
+    images: ["/mock/listings/martin-d28-natural.jpg"],
+    price: "$2,299",
+    priceMode: "cash",
+    location: "Denver, CO",
+    sellerName: "Mara Voss",
+    statuses: { forSale: true },
+    condition: "Like New",
+    href: "/listings/listing-martin-f55",
+    communityContext: ["Acoustic Corner"],
+    attributes: [
+      { label: "Body", value: "Hollow Body" },
+      { label: "Finish", value: "Natural" },
+      { label: "Setup", value: "Fresh setup" },
+    ],
+    publishingContexts: [
+      {
+        type: "community_market",
+        label: "Acoustic Corner",
+        communityId: "acoustic-corner",
+      },
+    ],
+    createdAt: "2026-03-08T18:35:00.000Z",
+  },
+  {
+    id: "listing-taylor-t5z",
+    slug: "taylor-t5z-classic-hollow-body",
+    nicheId: "music-gear",
+    categoryId: "electric-guitars",
+    sellerId: "tone-archive",
+    title: "Taylor T5z Classic",
+    subtitle: "Hollow Body, koa top",
+    brand: "Taylor",
+    description:
+      "A compact hollow-body Taylor that sits between electric and acoustic rigs. It is priced as a straight sale and published through the acoustic community for context.",
+    imageUrl: "/mock/listings/taylor-814ce.jpg",
+    images: ["/mock/listings/taylor-814ce.jpg"],
+    price: "$1,899",
+    priceMode: "cash",
+    location: "Nashville, TN",
+    sellerName: "Tone Archive",
+    statuses: { forSale: true },
+    condition: "Like New",
+    href: "/listings/listing-taylor-t5z",
+    communityContext: ["Acoustic Corner", "Public Market"],
+    attributes: [
+      { label: "Body", value: "Hollow Body" },
+      { label: "Top", value: "Koa" },
+      { label: "Electronics", value: "Taylor hybrid system" },
+    ],
+    publishingContexts: [
+      { type: "public_market", label: "Public Market" },
+      {
+        type: "community_market",
+        label: "Acoustic Corner",
+        communityId: "acoustic-corner",
+      },
+    ],
+    createdAt: "2026-03-06T10:50:00.000Z",
+  },
+  {
     id: "listing-rickenbacker-360",
     slug: "rickenbacker-360-fireglo",
     nicheId: "music-gear",
@@ -335,3 +446,158 @@ export const featuredListingCards: ListingSummaryForCard[] = mockListings
     tradeSummary: listing.tradeSummary,
     isSaved: listing.isSaved,
   }));
+
+const listingById = new Map(mockListings.map((listing) => [listing.id, listing]));
+
+function tradeDiscoveryListing(
+  id: string,
+  overrides: Partial<MockListing> = {},
+): MockListing {
+  const listing = listingById.get(id);
+
+  if (!listing) {
+    throw new Error(`Missing trade discovery listing: ${id}`);
+  }
+
+  return {
+    ...listing,
+    priceMode: "cashPlusTrade",
+    ...overrides,
+    attributes: overrides.attributes ?? listing.attributes,
+    images: overrides.images ?? listing.images,
+    publishingContexts:
+      overrides.publishingContexts ?? listing.publishingContexts,
+    statuses: {
+      ...listing.statuses,
+      forTrade: true,
+      ...overrides.statuses,
+    },
+  };
+}
+
+export const tradeDiscoveryListings: MockListing[] = [
+  tradeDiscoveryListing("listing-les-paul-goldtop", {
+    location: "Austin, TX",
+    communityContext: ["Gibson Gang", "Vintage Vibes"],
+  }),
+  tradeDiscoveryListing("listing-taylor-814ce", {
+    location: "Nashville, TN",
+    subtitle: "V-Class bracing - Natural",
+  }),
+  tradeDiscoveryListing("listing-fender-twin", {
+    location: "Los Angeles, CA",
+    communityContext: ["Amp Heads"],
+  }),
+  {
+    id: "listing-eventide-h9-max",
+    slug: "eventide-h9-max",
+    nicheId: "music-gear",
+    categoryId: "effects-pedals",
+    sellerId: "pedal-collector",
+    title: "Eventide H9 Max",
+    subtitle: "Multi-Effects - All Algorithms",
+    brand: "Eventide",
+    description:
+      "A compact multi-effects unit with all algorithms unlocked, listed by a pedal collector looking for high-end reverb trades.",
+    imageUrl: "/mock/listings/strymon-bigsky.jpg",
+    images: ["/mock/listings/strymon-bigsky.jpg"],
+    price: "$699",
+    priceMode: "cashPlusTrade",
+    location: "Brooklyn, NY",
+    sellerName: "Pedal Collector",
+    statuses: { forSale: true, forTrade: true },
+    condition: "Excellent",
+    href: "/listings/listing-eventide-h9-max",
+    communityContext: ["Pedalboard Club"],
+    tradeSummary: "Interested in stereo reverbs and boutique ambient pedals.",
+    attributes: [
+      { label: "Algorithms", value: "All unlocked" },
+      { label: "Includes", value: "Power supply" },
+      { label: "Condition", value: "Excellent" },
+    ],
+    publishingContexts: [
+      {
+        type: "community_market",
+        label: "Pedalboard Club",
+        communityId: "pedalboard-club",
+      },
+    ],
+    createdAt: "2026-03-13T09:00:00.000Z",
+  },
+  tradeDiscoveryListing("listing-prs-custom-24", {
+    communityContext: ["Fender Fans"],
+  }),
+  {
+    id: "listing-gibson-j45-standard",
+    slug: "gibson-j-45-standard",
+    nicheId: "music-gear",
+    categoryId: "acoustic-guitars",
+    sellerId: "mara-voss",
+    title: "Gibson J-45 Standard",
+    subtitle: "Round Shoulder - Vintage Sunburst",
+    brand: "Gibson",
+    description:
+      "A round-shoulder J-45 with a focused acoustic trade posture for players comparing dreadnought and slope-shoulder options.",
+    imageUrl: "/mock/listings/martin-d28-natural.jpg",
+    images: ["/mock/listings/martin-d28-natural.jpg"],
+    price: "$2,699",
+    priceMode: "cashPlusTrade",
+    location: "Portland, OR",
+    sellerName: "Mara Voss",
+    statuses: { forSale: true, forTrade: true },
+    condition: "Very Good",
+    href: "/listings/listing-gibson-j45-standard",
+    communityContext: ["Acoustic Corner"],
+    tradeSummary: "Interested in Martin dreadnoughts and stage-ready acoustics.",
+    attributes: [
+      { label: "Body", value: "Round shoulder" },
+      { label: "Finish", value: "Vintage sunburst" },
+      { label: "Case", value: "Included" },
+    ],
+    publishingContexts: [
+      {
+        type: "community_market",
+        label: "Acoustic Corner",
+        communityId: "acoustic-corner",
+      },
+    ],
+    createdAt: "2026-03-12T12:00:00.000Z",
+  },
+  {
+    id: "listing-marshall-jcm800-2203",
+    slug: "marshall-jcm800-2203",
+    nicheId: "music-gear",
+    categoryId: "amplifiers",
+    sellerId: "tone-archive",
+    title: "Marshall JCM800 2203",
+    subtitle: "100W Head - 1984",
+    brand: "Marshall",
+    description:
+      "A focused JCM800 trade candidate for amp collectors comparing classic British gain against higher-gain modern heads.",
+    imageUrl: "/mock/listings/fender-twin-reverb.jpg",
+    images: ["/mock/listings/fender-twin-reverb.jpg"],
+    price: "$2,200",
+    priceMode: "cashPlusTrade",
+    location: "Detroit, MI",
+    sellerName: "Tone Archive",
+    statuses: { forSale: true, forTrade: true },
+    condition: "Good",
+    href: "/listings/listing-marshall-jcm800-2203",
+    communityContext: ["Amp Heads"],
+    tradeSummary: "Interested in Mesa heads and clean Fender combos.",
+    attributes: [
+      { label: "Power", value: "100W" },
+      { label: "Year", value: "1984" },
+      { label: "Format", value: "Head" },
+    ],
+    publishingContexts: [
+      {
+        type: "community_market",
+        label: "Amp Heads",
+        communityId: "amp-heads",
+      },
+    ],
+    createdAt: "2026-03-10T12:00:00.000Z",
+  },
+  tradeDiscoveryListing("listing-gretsch-6120"),
+];

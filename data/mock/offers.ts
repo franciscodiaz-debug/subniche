@@ -20,7 +20,7 @@ export const mockOffers: MockOffer[] = [
     fromProfileId: "tone-archive",
     toProfileId: "kyle-k",
     state: "pending",
-    offeredListingIds: ["listing-fender-twin-reverb"],
+    offeredListingIds: ["listing-fender-twin"],
     cashAdjustment: "$100 from Kyle",
     note: "Serviced Twin Reverb for the Dual Rectifier with cash adjustment.",
     updatedAt: "2026-04-11T09:35:00.000Z",

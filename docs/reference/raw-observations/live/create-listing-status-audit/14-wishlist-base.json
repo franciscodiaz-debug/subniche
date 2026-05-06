@@ -1,0 +1,13 @@
+{
+  "slug": "14-wishlist-base",
+  "label": "Wishlist base choice panel",
+  "screenshotPath": "docs/reference/screenshots/live/create-listing/status-audit/14-wishlist-base.png",
+  "hasWishlistUrlChoice": true,
+  "hasWishlistManualChoice": true,
+  "hasAddToWishlist": true,
+  "hasUrlInput": true,
+  "hasTitle": false,
+  "hasDescription": false,
+  "hasPhotos": false,
+  "visibleTextPreview": "Add Item Home Market Trade Communities Following My Stuff Inbox Profile JillMusic u/jek116 Add Item AI Assist Save Draft Add to Wishlist Status Wishlist fields added For Sale For Trade In Collection Wishlist Wishlist itemsare things you want but don't own yet. Organize what you're after, complete collections, and let other collectors know. Choose how you'd like to add this item Add via URL Let AI fill in the details Enter Manually Fill in the info yourself"
+}

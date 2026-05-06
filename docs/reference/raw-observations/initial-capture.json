@@ -1,0 +1,1820 @@
+[
+  {
+    "slug": "home-logged-in-v0-chat",
+    "url": "https://v0.app/chats?project=prj_vG8sYwL00hVuwayna7A6MuhypAHI",
+    "elapsedMs": 3481,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login/v0",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Sign in to v0",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup/v0",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup/v0?next=%2Fapi%2Fvercel-auth%3FredirectUrl%3Dhttps%253A%252F%252Fv0.app%252Fapi%252Fauth%252Fcallback%26qs%3D%26clientId%3Dv0%26state%3DePWiypPcqJfxLxOzky-pPU3cayJsppHwCKE0-O2nUVn",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms of Service",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "name@work-email.com",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Sign in to v0 Sign in to v0 using your Vercel account. Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Show other options Don't have an account? Sign Up By pro"
+  },
+  {
+    "slug": "feature-root-a",
+    "url": "https://v0-rebuild-g0oaplonk-darwoft-subniche.vercel.app/",
+    "elapsedMs": 2234,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-g0oaplonk-darwoft-subniche.vercel.app%252F%26nonce%3D5a4fe5fed2420d8c30c4315f10c3aef6f00bacab852069650ca7a972b75ff367",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-g0oaplonk-darwoft-subniche.vercel.app%252F%26nonce%3D5a4fe5fed2420d8c30c4315f10c3aef6f00bacab852069650ca7a972b75ff367",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "feature-root-b",
+    "url": "https://v0-rebuild-oewmlc1s5-darwoft-subniche.vercel.app/",
+    "elapsedMs": 2308,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-oewmlc1s5-darwoft-subniche.vercel.app%252F%26nonce%3D66de8e01153b5f869245d5a3adb05a99da49eb6dd05a1a91b82549220bbef971",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-oewmlc1s5-darwoft-subniche.vercel.app%252F%26nonce%3D66de8e01153b5f869245d5a3adb05a99da49eb6dd05a1a91b82549220bbef971",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "feature-root-c",
+    "url": "https://v0-rebuild-hphf7dpyj-darwoft-subniche.vercel.app/",
+    "elapsedMs": 2136,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-hphf7dpyj-darwoft-subniche.vercel.app%252F%26nonce%3D2e72ff938b65d980932fd54397c53572ebf21ad00323e12a798f7eeacabbf690",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-hphf7dpyj-darwoft-subniche.vercel.app%252F%26nonce%3D2e72ff938b65d980932fd54397c53572ebf21ad00323e12a798f7eeacabbf690",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "feature-root-d",
+    "url": "https://v0-rebuild-k45azn1hm-darwoft-subniche.vercel.app/",
+    "elapsedMs": 1835,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-k45azn1hm-darwoft-subniche.vercel.app%252F%26nonce%3D8964d9a4c00077e9cfbf48de310fc53f8af3ec01b9943ac5ffb2b80ba140caa7",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-k45azn1hm-darwoft-subniche.vercel.app%252F%26nonce%3D8964d9a4c00077e9cfbf48de310fc53f8af3ec01b9943ac5ffb2b80ba140caa7",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "listing-detail-tele",
+    "url": "https://v0-rebuild-l86r4kq92-darwoft-subniche.vercel.app/listings/tele-butterscotch-2022",
+    "elapsedMs": 2014,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-l86r4kq92-darwoft-subniche.vercel.app%252Flistings%252Ftele-butterscotch-2022%26nonce%3Dc9cb976b0ef3805f3390479c9901094fb6884428d3fc38d2f5decdfda3213ab1",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-l86r4kq92-darwoft-subniche.vercel.app%252Flistings%252Ftele-butterscotch-2022%26nonce%3Dc9cb976b0ef3805f3390479c9901094fb6884428d3fc38d2f5decdfda3213ab1",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "market-trade",
+    "url": "https://v0-rebuild-987hxcadp-darwoft-subniche.vercel.app/",
+    "elapsedMs": 2045,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-987hxcadp-darwoft-subniche.vercel.app%252F%26nonce%3D1fd81db617d523f2fb0319f0d697f7cce79b4c5a257f9ce39df8d2fc4c162679",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-987hxcadp-darwoft-subniche.vercel.app%252F%26nonce%3D1fd81db617d523f2fb0319f0d697f7cce79b4c5a257f9ce39df8d2fc4c162679",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "inbox",
+    "url": "https://v0-rebuild-tbcoy6gim-darwoft-subniche.vercel.app/inbox",
+    "elapsedMs": 2102,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-tbcoy6gim-darwoft-subniche.vercel.app%252Finbox%26nonce%3D9bd0efa11a0894520b5e05ad9ce0fc0a90b9d5a4557a7a828745200501e89502",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-tbcoy6gim-darwoft-subniche.vercel.app%252Finbox%26nonce%3D9bd0efa11a0894520b5e05ad9ce0fc0a90b9d5a4557a7a828745200501e89502",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "profile",
+    "url": "https://v0-rebuild-bt43es47h-darwoft-subniche.vercel.app/profile",
+    "elapsedMs": 2015,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-bt43es47h-darwoft-subniche.vercel.app%252Fprofile%26nonce%3D4783ae64f298443215865c39edbdcad0678fa195678ae15badb0465a2a614c61",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-bt43es47h-darwoft-subniche.vercel.app%252Fprofile%26nonce%3D4783ae64f298443215865c39edbdcad0678fa195678ae15badb0465a2a614c61",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  },
+  {
+    "slug": "my-stuff",
+    "url": "https://v0-rebuild-kecmxlvum-darwoft-subniche.vercel.app/my-stuff",
+    "elapsedMs": 2182,
+    "error": null,
+    "title": "Login – Vercel",
+    "path": "/login",
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Log in to Vercel",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "text": "Continue with Email",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Google",
+        "role": "",
+        "aria": "Continue with Google",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with GitHub",
+        "role": "",
+        "aria": "Continue with GitHub",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Apple",
+        "role": "",
+        "aria": "Continue with Apple",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with SAML SSO",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Continue with Passkey",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "button",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "text": "Show other options",
+        "role": "",
+        "aria": "",
+        "href": "",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "tag": "a",
+        "text": "Skip to content",
+        "role": "",
+        "aria": "",
+        "href": "#geist-skip-nav",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "",
+        "role": "",
+        "aria": "Vercel logo",
+        "href": "/home",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "link",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-kecmxlvum-darwoft-subniche.vercel.app%252Fmy-stuff%26nonce%3D6536458db65daccdf2170a482ac952491c78afaf3c1b924b7f58b48c4e6e2fe0",
+        "type": "submit",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Sign Up",
+        "role": "",
+        "aria": "",
+        "href": "/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-rebuild-kecmxlvum-darwoft-subniche.vercel.app%252Fmy-stuff%26nonce%3D6536458db65daccdf2170a482ac952491c78afaf3c1b924b7f58b48c4e6e2fe0",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Terms",
+        "role": "",
+        "aria": "",
+        "href": "/legal/terms",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "text": "Privacy Policy",
+        "role": "",
+        "aria": "",
+        "href": "/legal/privacy-policy",
+        "type": "",
+        "placeholder": "",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "text": "",
+        "role": "",
+        "aria": "Email Address",
+        "href": "",
+        "type": "email",
+        "placeholder": "Email Address",
+        "checked": false,
+        "disabled": false
+      }
+    ],
+    "tabs": [],
+    "dialogs": [],
+    "bodyPreview": "Skip to content Sign Up Log in to Vercel Continue with Email Continue with Google Continue with GitHub Continue with Apple Continue with SAML SSO Continue with Passkey Show other options Don't have an account? Sign Up Terms Privacy Policy"
+  }
+]

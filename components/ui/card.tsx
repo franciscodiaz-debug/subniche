@@ -11,7 +11,7 @@ export function Card({ className, variant = "default", ...props }: CardProps) {
       className={cn(
         "rounded-xl border border-border bg-card text-card-foreground",
         variant === "interactive" &&
-          "transition hover:border-primary/45 hover:shadow-card",
+          "transition hover:border-primary/45 hover:bg-card/95 hover:shadow-card focus-within:border-primary/45 focus-within:shadow-card",
         variant === "elevated" && "shadow-card",
         variant === "muted" && "bg-secondary",
         variant === "media" && "overflow-hidden",

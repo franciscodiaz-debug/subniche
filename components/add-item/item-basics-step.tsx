@@ -1,130 +1,63 @@
 "use client";
 
-import { FormSection } from "@/components/add-item/form-section";
 import type { ItemBasicsState } from "@/components/add-item/types";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import type { MockCategory, MockNiche } from "@/data/mock";
 
 type ItemBasicsStepProps = {
   basics: ItemBasicsState;
-  categories: MockCategory[];
-  niches: MockNiche[];
+  price?: string;
   onChange: (basics: ItemBasicsState) => void;
+  onPriceChange?: (price: string) => void;
 };
-
-const conditions = ["Mint", "Excellent", "Very Good", "Good", "Fair", "Project"];
 
 export function ItemBasicsStep({
   basics,
-  categories,
-  niches,
+  price = "",
   onChange,
+  onPriceChange,
 }: ItemBasicsStepProps) {
   const update = (next: Partial<ItemBasicsState>) =>
     onChange({ ...basics, ...next });
 
   return (
-    <FormSection
-      title="Item Details"
-    >
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
-        <FormField id="item-title" label="Title">
-          <Input
-            id="item-title"
-            className="h-16 border-0 bg-transparent px-0 text-3xl font-semibold tracking-normal shadow-none placeholder:text-muted-foreground/45 focus:border-transparent focus:ring-0 md:text-4xl"
-            value={basics.title}
-            onChange={(event) => update({ title: event.target.value })}
-            placeholder="Enter item title"
-          />
-        </FormField>
-        <FormField id="item-location" label="Location">
-          <Input
-            id="item-location"
-            value={basics.location}
-            onChange={(event) => update({ location: event.target.value })}
-            placeholder="Portland, OR"
-          />
-        </FormField>
-      </div>
-      <FormField id="item-description" label="Description">
-        <Textarea
-          id="item-description"
-          className="min-h-40 bg-background text-base leading-7"
-          value={basics.description}
-          onChange={(event) => update({ description: event.target.value })}
-          placeholder="Describe your item in detail..."
+    <div className="space-y-4">
+      <section className="rounded-lg px-1 py-2 transition focus-within:ring-2 focus-within:ring-primary/20">
+        <label htmlFor="item-title" className="sr-only">
+          Title
+        </label>
+        <input
+          id="item-title"
+          className="min-h-12 w-full bg-transparent text-4xl font-semibold tracking-normal text-foreground outline-none placeholder:text-muted-foreground/45"
+          value={basics.title}
+          onChange={(event) => update({ title: event.target.value })}
+          placeholder="Enter item title"
         />
-      </FormField>
-      <div className="grid gap-4 md:grid-cols-3">
-        <FormField id="item-niche" label="Niche">
-          <Select
-            id="item-niche"
-            value={basics.nicheId}
-            onChange={(event) => update({ nicheId: event.target.value })}
-          >
-            {niches.map((niche) => (
-              <option key={niche.id} value={niche.id}>
-                {niche.name}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-        <FormField id="item-category" label="Category">
-          <Select
-            id="item-category"
-            value={basics.categoryId}
-            onChange={(event) => update({ categoryId: event.target.value })}
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-        <FormField id="item-condition" label="Condition">
-          <Select
-            id="item-condition"
-            value={basics.condition}
-            onChange={(event) => update({ condition: event.target.value })}
-          >
-            {conditions.map((condition) => (
-              <option key={condition} value={condition}>
-                {condition}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <FormField id="item-brand" label="Brand">
-          <Input
-            id="item-brand"
-            value={basics.brand}
-            onChange={(event) => update({ brand: event.target.value })}
-            placeholder="Fender"
-          />
-        </FormField>
-        <FormField id="item-model" label="Model">
-          <Input
-            id="item-model"
-            value={basics.model}
-            onChange={(event) => update({ model: event.target.value })}
-            placeholder="American Pro II"
-          />
-        </FormField>
-        <FormField id="item-year" label="Year">
-          <Input
-            id="item-year"
-            value={basics.year}
-            onChange={(event) => update({ year: event.target.value })}
-            placeholder="2022"
-          />
-        </FormField>
-      </div>
-    </FormSection>
+        <label htmlFor="item-subtitle" className="sr-only">
+          Subtitle
+        </label>
+        <input
+          id="item-subtitle"
+          className="mt-2 h-8 w-full bg-transparent text-lg text-muted-foreground outline-none placeholder:text-muted-foreground/50"
+          value={basics.subtitle}
+          onChange={(event) => update({ subtitle: event.target.value })}
+          placeholder="Subtitle (e.g., color, year, variant)"
+        />
+        {onPriceChange ? (
+          <div className="mt-4 flex items-center text-4xl font-semibold text-primary">
+            <span aria-hidden="true">$</span>
+            <label htmlFor="item-asking-price" className="sr-only">
+              Asking price
+            </label>
+            <input
+              id="item-asking-price"
+              inputMode="decimal"
+              value={price}
+              onChange={(event) => onPriceChange(event.target.value)}
+              placeholder="0"
+              className="min-w-0 flex-1 bg-transparent text-primary outline-none placeholder:text-primary/65"
+            />
+          </div>
+        ) : null}
+      </section>
+    </div>
   );
 }

@@ -99,6 +99,10 @@ export function getMockCollectionsForProfile(profileId: string) {
 }
 
 export function getMockListingsForProfile(profileId: string) {
+  if (profileId === "kyle-k") {
+    return getKyleInventoryListings();
+  }
+
   return mockListings.filter((listing) => listing.sellerId === profileId);
 }
 
@@ -110,4 +114,54 @@ export function getMockWishlistListingsForProfile(profileId: string) {
 
 export function getMockTradeInterestsForProfile(profileId: string) {
   return mockTradeInterests.filter((interest) => interest.profileId === profileId);
+}
+
+function getKyleInventoryListings() {
+  const inventoryOrder = [
+    "listing-strat-pro-ii",
+    "listing-les-paul-goldtop",
+    "listing-strymon-bigsky",
+    "listing-fender-twin",
+    "listing-mesa-dual-rectifier",
+    "listing-prs-custom-24",
+  ];
+  const overrides: Record<string, Partial<MockListing>> = {
+    "listing-strat-pro-ii": {
+      statuses: { forSale: true, forTrade: true, inCollection: true },
+      createdAt: "2026-04-21T10:00:00.000Z",
+    },
+    "listing-les-paul-goldtop": {
+      statuses: { forTrade: true, inCollection: true },
+      priceMode: "tradePreferred",
+      createdAt: "2026-04-16T10:00:00.000Z",
+    },
+    "listing-strymon-bigsky": {
+      statuses: { forSale: true, inCollection: true },
+      createdAt: "2026-04-15T10:00:00.000Z",
+    },
+    "listing-fender-twin": {
+      statuses: {},
+      price: "$800",
+      priceMode: "cash",
+      subtitle: "Needs restoration",
+      title: "Vintage Tube Amp",
+      createdAt: "2026-04-10T10:00:00.000Z",
+    },
+    "listing-mesa-dual-rectifier": {
+      statuses: { inCollection: true },
+      createdAt: "2026-04-08T10:00:00.000Z",
+    },
+    "listing-prs-custom-24": {
+      statuses: { inCollection: true },
+      createdAt: "2026-04-05T10:00:00.000Z",
+    },
+  };
+
+  return inventoryOrder
+    .map((id) => {
+      const listing = mockListings.find((item) => item.id === id);
+
+      return listing ? { ...listing, ...overrides[id] } : null;
+    })
+    .filter((listing): listing is MockListing => Boolean(listing));
 }

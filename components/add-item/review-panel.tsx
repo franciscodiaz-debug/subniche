@@ -89,7 +89,7 @@ export function ReviewPanel(props: ReviewPanelProps) {
             Review summary
           </h2>
           <Badge variant={mode === "wanted" ? "warning" : "secondary"}>
-            {mode === "wanted" ? "Wanted mode" : "Owned item"}
+            {mode === "wanted" ? "Wishlist item" : "Owned item"}
           </Badge>
         </div>
         <div className="mt-4 space-y-2">
@@ -108,6 +108,13 @@ export function ReviewPanel(props: ReviewPanelProps) {
           ))}
         </div>
         <div className="mt-5 space-y-3 text-sm text-muted-foreground">
+          {mode === "owned" && (basics.condition || basics.conditionDetails) ? (
+            <p>
+              Condition: {[basics.condition, basics.conditionDetails]
+                .filter(Boolean)
+                .join(" - ")}
+            </p>
+          ) : null}
           {mode === "owned" && statuses.forSale ? (
             <p>Sale: {sale.price ? `$${sale.price}` : "price recommended"}</p>
           ) : null}
@@ -116,7 +123,7 @@ export function ReviewPanel(props: ReviewPanelProps) {
           ) : null}
           {mode === "wanted" ? (
             <p>
-              Wanted: {wanted.idealCondition}
+              Wishlist: {wanted.idealCondition}
               {wanted.targetPrice ? `, target $${wanted.targetPrice}` : ""}
             </p>
           ) : null}

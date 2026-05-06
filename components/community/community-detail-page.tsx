@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -41,6 +44,8 @@ export function CommunityDetailPage({
   members,
   threads,
 }: CommunityDetailPageProps) {
+  const [joined, setJoined] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const heroImage =
     listings[0]?.imageUrl ?? "/mock/listings/fender-twin-reverb.jpg";
   const memberCount = community.memberCount.replace(/\s*members?$/i, "");
@@ -103,19 +108,26 @@ export function CommunityDetailPage({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
+                  onClick={() => setShareCopied(true)}
                   className={buttonVariants({
                     variant: "secondary",
                     size: "sm",
                   })}
                 >
                   <Share2 className="size-4" aria-hidden="true" />
-                  Share
+                  {shareCopied ? "Link copied" : "Share"}
                 </button>
                 <button
                   type="button"
+                  aria-pressed={joined}
+                  onClick={() => setJoined((current) => !current)}
                   className={buttonVariants({ variant: "primary", size: "sm" })}
                 >
-                  Join community
+                  {joined
+                    ? "Joined"
+                    : community.visibility === "Request-only"
+                      ? "Request to join"
+                      : "Join community"}
                 </button>
               </div>
             </div>

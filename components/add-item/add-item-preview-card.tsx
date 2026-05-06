@@ -38,7 +38,7 @@ export function AddItemPreviewCard({
     .map((community) => community.name);
   const title =
     basics.title.trim() || (mode === "wanted" ? "Wanted item" : "Untitled item");
-  const subtitle = [basics.brand, basics.model, basics.year]
+  const subtitle = basics.subtitle || [basics.brand, basics.model, basics.year]
     .filter(Boolean)
     .join(" ");
   const price =

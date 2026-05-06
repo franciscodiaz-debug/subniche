@@ -5,11 +5,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import type { MockCategory, MockNiche } from "@/data/mock/types";
-import type {
-  CommunityContextFilter,
-  ListingStatusFilter,
-  MarketplaceFilters,
-  PriceRangeFilter,
+import {
+  categoryTaxonomy,
+  getCategoryCount,
+  getCategoryTaxonomy,
+} from "@/components/marketplace/filter-options";
+import { PriceHistogramControl } from "@/components/marketplace/price-histogram-control";
+import { cn } from "@/lib/utils";
+import {
+  DEFAULT_PRICE_RANGE,
+  type CommunityContextFilter,
+  type ListingStatusFilter,
+  type MarketplaceFilters,
+  type PriceRangeFilter,
 } from "@/lib/marketplace-filters";
 
 const statuses: Array<{ label: string; value: ListingStatusFilter }> = [
@@ -17,14 +25,6 @@ const statuses: Array<{ label: string; value: ListingStatusFilter }> = [
   { label: "For Trade", value: "forTrade" },
   { label: "In Collection", value: "inCollection" },
   { label: "Wanted", value: "wishlist" },
-];
-
-const priceRanges: Array<{ label: string; value: PriceRangeFilter }> = [
-  { label: "Any", value: "all" },
-  { label: "Under $250", value: "under-250" },
-  { label: "$250-$750", value: "250-750" },
-  { label: "$750-$1,500", value: "750-1500" },
-  { label: "$1,500+", value: "1500-plus" },
 ];
 
 const communityContexts: Array<{
@@ -42,6 +42,8 @@ type FilterPanelProps = {
   niches?: MockNiche[];
   conditions?: string[];
   onCategoryChange?: (categoryId: string) => void;
+  onSubcategoryChange?: (subcategoryId: string) => void;
+  onBrandToggle?: (brand: string) => void;
   onNicheChange?: (nicheId: string) => void;
   onConditionChange?: (condition: string) => void;
   onStatusToggle?: (status: ListingStatusFilter) => void;
@@ -53,9 +55,11 @@ export function FilterPanel({
   filters = {
     search: "",
     categoryId: "all",
+    subcategoryId: "all",
+    brandFilters: new Set<string>(),
     statusFilters: new Set<ListingStatusFilter>(),
     condition: "all",
-    priceRange: "all",
+    priceRange: DEFAULT_PRICE_RANGE,
     nicheId: "all",
     communityContext: "all",
   },
@@ -69,12 +73,17 @@ export function FilterPanel({
   ],
   conditions = ["Excellent", "Very Good", "Good"],
   onCategoryChange,
+  onSubcategoryChange,
+  onBrandToggle,
   onNicheChange,
   onConditionChange,
   onStatusToggle,
   onPriceRangeChange,
   onCommunityContextChange,
 }: FilterPanelProps) {
+  const activeTaxonomy =
+    filters.categoryId === "all" ? null : getCategoryTaxonomy(filters.categoryId);
+
   return (
     <Card>
       <CardHeader>
@@ -97,19 +106,94 @@ export function FilterPanel({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            id="category"
-            value={filters.categoryId}
-            onChange={(event) => onCategoryChange?.(event.target.value)}
-          >
-            <option value="all">All categories</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
+          <div className="text-sm font-semibold text-foreground">Category</div>
+          <div className="space-y-1">
+            <button
+              type="button"
+              className={cn(
+                "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold",
+                filters.categoryId === "all"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground",
+              )}
+              onClick={() => {
+                onCategoryChange?.("all");
+              }}
+            >
+              <span>All categories</span>
+              <span>{categories.reduce((total, item) => total + item.itemCount, 0).toLocaleString()}</span>
+            </button>
+            {categoryTaxonomy.map((category) => {
+              const active = filters.categoryId === category.id;
+
+              return (
+                <div key={category.id}>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold",
+                      active
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground",
+                    )}
+                    onClick={() => {
+                      onCategoryChange?.(category.id);
+                    }}
+                  >
+                    <span>{category.label}</span>
+                    <span>{getCategoryCount(categories, category.id).toLocaleString()}</span>
+                  </button>
+                  {active ? (
+                    <div className="ml-3 mt-1 flex flex-wrap gap-2">
+                      {category.subcategories.map((subcategory) => (
+                        <button
+                          key={subcategory.label}
+                          type="button"
+                          className={cn(
+                            "rounded-full border px-3 py-1 text-xs",
+                            filters.subcategoryId === subcategory.label
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border text-muted-foreground",
+                          )}
+                          onClick={() =>
+                            onSubcategoryChange?.(
+                              filters.subcategoryId === subcategory.label
+                                ? "all"
+                                : subcategory.label,
+                            )
+                          }
+                        >
+                          {subcategory.label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+          {activeTaxonomy ? (
+            <fieldset className="space-y-2 pt-2">
+              <legend className="text-sm font-semibold text-foreground">
+                Brands
+              </legend>
+              {activeTaxonomy.brands.map((brand) => (
+                <label
+                  key={brand.label}
+                  className="flex items-center justify-between gap-2 text-sm text-muted-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    <Checkbox
+                      checked={filters.brandFilters.has(brand.label)}
+                      onChange={() => onBrandToggle?.(brand.label)}
+                    />
+                    {brand.label}
+                  </span>
+                  <span className="text-xs">{brand.count}</span>
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
         </div>
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold text-foreground">
@@ -130,20 +214,12 @@ export function FilterPanel({
           ))}
         </fieldset>
         <div className="space-y-2">
-          <Label htmlFor="price-range">Price</Label>
-          <Select
-            id="price-range"
+          <Label>Price</Label>
+          <PriceHistogramControl
+            id="mobile-price-range"
             value={filters.priceRange}
-            onChange={(event) =>
-              onPriceRangeChange?.(event.target.value as PriceRangeFilter)
-            }
-          >
-            {priceRanges.map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
-          </Select>
+            onChange={(nextRange) => onPriceRangeChange?.(nextRange)}
+          />
         </div>
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold text-foreground">

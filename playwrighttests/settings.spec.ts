@@ -16,5 +16,10 @@ test("seller defaults settings page shows editable default sections", async ({ p
   await expect(
     page.getByRole("heading", { name: "Listing form preview" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save defaults" })).toBeVisible();
+  await page.getByRole("button", { name: "Save defaults" }).click();
+  await expect(page.getByRole("dialog", { name: "Defaults saved" })).toBeVisible();
+  await page.getByRole("button", { name: "Close dialog" }).click();
+
+  await page.getByRole("button", { name: "Reset changes" }).click();
+  await expect(page.getByRole("dialog", { name: "Reset changes" })).toBeVisible();
 });

@@ -70,7 +70,7 @@ export function TabsTrigger({
   return (
     <button
       className={cn(
-        "rounded-md px-3 py-1.5 text-sm font-semibold text-muted-foreground transition hover:text-foreground",
+        "rounded-md px-3 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-card/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
         active && "bg-card text-foreground shadow-card",
         className,
       )}

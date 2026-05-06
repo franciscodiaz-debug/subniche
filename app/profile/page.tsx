@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const tradeInterests = getMockTradeInterestsForProfile(profile.id);
 
   return (
-    <PageShell className="space-y-8">
+    <PageShell className="max-w-4xl space-y-8">
       <ProfileHeader
         displayName={profile.displayName}
         handle={profile.handle}

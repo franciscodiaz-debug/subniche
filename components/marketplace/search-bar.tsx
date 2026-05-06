@@ -9,22 +9,34 @@ type SearchBarProps = {
   value?: string;
   onChange?: (value: string) => void;
   className?: string;
+  iconPosition?: "left" | "right";
 };
 
 export function SearchBar({
+  iconPosition = "left",
   placeholder = "Search listings, brands, models...",
   value,
   onChange,
   className,
 }: SearchBarProps) {
+  const iconOnRight = iconPosition === "right";
+
   return (
     <div className={cn("relative", className)}>
       <Search
-        className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        className={cn(
+          "pointer-events-none absolute top-1/2 size-4 -translate-y-1/2",
+          iconOnRight
+            ? "right-4 text-primary"
+            : "left-4 text-muted-foreground",
+        )}
         aria-hidden="true"
       />
       <Input
-        className="h-11 bg-card pl-11 text-base"
+        className={cn(
+          "h-11 bg-card text-base",
+          iconOnRight ? "pl-4 pr-12 text-sm" : "pl-11",
+        )}
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange?.(event.target.value)}

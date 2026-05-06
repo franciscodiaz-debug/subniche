@@ -1,20 +1,13 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { CommunityContextBadge } from "@/components/community/community-context-badge";
+import { Check, Flag } from "lucide-react";
 import { ListingActionPanel } from "@/components/listing/listing-action-panel";
 import { ListingAttributes } from "@/components/listing/listing-attributes";
 import { ListingDetailHeader } from "@/components/listing/listing-detail-header";
 import { ListingImageGallery } from "@/components/listing/listing-image-gallery";
+import { ListingPublishingContext } from "@/components/listing/listing-publishing-context";
 import { RelatedListings } from "@/components/listing/related-listings";
 import { TradeInterestPanel } from "@/components/listing/trade-interest-panel";
 import { PageShell } from "@/components/layout/page-shell";
-import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getMockCategoryById,
   getMockNicheById,
@@ -40,24 +33,23 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
   const sellerStats = getSellerListingStats(listing.sellerId);
 
   return (
-    <PageShell className="max-w-none space-y-6 lg:px-12">
-      <div>
-        <Link
-          href="/market"
-          className={buttonVariants({ variant: "ghost", size: "sm" })}
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Back to Market
-        </Link>
-      </div>
-
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,440px)] xl:items-start">
+    <PageShell className="max-w-none space-y-6 pb-44 lg:px-8 lg:py-6 lg:pb-6 xl:px-12">
+      <div className="grid gap-8 xl:grid-cols-[minmax(360px,492px)_minmax(0,1fr)] xl:items-start">
         <main className="space-y-6">
           <ListingDetailHeader
             listing={listing}
             category={category}
             niche={niche}
           />
+
+          <div className="hidden space-y-4 xl:block">
+            <ListingActionPanel
+              listing={listing}
+              seller={seller}
+              listingCount={sellerStats.listingCount}
+            />
+            <ListingPublishingContext listing={listing} />
+          </div>
 
           <div className="xl:hidden">
             <ListingImageGallery images={listing.images} title={listing.title} />
@@ -68,7 +60,10 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
               listing={listing}
               seller={seller}
               listingCount={sellerStats.listingCount}
+              showMobileDock
             />
+            <ListingPublishingContext listing={listing} />
+            <ListingCommerceCard listing={listing} />
           </div>
 
           <DescriptionCard description={listing.description} />
@@ -82,25 +77,66 @@ export function ListingDetailPage({ listing }: ListingDetailPageProps) {
             interests={tradeInterests}
             opportunities={tradeOpportunities}
           />
-          <div className="lg:hidden">
-            <PublishingContextCard listing={listing} />
-          </div>
           <RelatedListings listings={relatedListings} />
         </main>
 
-        <aside className="hidden xl:block">
+        <aside className="hidden xl:block xl:pt-[68px]">
           <div className="sticky top-6 space-y-4">
             <ListingImageGallery images={listing.images} title={listing.title} />
-            <ListingActionPanel
-              listing={listing}
-              seller={seller}
-              listingCount={sellerStats.listingCount}
-            />
-            <PublishingContextCard listing={listing} />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                <Flag className="size-3.5" aria-hidden="true" />
+                Report listing
+              </button>
+            </div>
+            <ListingCommerceCard listing={listing} />
           </div>
         </aside>
       </div>
     </PageShell>
+  );
+}
+
+function ListingCommerceCard({ listing }: { listing: MockListing }) {
+  return (
+    <Card className="rounded-lg">
+      <CardContent className="space-y-6 p-5">
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">Payment</h2>
+          <CommerceLine label="Cash" />
+          <CommerceLine label="PayPal - Goods and Services" />
+          <CommerceLine label="Venmo" />
+        </section>
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">Shipping</h2>
+          <CommerceLine
+            label={`Local pickup${listing.location ? ` - ${listing.location}` : ""}`}
+          />
+          <CommerceLine label="Shipping - $85" />
+        </section>
+        <section className="border-t border-border pt-5">
+          <h2 className="text-sm font-semibold text-foreground">
+            Return Policy
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            48-hour approval window from delivery. If it is not as described,
+            return it in the same condition for a refund minus return shipping.
+          </p>
+        </section>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommerceLine({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Check className="size-4 text-primary" aria-hidden="true" />
+      <span>{label}</span>
+    </div>
   );
 }
 
@@ -113,31 +149,6 @@ function DescriptionCard({ description }: { description?: string }) {
       <CardContent>
         <p className="text-sm leading-7 text-muted-foreground">
           {description || "No detailed notes yet."}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PublishingContextCard({ listing }: { listing: MockListing }) {
-  return (
-    <Card className="rounded-lg">
-      <CardHeader>
-        <CardTitle>Publishing context</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-1.5">
-          {listing.publishingContexts.map((context) => (
-            <CommunityContextBadge
-              key={`${context.type}-${context.label}`}
-              label={context.label}
-              publicMarket={context.type === "public_market"}
-            />
-          ))}
-        </div>
-        <p className="text-xs leading-5 text-muted-foreground">
-          These badges show where the same listing is visible. Community markets
-          are publishing contexts, not duplicate copies of the item.
         </p>
       </CardContent>
     </Card>

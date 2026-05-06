@@ -7,12 +7,10 @@ export type ListingStatusFilter =
   | "forTrade"
   | "inCollection"
   | "wishlist";
-export type PriceRangeFilter =
-  | "all"
-  | "under-250"
-  | "250-750"
-  | "750-1500"
-  | "1500-plus";
+export type PriceRangeFilter = {
+  min: number;
+  max: number;
+};
 export type CommunityContextFilter = "all" | "public" | "community";
 export type SortOption =
   | "relevant"
@@ -24,6 +22,8 @@ export type SortOption =
 export type MarketplaceFilters = {
   search: string;
   categoryId: string;
+  subcategoryId: string;
+  brandFilters: Set<string>;
   statusFilters: Set<ListingStatusFilter>;
   condition: string;
   priceRange: PriceRangeFilter;
@@ -35,6 +35,13 @@ export type TradeRelevanceSource = {
   matchType: MatchType;
   userItem: string;
   otherItem: string;
+};
+
+export const DEFAULT_MIN_PRICE = 0;
+export const DEFAULT_MAX_PRICE = 5000;
+export const DEFAULT_PRICE_RANGE: PriceRangeFilter = {
+  min: DEFAULT_MIN_PRICE,
+  max: DEFAULT_MAX_PRICE,
 };
 
 const statusAccessors: Record<
@@ -66,6 +73,20 @@ export function filterListings(
     if (
       filters.categoryId !== "all" &&
       listing.categoryId !== filters.categoryId
+    ) {
+      return false;
+    }
+
+    if (
+      filters.subcategoryId !== "all" &&
+      getListingSubcategory(listing) !== filters.subcategoryId
+    ) {
+      return false;
+    }
+
+    if (
+      filters.brandFilters.size > 0 &&
+      !filters.brandFilters.has(listing.brand)
     ) {
       return false;
     }
@@ -202,8 +223,29 @@ export function getTradeRelevanceRank(
   return 5;
 }
 
+export function normalizePriceRange(range: PriceRangeFilter): PriceRangeFilter {
+  const min = clampPrice(range.min);
+  const max = clampPrice(range.max);
+
+  return {
+    min: Math.min(min, max),
+    max: Math.max(min, max),
+  };
+}
+
+export function isDefaultPriceRange(range: PriceRangeFilter) {
+  const normalizedRange = normalizePriceRange(range);
+
+  return (
+    normalizedRange.min === DEFAULT_MIN_PRICE &&
+    normalizedRange.max === DEFAULT_MAX_PRICE
+  );
+}
+
 function matchesPriceRange(listing: MockListing, range: PriceRangeFilter) {
-  if (range === "all") {
+  const normalizedRange = normalizePriceRange(range);
+
+  if (isDefaultPriceRange(normalizedRange)) {
     return true;
   }
 
@@ -213,19 +255,26 @@ function matchesPriceRange(listing: MockListing, range: PriceRangeFilter) {
     return false;
   }
 
-  if (range === "under-250") {
-    return price < 250;
+  if (price < normalizedRange.min) {
+    return false;
   }
 
-  if (range === "250-750") {
-    return price >= 250 && price < 750;
+  if (normalizedRange.max < DEFAULT_MAX_PRICE && price > normalizedRange.max) {
+    return false;
   }
 
-  if (range === "750-1500") {
-    return price >= 750 && price < 1500;
+  return true;
+}
+
+function clampPrice(value: number) {
+  if (!Number.isFinite(value)) {
+    return DEFAULT_MIN_PRICE;
   }
 
-  return price >= 1500;
+  return Math.min(
+    Math.max(Math.round(value), DEFAULT_MIN_PRICE),
+    DEFAULT_MAX_PRICE,
+  );
 }
 
 function matchesCommunityContext(
@@ -273,4 +322,23 @@ function comparePrices(
   return direction === "asc"
     ? firstPrice - secondPrice
     : secondPrice - firstPrice;
+}
+
+function getListingSubcategory(listing: MockListing) {
+  const mappedSubcategories: Record<string, string> = {
+    "listing-strat-pro-ii": "Solid Body",
+    "listing-les-paul-goldtop": "Solid Body",
+    "listing-prs-custom-24": "Solid Body",
+    "listing-rickenbacker-360": "Semi-Hollow",
+    "listing-gretsch-6120": "Hollow Body",
+    "listing-martin-f55": "Hollow Body",
+    "listing-taylor-t5z": "Hollow Body",
+    "listing-martin-d28": "Dreadnought",
+    "listing-taylor-814ce": "Grand Auditorium",
+    "listing-mesa-dual-rectifier": "Heads",
+    "listing-fender-twin": "Combo",
+    "listing-strymon-bigsky": "Reverb",
+  };
+
+  return mappedSubcategories[listing.id] ?? "all";
 }

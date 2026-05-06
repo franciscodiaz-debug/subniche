@@ -17,7 +17,7 @@ export function SortControl({ value = "newest", onChange }: SortControlProps) {
       onChange={(event) => onChange?.(event.target.value as SortOption)}
     >
       <option value="relevant">Most Relevant</option>
-      <option value="newest">Newest</option>
+      <option value="newest">Newest first</option>
       <option value="price-low">Price: low to high</option>
       <option value="price-high">Price: high to low</option>
       <option value="trade-matches">Trade Matches</option>

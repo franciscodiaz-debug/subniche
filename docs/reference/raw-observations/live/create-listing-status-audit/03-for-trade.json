@@ -1,0 +1,67 @@
+{
+  "slug": "03-for-trade",
+  "label": "For Trade selected",
+  "url": "https://v0-rebuild-k45azn1hm-darwoft-subniche.vercel.app/create-listing",
+  "screenshotPath": "docs/reference/screenshots/live/create-listing/status-audit/03-for-trade.png",
+  "buttons": {
+    "For Sale": {
+      "present": true,
+      "disabled": false,
+      "activeByClass": true,
+      "ariaPressed": null,
+      "className": "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border bg-card border-border text-muted-foreground hover:text-foreground hover:border-emerald-500/40"
+    },
+    "For Trade": {
+      "present": true,
+      "disabled": false,
+      "activeByClass": false,
+      "ariaPressed": null,
+      "className": "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border bg-sky-500/10 border-sky-500/60 text-sky-400"
+    },
+    "In Collection": {
+      "present": true,
+      "disabled": false,
+      "activeByClass": false,
+      "ariaPressed": null,
+      "className": "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border bg-card border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+    },
+    "Wishlist": {
+      "present": true,
+      "disabled": true,
+      "activeByClass": false,
+      "ariaPressed": null,
+      "className": "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border opacity-40 cursor-not-allowed bg-card border-border text-muted-foreground hover:text-foreground hover:border-rose-500/40"
+    },
+    "Save Draft": {
+      "present": true,
+      "disabled": false,
+      "activeByClass": true,
+      "ariaPressed": null,
+      "className": "items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 hidden lg:inline-flex"
+    },
+    "Add Item": {
+      "present": true,
+      "disabled": false,
+      "activeByClass": true,
+      "ariaPressed": null,
+      "className": "items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 hidden lg:inline-flex group"
+    },
+    "Add to Wishlist": {
+      "present": false
+    }
+  },
+  "statusLine": "Status\nFor Trade",
+  "hasPriceLine": false,
+  "hasCondition": true,
+  "hasPayment": true,
+  "hasLogistics": true,
+  "hasReturnPolicy": true,
+  "hasPublishTo": true,
+  "hasCollection": false,
+  "hasReceipt": false,
+  "hasTradeNextStep": true,
+  "hasWishlistPanel": false,
+  "hasWishlistUrlChoice": false,
+  "hasWishlistManualChoice": false,
+  "visibleTextPreview": "Add Item Home Market Trade Communities Following My Stuff Inbox Profile JillMusic u/jek116 Add Item AI Assist Save Draft Add Item Status For Trade fields added – you'll set interests in the next step For Sale For Trade In Collection Wishlist Category Guitars Drums Keyboards Audio Equipment Accessories Other YOUR PROFILE 75% JillMusic Collector and player. Into vintage gear. San Francisco, CA Joined Apr 2026 1 listings 0 collections Description Condition Set grade Specifications Add Photos Payment Cash PayPal - Friends and Family PayPal - Goods and Services Venmo Cryptocurrency Other Logistics Local Pickup Shipping Return Policy Publish To General Niche Join communities to publish listings directly to them. Back to top to add item"
+}

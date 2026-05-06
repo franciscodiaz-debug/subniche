@@ -1,24 +1,24 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import {
+  ArrowRight,
+  ArrowUpDown,
   Bell,
-  Bookmark,
   Check,
-  Clock3,
-  FolderHeart,
+  ChevronDown,
+  ExternalLink,
+  FolderOpen,
   Heart,
-  HeartOff,
-  MessageCircle,
   MoreHorizontal,
   Search,
   Tag,
-  TrendingDown,
-  UserPlus,
+  User,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -26,17 +26,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { ListingCard } from "@/components/listing/listing-card";
 import type {
   MockCollection,
   MockListing,
   MockProfile,
 } from "@/data/mock/types";
+import { cn } from "@/lib/utils";
 
 type FavoritesPageProps = {
   collections: MockCollection[];
@@ -44,30 +40,85 @@ type FavoritesPageProps = {
   profiles: MockProfile[];
 };
 
+type ActiveTab = "feed" | "items" | "collections" | "users" | "searches";
+type FeedFilter = "all" | "searches" | "price-drops" | "collections" | "users";
+type ListingSort = "newest" | "recent-updates" | "price-low" | "price-high";
+type CollectionSort =
+  | "newest"
+  | "recent-updates"
+  | "value-high"
+  | "items-high"
+  | "avg-value-high";
+type UserSort = "newest" | "items-high" | "followers-high";
+
+const tabs: Array<{ value: ActiveTab; label: string }> = [
+  { value: "feed", label: "Updates" },
+  { value: "items", label: "Items" },
+  { value: "collections", label: "Collections" },
+  { value: "users", label: "Users" },
+  { value: "searches", label: "Searches" },
+];
+
+const feedFilters: Array<{
+  value: FeedFilter;
+  label: string;
+  icon?: LucideIcon;
+}> = [
+  { value: "all", label: "All Activity" },
+  { value: "searches", label: "Search Matches", icon: Search },
+  { value: "price-drops", label: "Price Drops", icon: Tag },
+  { value: "collections", label: "Collection Updates", icon: FolderOpen },
+  { value: "users", label: "User Listings", icon: User },
+];
+
+const listingSortOptions: Array<{ value: ListingSort; label: string }> = [
+  { value: "newest", label: "Date Added: Newest" },
+  { value: "recent-updates", label: "Most Recent Activity" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+];
+
+const collectionSortOptions: Array<{ value: CollectionSort; label: string }> = [
+  { value: "newest", label: "Date Added: Newest" },
+  { value: "recent-updates", label: "Most Recent Activity" },
+  { value: "value-high", label: "Value: High to Low" },
+  { value: "items-high", label: "# Items: Most to Least" },
+  { value: "avg-value-high", label: "Highest Avg. Item Value" },
+];
+
+const userSortOptions: Array<{ value: UserSort; label: string }> = [
+  { value: "newest", label: "Date Added: Newest" },
+  { value: "items-high", label: "Items: Most to Least" },
+  { value: "followers-high", label: "Followers: Most to Least" },
+];
+
 const savedSearches = [
   {
     id: "vintage-fenders",
-    name: "vintage Fender amp",
+    name: "\"vintage Fender amp\"",
     filterSummary:
       "Fender, tube amps, serviced or excellent, under $4,500, within 500 miles",
     matchCount: 12,
-    alerts: "Instant email",
+    alertLabel: "Instant email",
+    listingIds: ["listing-fender-twin", "listing-mesa-dual-rectifier"],
   },
   {
     id: "prs-under-4k",
-    name: "PRS under $4k",
+    name: "\"PRS under $4k\"",
     filterSummary:
       "PRS, electric guitars, excellent condition, cash plus trade accepted",
     matchCount: 7,
-    alerts: "Daily digest",
+    alertLabel: "Daily digest",
+    listingIds: ["listing-prs-custom-24", "listing-strat-pro-ii"],
   },
   {
     id: "boutique-delay",
-    name: "boutique delay pedal",
+    name: "\"boutique delay pedal\"",
     filterSummary:
       "Effects pedals, delay/modulation, mint or excellent, shipping available",
     matchCount: 19,
-    alerts: "Alerts paused",
+    alertLabel: "Alerts paused",
+    listingIds: ["listing-strymon-bigsky", "listing-rickenbacker-360"],
   },
 ];
 
@@ -76,415 +127,727 @@ export function FavoritesPage({
   listings,
   profiles,
 }: FavoritesPageProps) {
-  const savedItems = [
-    ...new Map(
-      listings
-        .filter((listing) => listing.isSaved || listing.statuses.forTrade)
-        .slice(0, 6)
-        .map((listing) => [listing.id, listing]),
-    ).values(),
-  ];
-  const feedItems = [
-    {
-      label: "Saved search match",
-      title: listings[4]?.title ?? "PRS Custom 24 10-Top",
-      body: "Matches your PRS under $4k search and accepts cash plus trade.",
-      icon: Search,
-      href: listings[4]?.href ?? "/market",
-    },
-    {
-      label: "Price drop",
-      title: listings[7]?.title ?? "Fender Twin Reverb",
-      body: "Tone Archive lowered the cash side while keeping trade interest open.",
-      icon: TrendingDown,
-      href: listings[7]?.href ?? "/market",
-    },
-    {
-      label: "Collection update",
-      title: collections[0]?.title ?? "Studio Workhorses",
-      body: "Kyle added two pieces and updated collection value context.",
-      icon: FolderHeart,
-      href: collections[0]?.href ?? "/collections",
-    },
-    {
-      label: "New from followed user",
-      title: profiles[1]?.displayName ?? "Mara Voss",
-      body: "Posted a fresh acoustic listing in Acoustic Corner.",
-      icon: UserPlus,
-      href: "/profile",
-    },
-  ];
+  const [activeTab, setActiveTab] = useState<ActiveTab>("feed");
+  const [feedFilter, setFeedFilter] = useState<FeedFilter>("all");
+  const [feedSort, setFeedSort] = useState<ListingSort>("newest");
+  const [itemSort, setItemSort] = useState<ListingSort>("newest");
+  const [collectionSort, setCollectionSort] =
+    useState<CollectionSort>("newest");
+  const [userSort, setUserSort] = useState<UserSort>("newest");
+  const [followedCollections, setFollowedCollections] = useState(
+    () => new Set(collections.map((collection) => collection.id)),
+  );
+
+  const savedItems = useMemo(
+    () =>
+      [
+        ...new Map(
+          listings
+            .filter((listing) => listing.isSaved || listing.statuses.forTrade)
+            .map((listing) => [listing.id, listing]),
+        ).values(),
+      ].slice(0, 8),
+    [listings],
+  );
+
+  const feedItems = useMemo(
+    () => [
+      {
+        type: "searches" as const,
+        label: "Saved search match",
+        context: "Matches \"PRS under $4k\"",
+        listing: findListing(listings, "listing-prs-custom-24"),
+      },
+      {
+        type: "price-drops" as const,
+        label: "Price drop",
+        context: "Price dropped from $1,899",
+        listing: findListing(listings, "listing-fender-twin"),
+      },
+      {
+        type: "users" as const,
+        label: "New from followed user",
+        context: "New from Mara Voss",
+        listing: findListing(listings, "listing-martin-d28"),
+      },
+      {
+        type: "collections" as const,
+        label: "Collection update",
+        context: "Added to Studio Workhorses",
+        listing: findListing(listings, "listing-mesa-dual-rectifier"),
+      },
+      {
+        type: "searches" as const,
+        label: "Saved search match",
+        context: "Matches \"boutique delay pedal\"",
+        listing: findListing(listings, "listing-strymon-bigsky"),
+      },
+      {
+        type: "price-drops" as const,
+        label: "Price drop",
+        context: "Price dropped from $2,650",
+        listing: findListing(listings, "listing-les-paul-goldtop"),
+      },
+    ],
+    [listings],
+  );
+
+  const filteredFeedItems = useMemo(() => {
+    const items =
+      feedFilter === "all"
+        ? feedItems
+        : feedItems.filter((item) => item.type === feedFilter);
+
+    return sortListingsWithContext(items, feedSort);
+  }, [feedFilter, feedItems, feedSort]);
+
+  const sortedItems = useMemo(
+    () => sortListings(savedItems, itemSort),
+    [itemSort, savedItems],
+  );
+
+  const sortedCollections = useMemo(
+    () => sortCollections(collections, collectionSort),
+    [collectionSort, collections],
+  );
+
+  const sortedUsers = useMemo(
+    () => sortUsers(profiles, listings, userSort),
+    [listings, profiles, userSort],
+  );
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-      <header className="flex flex-col gap-6 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold uppercase text-accent">
-            <Heart className="size-3.5" aria-hidden="true" />
-            Following
-          </div>
-          <h1 className="mt-4 text-4xl font-semibold text-foreground md:text-5xl">
-            Favorites
-          </h1>
-          <p className="mt-3 max-w-3xl text-lg leading-8 text-muted-foreground">
-            Followed listings, collections, people, and saved searches with the
-            updates that explain why they matter.
-          </p>
-        </div>
-        <div className="grid grid-cols-3 gap-3 text-sm sm:min-w-96">
-          <Metric value={savedItems.length.toString()} label="saved items" />
-          <Metric value={collections.length.toString()} label="collections" />
-          <Metric value={savedSearches.length.toString()} label="searches" />
-        </div>
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <header className="mb-5">
+        <h1 className="text-2xl font-bold text-foreground">Following</h1>
       </header>
 
-      <Tabs defaultValue="feed" className="mt-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <TabsList className="w-full overflow-x-auto rounded-none border-0 bg-transparent p-0 lg:w-auto">
-            {[
-              ["feed", "Feed"],
-              ["items", "Items"],
-              ["collections", "Collections"],
-              ["users", "Users"],
-              ["searches", "Searches"],
-            ].map(([value, label]) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="relative mr-8 rounded-none bg-transparent px-0 py-3 text-xl font-semibold shadow-none after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
-              >
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-sm font-semibold text-muted-foreground"
-          >
-            <Clock3 className="size-4" aria-hidden="true" />
-            Most recent activity
-          </button>
+      <div className="mb-4 overflow-x-auto">
+        <div
+          role="tablist"
+          aria-label="Following sections"
+          className="flex min-w-max items-center gap-8"
+        >
+          {tabs.map((tab, index) => (
+            <TabButton
+              key={tab.value}
+              active={activeTab === tab.value}
+              label={tab.label}
+              showDivider={index === 1}
+              onClick={() => setActiveTab(tab.value)}
+            />
+          ))}
         </div>
+      </div>
 
-        <TabsContent value="feed" className="mt-6">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-            <div className="space-y-3">
-              {feedItems.map((item) => (
-                <ActivityCard key={item.title} {...item} />
-              ))}
+      {activeTab === "feed" ? (
+        <section aria-label="Following updates">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <span className="text-sm text-muted-foreground">
+              {filteredFeedItems.length} updates
+            </span>
+            <div className="flex items-center gap-2">
+              <FilterMenu
+                label={
+                  feedFilters.find((option) => option.value === feedFilter)
+                    ?.label ?? "All Activity"
+                }
+                options={feedFilters}
+                value={feedFilter}
+                onChange={setFeedFilter}
+              />
+              <SortMenu
+                label={
+                  listingSortOptions.find((option) => option.value === feedSort)
+                    ?.label ?? "Date Added: Newest"
+                }
+                options={listingSortOptions}
+                value={feedSort}
+                onChange={setFeedSort}
+              />
             </div>
-            <Card className="rounded-lg p-5">
-              <h2 className="text-base font-semibold text-foreground">
-                Saved search pulse
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Saved searches work like lightweight watchlists. They keep
-                matching new inventory without needing a full marketplace pass.
-              </p>
-              <div className="mt-5 space-y-3">
-                {savedSearches.map((search) => (
-                  <div
-                    key={search.id}
-                    className="rounded-lg border border-border bg-background/50 p-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-semibold text-foreground">
-                        {search.name}
-                      </span>
-                      <Badge variant="info">{search.matchCount} matches</Badge>
-                    </div>
-                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                      {search.filterSummary}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="items" className="mt-6">
-          <div className="grid gap-4">
-            {savedItems.map((listing) => (
-              <FollowedListingRow key={listing.id} listing={listing} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="collections" className="mt-6">
-          <div className="grid gap-4">
-            {collections.map((collection) => (
-              <FollowedCollectionRow
-                key={collection.id}
-                collection={collection}
+          <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredFeedItems.map((item) => (
+              <ListingCard
+                key={`${item.type}-${item.listing.id}`}
+                {...item.listing}
+                subtitle={item.context}
               />
             ))}
           </div>
-        </TabsContent>
+        </section>
+      ) : null}
 
-        <TabsContent value="users" className="mt-6">
-          <div className="grid gap-4">
-            {profiles.map((profile) => (
-              <FollowedUserRow key={profile.id} profile={profile} />
+      {activeTab === "items" ? (
+        <section aria-label="Followed items">
+          <TabToolbar
+            label={`Following ${sortedItems.length} items`}
+            sortLabel={
+              listingSortOptions.find((option) => option.value === itemSort)
+                ?.label ?? "Date Added: Newest"
+            }
+            options={listingSortOptions}
+            value={itemSort}
+            onChange={setItemSort}
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {sortedItems.map((listing) => (
+              <ListingCard key={listing.id} {...listing} />
             ))}
           </div>
-        </TabsContent>
+        </section>
+      ) : null}
 
-        <TabsContent value="searches" className="mt-6">
-          <div className="grid gap-4">
-            {savedSearches.map((search) => (
-              <SavedSearchRow key={search.id} search={search} />
+      {activeTab === "collections" ? (
+        <section aria-label="Followed collections">
+          <TabToolbar
+            label={`Following ${sortedCollections.length} collections`}
+            sortLabel={
+              collectionSortOptions.find(
+                (option) => option.value === collectionSort,
+              )?.label ?? "Date Added: Newest"
+            }
+            options={collectionSortOptions}
+            value={collectionSort}
+            onChange={setCollectionSort}
+          />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {sortedCollections.map((collection) => (
+              <FollowedCollectionCard
+                key={collection.id}
+                collection={collection}
+                followed={followedCollections.has(collection.id)}
+                onToggleFollow={() =>
+                  setFollowedCollections((current) => {
+                    const next = new Set(current);
+                    if (next.has(collection.id)) {
+                      next.delete(collection.id);
+                    } else {
+                      next.add(collection.id);
+                    }
+                    return next;
+                  })
+                }
+              />
             ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </section>
+      ) : null}
+
+      {activeTab === "users" ? (
+        <section aria-label="Followed users">
+          <TabToolbar
+            label={`Following ${sortedUsers.length} users`}
+            sortLabel={
+              userSortOptions.find((option) => option.value === userSort)
+                ?.label ?? "Date Added: Newest"
+            }
+            options={userSortOptions}
+            value={userSort}
+            onChange={setUserSort}
+          />
+          <div className="grid gap-4 md:grid-cols-2">
+            {sortedUsers.map((profile) => (
+              <FollowedUserCard
+                key={profile.id}
+                listings={listings}
+                profile={profile}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {activeTab === "searches" ? (
+        <section aria-label="Saved searches" className="space-y-10">
+          {savedSearches.map((search) => (
+            <SavedSearchShelf
+              key={search.id}
+              listings={search.listingIds
+                .map((listingId) => listings.find((item) => item.id === listingId))
+                .filter((listing): listing is MockListing => Boolean(listing))}
+              search={search}
+            />
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <Card className="rounded-lg p-3">
-      <div className="text-lg font-semibold text-foreground">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-    </Card>
-  );
-}
-
-function ActivityCard({
-  body,
-  href,
-  icon: Icon,
+function TabButton({
+  active,
   label,
-  title,
+  onClick,
+  showDivider,
 }: {
-  body: string;
-  href: string;
-  icon: typeof Search;
+  active: boolean;
   label: string;
-  title: string;
+  onClick: () => void;
+  showDivider: boolean;
 }) {
   return (
-    <Link href={href} className="block">
-      <Card variant="interactive" className="rounded-lg p-5">
-        <div className="flex gap-4">
-          <span className="grid size-11 shrink-0 place-items-center rounded-lg border border-accent/35 bg-accent/10 text-accent">
-            <Icon className="size-5" aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <div className="text-xs font-semibold uppercase text-muted-foreground">
-              {label}
-            </div>
-            <h2 className="mt-1 text-lg font-semibold text-foreground">
-              {title}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {body}
-            </p>
-          </div>
-        </div>
-      </Card>
-    </Link>
+    <>
+      {showDivider ? <div className="h-6 w-px bg-border" aria-hidden="true" /> : null}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active}
+        className={cn(
+          "whitespace-nowrap border-b-2 pb-2 text-xl font-semibold transition-colors",
+          active
+            ? "border-primary text-foreground"
+            : "border-transparent text-muted-foreground hover:text-foreground",
+        )}
+        onClick={onClick}
+      >
+        {label}
+      </button>
+    </>
   );
 }
 
-function FollowedListingRow({ listing }: { listing: MockListing }) {
+function FilterMenu<TValue extends string>({
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  label: string;
+  onChange: (value: TValue) => void;
+  options: Array<{ value: TValue; label: string; icon?: LucideIcon }>;
+  value: TValue;
+}) {
   return (
-    <Card className="rounded-lg p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Link href={listing.href ?? "/market"} className="shrink-0">
-          <div className="relative size-24 overflow-hidden rounded-lg bg-muted">
-            {listing.imageUrl ? (
-              <Image
-                src={listing.imageUrl}
-                alt={listing.title}
-                fill
-                sizes="96px"
-                className="object-cover"
-              />
-            ) : null}
-          </div>
-        </Link>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={listing.href ?? "/market"}
-              className="font-semibold text-foreground transition hover:text-accent"
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-foreground transition hover:bg-muted">
+        <span>{label}</span>
+        <ChevronDown className="size-4" aria-hidden="true" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        {options.map((option) => {
+          const Icon = option.icon;
+
+          return (
+            <DropdownMenuItem
+              key={option.value}
+              className="justify-between"
+              onClick={() => onChange(option.value)}
             >
-              {listing.title}
-            </Link>
-            {listing.statuses.forTrade ? (
-              <Badge variant="default">Tradeable</Badge>
-            ) : null}
-            {listing.isSaved ? <Badge variant="success">Saved</Badge> : null}
-          </div>
-          <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-            {listing.subtitle}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              {listing.price}
-            </span>
-            <span>{listing.location}</span>
-            <span>{listing.sellerName}</span>
-          </div>
-        </div>
-        <RowMenu removeLabel="Remove from following" />
-      </div>
-    </Card>
+              <span className="flex items-center gap-2">
+                {Icon ? <Icon className="size-4" aria-hidden="true" /> : null}
+                {option.label}
+              </span>
+              {value === option.value ? (
+                <Check className="size-4 text-primary" aria-hidden="true" />
+              ) : null}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
-function FollowedCollectionRow({
+function SortMenu<TValue extends string>({
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  label: string;
+  onChange: (value: TValue) => void;
+  options: Array<{ value: TValue; label: string }>;
+  value: TValue;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-foreground transition hover:bg-muted">
+        <ArrowUpDown className="size-4" aria-hidden="true" />
+        <span>{label}</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        {options.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            className="justify-between"
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+            {value === option.value ? (
+              <Check className="size-4 text-primary" aria-hidden="true" />
+            ) : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function TabToolbar<TValue extends string>({
+  label,
+  onChange,
+  options,
+  sortLabel,
+  value,
+}: {
+  label: string;
+  onChange: (value: TValue) => void;
+  options: Array<{ value: TValue; label: string }>;
+  sortLabel: string;
+  value: TValue;
+}) {
+  return (
+    <div className="mb-6 flex items-center justify-between gap-4">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <SortMenu
+        label={sortLabel}
+        options={options}
+        value={value}
+        onChange={onChange}
+      />
+    </div>
+  );
+}
+
+function FollowedCollectionCard({
   collection,
+  followed,
+  onToggleFollow,
 }: {
   collection: MockCollection;
+  followed: boolean;
+  onToggleFollow: () => void;
 }) {
   return (
-    <Card className="rounded-lg p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Link href={collection.href} className="shrink-0">
-          <div className="grid size-24 grid-cols-2 gap-px overflow-hidden rounded-lg bg-border">
+    <Card
+      variant="interactive"
+      className="group overflow-hidden rounded-lg border-border bg-card"
+    >
+      <Link href={collection.href} className="block">
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+          <div className="grid size-full grid-cols-2 grid-rows-2 gap-px bg-border">
             {collection.images.slice(0, 4).map((image, index) => (
               <div
                 key={`${collection.id}-${image}-${index}`}
-                className="relative bg-muted"
+                className="relative overflow-hidden bg-muted"
               >
                 <Image
                   src={image}
                   alt=""
                   fill
-                  sizes="48px"
-                  className="object-cover"
+                  sizes="(min-width: 1280px) 16vw, (min-width: 768px) 33vw, 50vw"
+                  className="object-cover transition duration-300 group-hover:scale-105"
                 />
               </div>
             ))}
           </div>
-        </Link>
-        <div className="min-w-0 flex-1">
-          <Link
-            href={collection.href}
-            className="font-semibold text-foreground transition hover:text-accent"
+          <button
+            type="button"
+            aria-label={
+              followed ? "Unfollow collection" : "Follow collection"
+            }
+            aria-pressed={followed}
+            className={cn(
+              "absolute right-2 top-2 grid size-8 place-items-center rounded-full border border-border bg-background/85 text-muted-foreground backdrop-blur-sm transition hover:text-foreground",
+              followed && "text-primary",
+            )}
+            onClick={(event) => {
+              event.preventDefault();
+              onToggleFollow();
+            }}
           >
+            <Heart
+              className={cn("size-4", followed && "fill-current")}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+        <div className="p-3">
+          <h2 className="truncate font-medium text-foreground">
             {collection.title}
-          </Link>
-          <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+          </h2>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
             {collection.description}
           </p>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            <span>
-              <span className="font-semibold text-foreground">
-                {collection.itemCount}
-              </span>{" "}
-              items
+          <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted-foreground">
+              {collection.itemCount} items
             </span>
-            {collection.estimatedValue ? (
-              <span>{collection.estimatedValue} estimate</span>
-            ) : null}
-            <span>Updated recently</span>
+            <span className="font-medium text-foreground">
+              {collection.aiEstimate ?? collection.estimatedValue}
+            </span>
+          </div>
+          <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
+            <span>Kyle K</span>
+            <span>{collection.visibility}</span>
           </div>
         </div>
-        <RowMenu removeLabel="Unfollow collection" />
-      </div>
+      </Link>
     </Card>
   );
 }
 
-function FollowedUserRow({ profile }: { profile: MockProfile }) {
+function FollowedUserCard({
+  listings,
+  profile,
+}: {
+  listings: MockListing[];
+  profile: MockProfile;
+}) {
+  const recentItems = listings
+    .filter((listing) => listing.sellerId === profile.id)
+    .slice(0, 3);
+  const fallbackItems = recentItems.length > 0 ? recentItems : listings.slice(0, 3);
+  const itemCount =
+    Number(profile.stats.find((stat) => stat.label === "Listings")?.value) ||
+    fallbackItems.length;
+  const collectionCount =
+    Number(profile.stats.find((stat) => stat.label === "Collection")?.value) ||
+    0;
+  const followersCount = profile.id === "kyle-k" ? 214 : profile.id === "mara-voss" ? 189 : 521;
+
   return (
-    <Card className="rounded-lg p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Link href="/profile" className="shrink-0">
-          <div className="relative size-16 overflow-hidden rounded-full border border-border bg-muted">
+    <Link
+      href="/profile"
+      className="group block overflow-hidden rounded-lg border border-border bg-card transition hover:border-primary/50"
+    >
+      <div className="relative flex h-24 overflow-hidden bg-muted">
+        {fallbackItems.map((listing) => (
+          <div key={`${profile.id}-${listing.id}`} className="relative flex-1">
+            <Image
+              src={listing.imageUrl ?? "/mock/listings/fender-stratocaster-sunburst.jpg"}
+              alt=""
+              fill
+              sizes="(min-width: 768px) 20vw, 33vw"
+              className="object-cover transition duration-300 group-hover:scale-105"
+            />
+          </div>
+        ))}
+      </div>
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="relative size-12 shrink-0 overflow-hidden rounded-full border-2 border-card bg-muted">
             {profile.avatarUrl ? (
               <Image
                 src={profile.avatarUrl}
                 alt={profile.displayName}
                 fill
-                sizes="64px"
+                sizes="48px"
                 className="object-cover"
               />
             ) : null}
           </div>
-        </Link>
-        <div className="min-w-0 flex-1">
-          <Link
-            href="/profile"
-            className="font-semibold text-foreground transition hover:text-accent"
-          >
-            {profile.displayName}
-          </Link>
-          <p className="text-sm text-muted-foreground">{profile.handle}</p>
-          <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">
-            {profile.bio}
-          </p>
+          <div className="min-w-0">
+            <h2 className="truncate font-semibold text-foreground">
+              {profile.displayName}
+            </h2>
+            <p className="truncate text-sm text-muted-foreground">
+              {profile.handle}
+            </p>
+          </div>
         </div>
-        <Link
-          href="/inbox"
-          className={buttonVariants({ variant: "secondary", size: "sm" })}
-        >
-          <MessageCircle className="size-4" aria-hidden="true" />
-          Message
-        </Link>
+        <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">
+          {profile.bio}
+        </p>
+        <div className="mt-4 flex gap-5">
+          <MiniStat label="Items" value={itemCount.toString()} />
+          <MiniStat label="Collections" value={collectionCount.toString()} />
+          <MiniStat label="Followers" value={followersCount.toString()} />
+        </div>
       </div>
-    </Card>
+    </Link>
   );
 }
 
-function SavedSearchRow({
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function SavedSearchShelf({
+  listings,
   search,
 }: {
+  listings: MockListing[];
   search: (typeof savedSearches)[number];
 }) {
+  const [alertEnabled, setAlertEnabled] = useState(
+    !search.alertLabel.toLowerCase().includes("paused"),
+  );
+
   return (
-    <Card className="rounded-lg p-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <div className="mb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-foreground">{search.name}</h2>
-            <Badge variant={search.alerts.includes("paused") ? "secondary" : "info"}>
-              {search.alerts}
-            </Badge>
+            <h2 className="text-lg font-semibold text-foreground">
+              {search.name}
+            </h2>
+            <SearchSettingsMenu
+              alertEnabled={alertEnabled}
+              onToggleAlerts={() => setAlertEnabled((current) => !current)}
+            />
           </div>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
             {search.filterSummary}
           </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Badge variant="info">{search.matchCount} matches</Badge>
+            <Badge variant={alertEnabled ? "success" : "secondary"}>
+              {alertEnabled ? search.alertLabel : "Alerts paused"}
+            </Badge>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="default">{search.matchCount} matches</Badge>
-          <Link
-            href="/market"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            View matches
-          </Link>
-        </div>
+        <Link
+          href="/market"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition hover:text-primary"
+        >
+          View All
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
       </div>
-    </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {listings.map((listing) => (
+          <ListingCard key={`${search.id}-${listing.id}`} {...listing} />
+        ))}
+      </div>
+    </div>
   );
 }
 
-function RowMenu({ removeLabel }: { removeLabel: string }) {
+function SearchSettingsMenu({
+  alertEnabled,
+  onToggleAlerts,
+}: {
+  alertEnabled: boolean;
+  onToggleAlerts: () => void;
+}) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground">
+      <DropdownMenuTrigger
+        aria-label="Search settings"
+        className="grid size-8 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground"
+      >
         <MoreHorizontal className="size-4" aria-hidden="true" />
-        <span className="sr-only">Open actions</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={onToggleAlerts}>
           <Bell className="mr-2 size-4" aria-hidden="true" />
-          Update alerts
+          {alertEnabled ? "Pause alerts" : "Resume alerts"}
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Tag className="mr-2 size-4" aria-hidden="true" />
-          Add note
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive hover:text-destructive">
-          <HeartOff className="mr-2 size-4" aria-hidden="true" />
-          {removeLabel}
+          <ExternalLink className="mr-2 size-4" aria-hidden="true" />
+          Edit search
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function findListing(listings: MockListing[], id: string) {
+  return listings.find((listing) => listing.id === id) ?? listings[0];
+}
+
+function sortListings(listings: MockListing[], sort: ListingSort) {
+  const items = [...listings];
+
+  switch (sort) {
+    case "price-high":
+      return items.sort((a, b) => priceNumber(b) - priceNumber(a));
+    case "price-low":
+      return items.sort((a, b) => priceNumber(a) - priceNumber(b));
+    case "recent-updates":
+    case "newest":
+    default:
+      return items.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }
+}
+
+function sortListingsWithContext<TItem extends { listing: MockListing }>(
+  items: TItem[],
+  sort: ListingSort,
+) {
+  return [...items].sort((a, b) => {
+    if (sort === "price-high") {
+      return priceNumber(b.listing) - priceNumber(a.listing);
+    }
+
+    if (sort === "price-low") {
+      return priceNumber(a.listing) - priceNumber(b.listing);
+    }
+
+    return (
+      new Date(b.listing.createdAt).getTime() -
+      new Date(a.listing.createdAt).getTime()
+    );
+  });
+}
+
+function sortCollections(
+  collections: MockCollection[],
+  sort: CollectionSort,
+) {
+  const items = [...collections];
+
+  switch (sort) {
+    case "value-high":
+      return items.sort((a, b) => collectionValue(b) - collectionValue(a));
+    case "items-high":
+      return items.sort((a, b) => b.itemCount - a.itemCount);
+    case "avg-value-high":
+      return items.sort(
+        (a, b) =>
+          collectionValue(b) / Math.max(b.itemCount, 1) -
+          collectionValue(a) / Math.max(a.itemCount, 1),
+      );
+    case "recent-updates":
+    case "newest":
+    default:
+      return items;
+  }
+}
+
+function sortUsers(
+  profiles: MockProfile[],
+  listings: MockListing[],
+  sort: UserSort,
+) {
+  const items = [...profiles];
+
+  switch (sort) {
+    case "items-high":
+      return items.sort(
+        (a, b) =>
+          listings.filter((listing) => listing.sellerId === b.id).length -
+          listings.filter((listing) => listing.sellerId === a.id).length,
+      );
+    case "followers-high":
+      return items.sort((a, b) => b.indicators.length - a.indicators.length);
+    case "newest":
+    default:
+      return items;
+  }
+}
+
+function priceNumber(listing: MockListing) {
+  return Number.parseInt(listing.price?.replace(/[^0-9]/g, "") ?? "0", 10);
+}
+
+function collectionValue(collection: MockCollection) {
+  return Number.parseInt(
+    (collection.aiEstimate ?? collection.estimatedValue ?? "0").replace(
+      /[^0-9]/g,
+      "",
+    ),
+    10,
   );
 }

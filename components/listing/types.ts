@@ -26,4 +26,7 @@ export type ListingCardProps = {
   communityContext?: string[];
   tradeSummary?: string;
   isSaved?: boolean;
+  marketContext?: "market" | "trade";
+  showStatusBadges?: boolean;
+  showTradeMatch?: boolean;
 };

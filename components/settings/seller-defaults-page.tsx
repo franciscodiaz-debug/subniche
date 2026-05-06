@@ -1,9 +1,20 @@
+"use client";
+
 import { Check, Info, Pencil, RotateCcw, Save, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip } from "@/components/ui/tooltip";
 
@@ -46,28 +57,58 @@ export function SellerDefaultsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={buttonVariants({
-              variant: "outline",
-              size: "sm",
-              className: "rounded-full bg-transparent",
-            })}
-          >
-            <RotateCcw className="size-4" aria-hidden="true" />
-            Reset changes
-          </button>
-          <button
-            type="button"
-            className={buttonVariants({
-              variant: "primary",
-              size: "sm",
-              className: "rounded-full",
-            })}
-          >
-            <Save className="size-4" aria-hidden="true" />
-            Save defaults
-          </button>
+          <Dialog>
+            <DialogTrigger
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "rounded-full bg-transparent",
+              })}
+            >
+              <RotateCcw className="size-4" aria-hidden="true" />
+              Reset changes
+            </DialogTrigger>
+            <DialogContent aria-label="Reset changes">
+              <DialogHeader>
+                <DialogTitle>Reset changes</DialogTitle>
+                <DialogDescription>
+                  This demo would restore your seller defaults to the last saved
+                  values.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <span className="text-sm text-muted-foreground">
+                  Nothing changed in this prototype.
+                </span>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog>
+            <DialogTrigger
+              className={buttonVariants({
+                variant: "primary",
+                size: "sm",
+                className: "rounded-full",
+              })}
+            >
+              <Save className="size-4" aria-hidden="true" />
+              Save defaults
+            </DialogTrigger>
+            <DialogContent aria-label="Defaults saved">
+              <DialogHeader>
+                <DialogTitle>Defaults saved</DialogTitle>
+                <DialogDescription>
+                  This confirms the save moment. Production will persist these
+                  choices and apply them to new sale listings.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <span className="text-sm text-muted-foreground">
+                  Demo confirmation only.
+                </span>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 

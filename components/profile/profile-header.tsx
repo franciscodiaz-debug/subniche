@@ -39,58 +39,34 @@ export function ProfileHeader({
   indicators,
   ownProfile,
 }: ProfileHeaderProps) {
+  const profileStats = stats.slice(0, 3);
+
   return (
-    <section className="pt-4">
-      <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
-        <Avatar className="size-40 rounded-full border-8 border-card shadow-soft sm:size-48 lg:mx-auto">
+    <section className="pt-2">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <Avatar className="size-24 rounded-full border-4 border-card shadow-soft sm:size-32">
           {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
-          <AvatarFallback className="text-4xl font-semibold">
+          <AvatarFallback className="text-2xl font-semibold">
             {displayName.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
-        <div className="min-w-0 space-y-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-                <h1 className="text-4xl font-semibold leading-none text-foreground md:text-5xl">
-                  {displayName}
-                </h1>
-                {ownProfile ? (
-                  <Badge variant="secondary" className="rounded-full">
-                    Your profile
-                  </Badge>
-                ) : null}
-              </div>
-              <p className="mt-2 text-xl text-muted-foreground">{handle}</p>
-              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-base text-muted-foreground">
-                {location ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="size-5" aria-hidden="true" />
-                    {location}
-                  </span>
-                ) : null}
-                {memberSince ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <CalendarDays className="size-5" aria-hidden="true" />
-                    {memberSince}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
+        <div className="min-w-0 flex-1 space-y-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold leading-tight text-foreground">
+                {displayName}
+              </h1>
               {ownProfile ? (
                 <Link
                   href="/settings/seller-defaults"
                   className={buttonVariants({
                     variant: "outline",
-                    size: "lg",
-                    className:
-                      "rounded-lg bg-transparent text-base font-semibold",
+                    size: "sm",
+                    className: "rounded-lg bg-transparent",
                   })}
                 >
-                  <Edit3 className="size-5" aria-hidden="true" />
+                  <Edit3 className="size-4" aria-hidden="true" />
                   Edit Profile
                 </Link>
               ) : null}
@@ -99,33 +75,45 @@ export function ProfileHeader({
                 className={buttonVariants({
                   variant: "outline",
                   size: "icon",
-                  className: "rounded-lg bg-transparent",
+                  className: "size-9 rounded-lg bg-transparent",
                 })}
                 aria-label="Profile settings"
               >
-                <Settings className="size-5" aria-hidden="true" />
+                <Settings className="size-4" aria-hidden="true" />
               </Link>
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-lg bg-transparent"
+                className="size-9 rounded-lg bg-transparent"
                 aria-label="Share profile"
               >
-                <Share2 className="size-5" aria-hidden="true" />
+                <Share2 className="size-4" aria-hidden="true" />
               </Button>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">{handle}</p>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+              {location ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="size-3.5" aria-hidden="true" />
+                  {location}
+                </span>
+              ) : null}
+              {memberSince ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays className="size-3.5" aria-hidden="true" />
+                  {memberSince}
+                </span>
+              ) : null}
             </div>
           </div>
 
-          <p className="max-w-5xl text-lg leading-8 text-muted-foreground">
+          <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
             {bio}
           </p>
 
-          <div className="space-y-4">
-            <div className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">
-              Trust context
-            </div>
+          <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-sm text-muted-foreground">
+              <span className="mr-1 text-xs text-muted-foreground">
                 Verified:
               </span>
               <TrustPill icon={Mail} label="Email verified" verified />
@@ -133,12 +121,12 @@ export function ProfileHeader({
               <TrustPill icon={ShieldCheck} label="Community history" />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-sm text-muted-foreground">Linked:</span>
+              <span className="mr-1 text-xs text-muted-foreground">Linked:</span>
               {indicators.map((indicator) => (
                 <Badge
                   key={indicator}
                   variant="outline"
-                  className="rounded-full px-3 py-1 text-sm font-medium"
+                  className="rounded-full px-2.5 py-1 text-xs font-medium"
                 >
                   {indicator}
                   <ExternalLink
@@ -147,19 +135,19 @@ export function ProfileHeader({
                   />
                 </Badge>
               ))}
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 ({indicators.length} verified)
               </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-12 gap-y-4">
-            {stats.map((stat) => (
+          <div className="flex flex-wrap gap-x-9 gap-y-3">
+            {profileStats.map((stat) => (
               <div key={stat.label}>
-                <div className="text-3xl font-semibold text-foreground">
+                <div className="text-xl font-semibold text-foreground">
                   {stat.value}
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   {stat.label}
                 </div>
               </div>
@@ -182,12 +170,12 @@ function TrustPill({
 }) {
   return (
     <span
-      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm text-foreground"
+      className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs text-foreground"
       aria-label={label}
     >
-      <Icon className="size-4" aria-hidden="true" />
+      <Icon className="size-3.5" aria-hidden="true" />
       {verified ? (
-        <Check className="size-3.5 text-primary" aria-hidden="true" />
+        <Check className="size-3 text-primary" aria-hidden="true" />
       ) : null}
     </span>
   );

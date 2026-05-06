@@ -15,10 +15,10 @@ export function MarketplaceModeToggle({ mode }: MarketplaceModeToggleProps) {
       <Link
         href="/market"
         className={cn(
-          "min-w-28 border-b-2 px-2 pb-4 text-3xl font-semibold transition sm:min-w-40 md:text-4xl",
+          "min-w-20 border-b-2 px-2 pb-2.5 text-sm font-semibold transition sm:min-w-24 md:text-base",
           mode === "market"
             ? "border-accent text-foreground"
-            : "border-transparent text-muted-foreground hover:text-foreground",
+            : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
         )}
       >
         For Sale
@@ -26,10 +26,10 @@ export function MarketplaceModeToggle({ mode }: MarketplaceModeToggleProps) {
       <Link
         href="/trade"
         className={cn(
-          "min-w-28 border-b-2 px-2 pb-4 text-3xl font-semibold transition sm:min-w-40 md:text-4xl",
+          "min-w-20 border-b-2 px-2 pb-2.5 text-sm font-semibold transition sm:min-w-24 md:text-base",
           mode === "trade"
             ? "border-accent text-foreground"
-            : "border-transparent text-muted-foreground hover:text-foreground",
+            : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
         )}
       >
         Trade

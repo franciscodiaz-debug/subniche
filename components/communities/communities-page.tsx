@@ -7,6 +7,15 @@ import { ListingCard } from "@/components/listing/listing-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type {
   MockCommunity,
@@ -83,10 +92,27 @@ export function CommunitiesPage({
             niche-specific knowledge.
           </p>
         </div>
-        <Button variant="secondary">
-          <Plus className="size-4" aria-hidden="true" />
-          Create Community
-        </Button>
+        <Dialog>
+          <DialogTrigger className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition hover:bg-muted">
+            <Plus className="size-4" aria-hidden="true" />
+            Create Community
+          </DialogTrigger>
+          <DialogContent aria-label="Create Community">
+            <DialogHeader>
+              <DialogTitle>Create Community</DialogTitle>
+              <DialogDescription>
+                Community creation is a demo step for now. The expected flow
+                will collect name, visibility, moderation rules, and publishing
+                defaults.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <span className="text-sm text-muted-foreground">
+                No community was created.
+              </span>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </header>
 
       <nav className="flex gap-6 overflow-x-auto border-b border-border">

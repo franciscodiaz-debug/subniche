@@ -24,6 +24,8 @@ type MobileFilterSheetProps = {
   conditions: string[];
   activeFilterCount?: number;
   onCategoryChange: (categoryId: string) => void;
+  onSubcategoryChange: (subcategoryId: string) => void;
+  onBrandToggle: (brand: string) => void;
   onNicheChange: (nicheId: string) => void;
   onConditionChange: (condition: string) => void;
   onStatusToggle: (status: ListingStatusFilter) => void;
@@ -46,7 +48,10 @@ export function MobileFilterSheet({
           </span>
         ) : null}
       </SheetTrigger>
-      <SheetContent className="left-0 right-auto overflow-y-auto border-l-0 border-r sm:max-w-xl">
+      <SheetContent
+        aria-label="Filters"
+        className="left-0 right-auto overflow-y-auto border-l-0 border-r sm:max-w-xl"
+      >
         <SheetHeader className="mb-5">
           <SheetTitle>Filters</SheetTitle>
           <SheetDescription>

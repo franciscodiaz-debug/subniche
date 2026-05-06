@@ -10,6 +10,15 @@ test("community detail page links threads, members, and listings", async ({ page
   await expect(page.getByText("Community marketplace")).toBeVisible();
   await expect(page.getByRole("link", { name: "See all" })).toBeVisible();
 
+  await page.getByRole("button", { name: "Share" }).click();
+  await expect(page.getByRole("button", { name: "Link copied" })).toBeVisible();
+
+  await page.getByRole("button", { name: /Join community|Request to join/ }).click();
+  await expect(page.getByRole("button", { name: "Joined" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
   await page.getByRole("link", { name: /What makes a serviced Deluxe/ }).click();
   await expect(
     page.getByRole("heading", {

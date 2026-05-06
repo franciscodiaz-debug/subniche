@@ -1,7 +1,7 @@
 "use client";
 
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -54,24 +54,44 @@ export function SheetContent({
 }: HTMLAttributes<HTMLDivElement>) {
   const { open, setOpen } = useSheetContext();
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, setOpen]);
+
   if (!open) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+    <div
+      data-testid="sheet-backdrop"
+      className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+      onMouseDown={() => setOpen(false)}
+    >
       <div
         className={cn(
-          "fixed inset-y-0 right-0 w-full max-w-md border-l border-border bg-card p-5 shadow-overlay",
+          "fixed inset-y-0 right-0 w-[calc(100%-2rem)] max-w-md border-l border-border bg-card p-5 shadow-overlay",
           className,
         )}
         role="dialog"
         aria-modal="true"
+        onMouseDown={(event) => event.stopPropagation()}
         {...props}
       >
         <button
           type="button"
-          className="absolute right-3 top-3 grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          className="absolute right-3 top-3 grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
           aria-label="Close sheet"
           onClick={() => setOpen(false)}
         >

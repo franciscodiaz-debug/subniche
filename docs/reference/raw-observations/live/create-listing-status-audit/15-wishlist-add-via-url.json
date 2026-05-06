@@ -1,0 +1,13 @@
+{
+  "slug": "15-wishlist-add-via-url",
+  "label": "Wishlist Add via URL selected",
+  "screenshotPath": "docs/reference/screenshots/live/create-listing/status-audit/15-wishlist-add-via-url.png",
+  "hasWishlistUrlChoice": false,
+  "hasWishlistManualChoice": false,
+  "hasAddToWishlist": true,
+  "hasUrlInput": true,
+  "hasTitle": false,
+  "hasDescription": false,
+  "hasPhotos": false,
+  "visibleTextPreview": "Add Item Home Market Trade Communities Following My Stuff Inbox Profile JillMusic u/jek116 Add Item AI Assist Save Draft Add to Wishlist Status Wishlist fields added For Sale For Trade In Collection Wishlist Paste a link to your wishlist item Process Back"
+}

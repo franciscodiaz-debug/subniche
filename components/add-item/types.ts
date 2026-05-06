@@ -1,5 +1,7 @@
 export type ItemMode = "owned" | "wanted";
 
+export type WishlistEntryMode = "choice" | "url" | "manual";
+
 export type OwnedStatusState = {
   forSale: boolean;
   forTrade: boolean;
@@ -8,10 +10,12 @@ export type OwnedStatusState = {
 
 export type ItemBasicsState = {
   title: string;
+  subtitle: string;
   description: string;
   nicheId: string;
   categoryId: string;
   condition: string;
+  conditionDetails: string;
   brand: string;
   model: string;
   year: string;
@@ -38,10 +42,13 @@ export type CollectionState = {
   collectionId: string;
   visibility: "public" | "profile" | "private";
   note: string;
+  dateAcquired: string;
+  acquisitionPrice: string;
 };
 
 export type WantedState = {
   idealCondition: string;
+  sourceUrl: string;
   targetPrice: string;
   notes: string;
   visibility: "public" | "private";

@@ -116,7 +116,7 @@ export type MockOffer = {
   listingId: string;
   fromProfileId: string;
   toProfileId: string;
-  state: "draft" | "pending" | "countered" | "accepted";
+  state: "draft" | "pending" | "countered" | "accepted" | "declined";
   offeredListingIds: string[];
   cashAdjustment?: string;
   note: string;
@@ -131,7 +131,7 @@ export type MockMessageThread = {
   lastMessage: string;
   updatedAt: string;
   unread: boolean;
-  offerState?: "draft" | "pending" | "countered" | "accepted";
+  offerState?: "draft" | "pending" | "countered" | "accepted" | "declined";
 };
 
 export type ListingSummaryForCard = {

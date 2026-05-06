@@ -1,10 +1,23 @@
 "use client";
 
-import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
-import { createContext, useContext, useMemo, useState } from "react";
+import type {
+  ButtonHTMLAttributes,
+  HTMLAttributes,
+  ReactNode,
+  RefObject,
+} from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "@/lib/utils";
 
 type DropdownContextValue = {
+  menuRef: RefObject<HTMLDivElement | null>;
   open: boolean;
   setOpen: (open: boolean) => void;
 };
@@ -23,11 +36,43 @@ function useDropdownContext() {
 
 export function DropdownMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const value = useMemo(() => ({ open, setOpen }), [open]);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const value = useMemo(() => ({ menuRef, open, setOpen }), [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   return (
     <DropdownContext.Provider value={value}>
-      <div className="relative inline-block">{children}</div>
+      <div ref={menuRef} className="relative inline-block">
+        {children}
+      </div>
     </DropdownContext.Provider>
   );
 }
@@ -41,6 +86,7 @@ export function DropdownMenuTrigger({
   return (
     <button
       type="button"
+      aria-haspopup="menu"
       aria-expanded={open}
       onClick={(event) => {
         onClick?.(event);
@@ -75,6 +121,7 @@ export function DropdownMenuContent({
 
 export function DropdownMenuItem({
   className,
+  onClick,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
   const { setOpen } = useDropdownContext();
@@ -83,11 +130,16 @@ export function DropdownMenuItem({
     <button
       type="button"
       className={cn(
-        "flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground",
+        "flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none",
         className,
       )}
       role="menuitem"
-      onClick={() => setOpen(false)}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) {
+          setOpen(false);
+        }
+      }}
       {...props}
     />
   );

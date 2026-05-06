@@ -1,79 +1,156 @@
 "use client";
 
-import { Heart } from "lucide-react";
+import { ArrowLeft, Link, PencilLine } from "lucide-react";
 import { FormSection } from "@/components/add-item/form-section";
-import type { WantedState } from "@/components/add-item/types";
+import type {
+  WantedState,
+  WishlistEntryMode,
+} from "@/components/add-item/types";
+import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 type WishlistFieldsProps = {
+  entryMode: WishlistEntryMode;
   onChange: (wanted: WantedState) => void;
+  onEntryModeChange: (mode: WishlistEntryMode) => void;
   wanted: WantedState;
 };
 
-const conditions = ["Any clean example", "Mint", "Excellent", "Very Good", "Good", "Project"];
-
-export function WishlistFields({ onChange, wanted }: WishlistFieldsProps) {
+export function WishlistFields({
+  entryMode,
+  onChange,
+  onEntryModeChange,
+  wanted,
+}: WishlistFieldsProps) {
   const update = (next: Partial<WantedState>) =>
     onChange({ ...wanted, ...next });
 
-  return (
-    <FormSection
-      eyebrow="Wanted"
-      title="Wanted item details"
-      description="Wanted items show what you are looking for. They are not listed as something you own."
-    >
-      <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-warning">
-        <Heart className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        Wanted mode clears owned-item statuses so buyers and traders do not confuse this with inventory.
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <FormField id="wanted-condition" label="Ideal condition">
-          <Select
-            id="wanted-condition"
-            value={wanted.idealCondition}
-            onChange={(event) =>
-              update({ idealCondition: event.target.value })
-            }
+  if (entryMode === "choice") {
+    return (
+      <FormSection
+        title="Add a wishlist item"
+        description="Wishlist items are things you want but do not currently own."
+        className="max-w-xl"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-auto justify-start p-4 text-left"
+            leftIcon={<Link className="size-4" aria-hidden="true" />}
+            onClick={() => onEntryModeChange("url")}
           >
-            {conditions.map((condition) => (
-              <option key={condition} value={condition}>
-                {condition}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-        <FormField id="wanted-target-price" label="Target price">
+            <span>
+              <span className="block">Add via URL</span>
+              <span className="block pt-1 text-xs font-normal text-muted-foreground">
+                Paste a product link to start from a source page.
+              </span>
+            </span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-auto justify-start p-4 text-left"
+            leftIcon={<PencilLine className="size-4" aria-hidden="true" />}
+            onClick={() => onEntryModeChange("manual")}
+          >
+            <span>
+              <span className="block">Enter Manually</span>
+              <span className="block pt-1 text-xs font-normal text-muted-foreground">
+                Fill out the item details yourself.
+              </span>
+            </span>
+          </Button>
+        </div>
+      </FormSection>
+    );
+  }
+
+  if (entryMode === "url") {
+    return (
+      <FormSection
+        title="Paste a link to your wishlist item"
+        description="Use a public listing, store page, or reference page for the item you want."
+        className="max-w-xl"
+      >
+        <FormField id="wanted-source-url" label="Source URL">
           <Input
-            id="wanted-target-price"
-            value={wanted.targetPrice}
-            onChange={(event) => update({ targetPrice: event.target.value })}
-            placeholder="2200"
+            id="wanted-source-url"
+            type="url"
+            value={wanted.sourceUrl}
+            onChange={(event) => update({ sourceUrl: event.target.value })}
+            placeholder="https://"
           />
         </FormField>
-        <FormField id="wanted-visibility" label="Visibility">
-          <Select
-            id="wanted-visibility"
-            value={wanted.visibility}
-            onChange={(event) =>
-              update({ visibility: event.target.value as WantedState["visibility"] })
-            }
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button">Process</Button>
+          <Button
+            type="button"
+            variant="outline"
+            leftIcon={<ArrowLeft className="size-4" aria-hidden="true" />}
+            onClick={() => onEntryModeChange("choice")}
           >
-            <option value="public">Public wanted item</option>
-            <option value="private">Private note</option>
-          </Select>
-        </FormField>
-      </div>
-      <FormField id="wanted-notes" label="Notes">
-        <Textarea
-          id="wanted-notes"
-          value={wanted.notes}
-          onChange={(event) => update({ notes: event.target.value })}
-          placeholder="Finish, years, condition details, or trade flexibility."
+            Back
+          </Button>
+        </div>
+      </FormSection>
+    );
+  }
+
+  return (
+    <FormSection
+      eyebrow="Wishlist"
+      title="Wishlist Details"
+      description="Publish what you are looking for without adding it to owned inventory."
+    >
+      <FormField id="wanted-manual-source-url" label="Source URL">
+        <Input
+          id="wanted-manual-source-url"
+          type="url"
+          value={wanted.sourceUrl}
+          onChange={(event) => update({ sourceUrl: event.target.value })}
+          placeholder="https://"
         />
       </FormField>
+      <FormField id="wanted-target-price" label="Target Price">
+        <Input
+          id="wanted-target-price"
+          inputMode="decimal"
+          value={wanted.targetPrice}
+          onChange={(event) => update({ targetPrice: event.target.value })}
+          placeholder="2200"
+        />
+      </FormField>
+      <div className="space-y-2">
+        <div className="text-sm font-medium text-foreground">Visibility</div>
+        <div className="grid grid-cols-2 rounded-lg border border-border bg-background p-1">
+          {(["public", "private"] as const).map((visibility) => (
+            <button
+              key={visibility}
+              type="button"
+              className={cn(
+                "h-9 rounded-md text-sm font-semibold text-muted-foreground transition",
+                wanted.visibility === visibility &&
+                  "bg-card text-foreground shadow-card",
+              )}
+              aria-pressed={wanted.visibility === visibility}
+              onClick={() => update({ visibility })}
+            >
+              {visibility === "public" ? "Public" : "Private"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        leftIcon={<ArrowLeft className="size-4" aria-hidden="true" />}
+        onClick={() => onEntryModeChange("choice")}
+      >
+        Back
+      </Button>
     </FormSection>
   );
 }

@@ -5,6 +5,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 import type { MockCategory, MockNiche } from "@/data/mock/types";
 import { cn } from "@/lib/utils";
+import {
+  categoryTaxonomy,
+  getCategoryCount,
+  getCategoryTaxonomy,
+  getTotalCategoryCount,
+} from "@/components/marketplace/filter-options";
+import { PriceHistogramControl } from "@/components/marketplace/price-histogram-control";
 import type {
   CommunityContextFilter,
   ListingStatusFilter,
@@ -17,14 +24,6 @@ const statuses: Array<{ label: string; value: ListingStatusFilter }> = [
   { label: "For Trade", value: "forTrade" },
   { label: "In Collection", value: "inCollection" },
   { label: "Wanted", value: "wishlist" },
-];
-
-const priceRanges: Array<{ label: string; value: PriceRangeFilter }> = [
-  { label: "Any price", value: "all" },
-  { label: "Under $250", value: "under-250" },
-  { label: "$250-$750", value: "250-750" },
-  { label: "$750-$1,500", value: "750-1500" },
-  { label: "$1,500+", value: "1500-plus" },
 ];
 
 const communityContexts: Array<{
@@ -46,6 +45,8 @@ type DesktopFilterRailProps = {
   onClose: () => void;
   onClearAll: () => void;
   onCategoryChange: (categoryId: string) => void;
+  onSubcategoryChange: (subcategoryId: string) => void;
+  onBrandToggle: (brand: string) => void;
   onNicheChange: (nicheId: string) => void;
   onConditionChange: (condition: string) => void;
   onStatusToggle: (status: ListingStatusFilter) => void;
@@ -63,16 +64,21 @@ export function DesktopFilterRail({
   onClose,
   onClearAll,
   onCategoryChange,
+  onSubcategoryChange,
+  onBrandToggle,
   onNicheChange,
   onConditionChange,
   onStatusToggle,
   onPriceRangeChange,
   onCommunityContextChange,
 }: DesktopFilterRailProps) {
+  const activeTaxonomy =
+    filters.categoryId === "all" ? null : getCategoryTaxonomy(filters.categoryId);
+
   return (
     <aside
       className={cn(
-        "fixed bottom-0 top-0 z-40 hidden w-[280px] flex-col border-r border-border bg-background transition-[left,opacity] duration-300 lg:flex",
+        "fixed bottom-0 top-0 z-40 hidden w-[360px] flex-col border-r border-border bg-background transition-[left,opacity] duration-300 lg:flex",
         open
           ? "left-[220px] opacity-100"
           : "pointer-events-none left-[-60px] opacity-0",
@@ -124,28 +130,77 @@ export function DesktopFilterRail({
           >
             <span>All categories</span>
             <span className="text-xs text-muted-foreground">
-              {categories.reduce((total, category) => total + category.itemCount, 0)}
+              {getTotalCategoryCount(categories).toLocaleString()}
             </span>
           </button>
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              type="button"
-              onClick={() => onCategoryChange(category.id)}
-              className={cn(
-                "flex w-full items-center justify-between rounded-sm py-1 text-left text-sm font-semibold transition",
-                filters.categoryId === category.id
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <span>{category.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {category.itemCount}
-              </span>
-            </button>
-          ))}
+          {categoryTaxonomy.map((category) => {
+            const active = filters.categoryId === category.id;
+
+            return (
+              <div key={category.id}>
+                <button
+                  type="button"
+                  onClick={() => onCategoryChange(category.id)}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-sm py-1 text-left text-sm font-semibold transition",
+                    active
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <span>{category.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {getCategoryCount(categories, category.id).toLocaleString()}
+                  </span>
+                </button>
+                {active ? (
+                  <div className="ml-4 space-y-1 py-1">
+                    {category.subcategories.map((subcategory) => (
+                      <button
+                        key={subcategory.label}
+                        type="button"
+                        onClick={() =>
+                          onSubcategoryChange(
+                            filters.subcategoryId === subcategory.label
+                              ? "all"
+                              : subcategory.label,
+                          )
+                        }
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-sm px-2 py-1 text-left text-sm transition",
+                          filters.subcategoryId === subcategory.label
+                            ? "font-semibold text-primary"
+                            : "text-muted-foreground hover:bg-card hover:text-foreground",
+                        )}
+                      >
+                        <span>{subcategory.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {subcategory.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </FilterSection>
+
+        {activeTaxonomy ? (
+          <FilterSection title="Brands">
+            <CheckboxList>
+              {activeTaxonomy.brands.map((brand) => (
+                <CheckboxRow
+                  key={brand.label}
+                  checked={filters.brandFilters.has(brand.label)}
+                  label={brand.label}
+                  meta={brand.count.toLocaleString()}
+                  onChange={() => onBrandToggle(brand.label)}
+                />
+              ))}
+            </CheckboxList>
+          </FilterSection>
+        ) : null}
 
         <FilterSection title="Niche">
           <Select
@@ -195,31 +250,21 @@ export function DesktopFilterRail({
         </FilterSection>
 
         <FilterSection title="Price">
-          <Select
-            aria-label="Price"
-            className="bg-card"
+          <PriceHistogramControl
+            id="desktop-price-range"
             value={filters.priceRange}
-            onChange={(event) =>
-              onPriceRangeChange(event.target.value as PriceRangeFilter)
-            }
-          >
-            {priceRanges.map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
-          </Select>
-          <div className="mt-4 flex h-16 items-end gap-1 px-4">
-            {[20, 34, 45, 58, 72, 82, 92, 74, 58, 42, 28, 18].map(
-              (height, index) => (
-                <span
-                  key={index}
-                  className="flex-1 rounded-t bg-primary/70"
-                  style={{ height: `${height}%` }}
-                />
-              ),
-            )}
-          </div>
+            onChange={onPriceRangeChange}
+          />
+        </FilterSection>
+
+        <FilterSection title="Show only">
+          <CheckboxList>
+            <CheckboxRow
+              checked={filters.statusFilters.has("forTrade")}
+              label="Open to trade"
+              onChange={() => onStatusToggle("forTrade")}
+            />
+          </CheckboxList>
         </FilterSection>
 
         <FilterSection title="Community context">
@@ -270,20 +315,19 @@ function CheckboxList({ children }: { children: React.ReactNode }) {
 function CheckboxRow({
   checked,
   label,
+  meta,
   onChange,
 }: {
   checked: boolean;
   label: string;
+  meta?: string;
   onChange: () => void;
 }) {
   return (
     <label className="group flex cursor-pointer items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground">
-      <Checkbox
-        checked={checked}
-        onChange={onChange}
-        className="bg-transparent"
-      />
-      <span>{label}</span>
+      <Checkbox checked={checked} onChange={onChange} className="bg-transparent" />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {meta ? <span className="text-xs text-muted-foreground">{meta}</span> : null}
     </label>
   );
 }

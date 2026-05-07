@@ -40,7 +40,7 @@ export function AdminDashboard() {
           </p>
         </div>
         <Button
-          variant="outline"
+          variant="quiet_outline"
           size="sm"
           className="gap-1.5 text-muted-foreground"
           onClick={resetToDefaults}

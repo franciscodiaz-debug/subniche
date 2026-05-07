@@ -268,7 +268,7 @@ export function SavedInterestEditor({
               <Button
                 type="button"
                 size="icon"
-                variant="secondary"
+                variant="quiet"
                 onClick={runParse}
                 disabled={parseDisabled}
                 aria-label="Structure with AI"

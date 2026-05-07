@@ -89,7 +89,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 import { DSSection } from "../ds-section"
 
-const buttonVariants = ["default", "secondary", "outline", "ghost", "destructive", "link"] as const
+const buttonVariants = ["primary", "secondary", "quiet", "quiet_outline", "ghost", "destructive", "link"] as const
 const buttonSizes = ["sm", "default", "lg"] as const
 const badgeVariants = ["default", "secondary", "destructive", "outline"] as const
 

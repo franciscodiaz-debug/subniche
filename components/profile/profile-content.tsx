@@ -106,7 +106,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
             {isOwnProfile ? (
               <Button
                 type="button"
-                variant="outline"
+                variant="quiet_outline"
                 size="sm"
                 onClick={() => setIsEditing(true)}
                 className="h-9 gap-2 px-3 @sm:h-8"
@@ -131,7 +131,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
             )}
             <Button
               type="button"
-              variant="outline"
+              variant="quiet_outline"
               size="icon-sm"
               className="flex h-9 w-9 @sm:hidden"
               aria-label="More options"
@@ -147,7 +147,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
               />
               <Button
                 type="button"
-                variant="outline"
+                variant="quiet_outline"
                 size="icon-sm"
                 aria-label="Share profile"
                 onClick={() => {

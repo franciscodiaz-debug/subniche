@@ -629,7 +629,7 @@ function SimpleMode({
               <Button
                 type="button"
                 size="icon"
-                variant="secondary"
+                variant="quiet"
                 onClick={onParse}
                 disabled={disabled}
                 aria-label="Structure with AI"
@@ -738,7 +738,7 @@ function AdvancedMode({
 
       <Button
         type="button"
-        variant="outline"
+        variant="quiet_outline"
         size="sm"
         onClick={onAddCard}
         className="w-full border-dashed"

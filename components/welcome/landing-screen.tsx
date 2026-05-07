@@ -264,7 +264,7 @@ export function LandingScreen() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              <Button variant="outline" className="w-full" asChild onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="quiet_outline" className="w-full" asChild onClick={() => setMobileMenuOpen(false)}>
                 <Link href="/login">Log in</Link>
               </Button>
               <Button className="w-full bg-primary text-primary-foreground" asChild onClick={() => setMobileMenuOpen(false)}>

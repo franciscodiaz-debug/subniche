@@ -22,14 +22,14 @@ export interface ActionCardProps {
 
 const actionConfig: Record<
   ActionType,
-  { icon: React.ElementType; title: string; color: string }
+  { icon: React.ElementType; title: string; cta: string; color: string }
 > = {
-  message:        { icon: MessageCircle,  title: 'New Message',       color: 'text-info bg-info/10 border-info/20' },
-  offer:          { icon: Repeat2,        title: 'New Trade Offer',   color: 'text-primary bg-primary/10 border-primary/20' },
-  offer_accepted: { icon: CheckCircle2,   title: 'Accepted Offer',    color: 'text-success bg-success/10 border-success/20' },
-  offer_declined: { icon: XCircle,        title: 'Declined Offer',    color: 'text-destructive bg-destructive/10 border-destructive/20' },
-  counter:        { icon: ArrowLeftRight, title: 'New Counter Offer', color: 'text-warning bg-warning/10 border-warning/20' },
-  cash_offer:     { icon: DollarSign,     title: 'New Cash Offer',    color: 'text-chart-2 bg-chart-2/10 border-chart-2/20' },
+  message:        { icon: MessageCircle,  title: 'New Message',       cta: 'Go to conversation', color: 'text-info bg-info/10' },
+  offer:          { icon: Repeat2,        title: 'New Trade Offer',   cta: 'Go to offer',        color: 'text-primary bg-primary/10' },
+  offer_accepted: { icon: CheckCircle2,   title: 'Accepted Offer',    cta: 'Go to offer',        color: 'text-success bg-success/10' },
+  offer_declined: { icon: XCircle,        title: 'Declined Offer',    cta: 'View offer',         color: 'text-destructive bg-destructive/10' },
+  counter:        { icon: ArrowLeftRight, title: 'New Counter Offer', cta: 'Go to offer',        color: 'text-warning bg-warning/10' },
+  cash_offer:     { icon: DollarSign,     title: 'New Cash Offer',    cta: 'Go to offer',        color: 'text-chart-2 bg-chart-2/10' },
 }
 
 export function ActionCard({ avatar, username, actionType, description, timestamp }: ActionCardProps) {
@@ -39,7 +39,7 @@ export function ActionCard({ avatar, username, actionType, description, timestam
   return (
     <Link
       href="/inbox"
-      className="flex min-w-[240px] flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
+      className="group flex min-w-[240px] flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
     >
       {/* Row 1 — avatar + name/timestamp + circular icon badge */}
       <div className="flex items-center gap-2.5">
@@ -50,7 +50,7 @@ export function ActionCard({ avatar, username, actionType, description, timestam
           <p className="truncate text-sm font-semibold text-foreground">{username}</p>
           <p className="text-[11px] text-muted-foreground">{timestamp}</p>
         </div>
-        <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full border', config.color)}>
+        <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', config.color)}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
@@ -60,6 +60,11 @@ export function ActionCard({ avatar, username, actionType, description, timestam
 
       {/* Row 3 — description */}
       <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2">{description}</p>
+
+      {/* Hover CTA — only visible on hover */}
+      <p className="text-xs font-medium text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        {config.cta} →
+      </p>
     </Link>
   )
 }

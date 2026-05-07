@@ -96,18 +96,13 @@ function CollectionChip({ item, muted = false }: { item: MyItem; muted?: boolean
           "inline-flex items-center gap-1 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           muted
             ? "border-border/70 bg-transparent px-2 py-0.5 text-[11px] font-normal text-muted-foreground hover:border-border hover:text-foreground"
-            : cn(
-                "px-2.5 py-1 text-xs font-medium",
-                uncategorized
-                  ? "border-border bg-secondary/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  : "border-primary/25 bg-primary/5 text-primary hover:border-primary/50",
-              ),
+            : "border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
         )}
       >
         <Folder
           className={cn(
             "h-3 w-3",
-            muted ? "text-muted-foreground/80" : uncategorized ? "text-muted-foreground" : "text-primary",
+            muted ? "text-muted-foreground/80" : "text-muted-foreground",
           )}
         />
         <span className="max-w-[10rem] truncate">{label}</span>
@@ -337,23 +332,25 @@ export function MyItemGridCard({ item }: { item: MyItem }) {
           <CollectionChip item={item} />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
+          {item.price != null ? (
+            <p className={cn("text-sm font-semibold", item.for_sale ? "text-primary" : "text-muted-foreground")}>
+              ${item.price.toLocaleString()}
+            </p>
+          ) : null}
           {hasStatus ? (
             <span className="inline-flex items-center gap-1">
               {item.for_sale ? (
-                <span title="For Sale" aria-label="For Sale" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-status-success/15 text-status-success">
-                  <Tag className="h-2.5 w-2.5" />
+                <span title="For Sale" aria-label="For Sale" className="text-status-success">
+                  <DollarSign className="h-3.5 w-3.5" />
                 </span>
               ) : null}
               {item.for_trade ? (
-                <span title="For Trade" aria-label="For Trade" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-status-info/15 text-status-info">
-                  <Repeat2 className="h-2.5 w-2.5" />
+                <span title="For Trade" aria-label="For Trade" className="text-status-info">
+                  <Repeat2 className="h-3.5 w-3.5" />
                 </span>
               ) : null}
             </span>
-          ) : null}
-          {item.price != null ? (
-            <p className="text-sm font-semibold text-primary">${item.price.toLocaleString()}</p>
           ) : null}
         </div>
       </div>

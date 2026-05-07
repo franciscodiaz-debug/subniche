@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRightFromLine, ChevronDown, Heart, MapPin, Repeat2, Tag } from "lucide-react"
+import { ArrowRightFromLine, Heart, MapPin, Repeat2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { MatchFooter } from "@/components/trade-interest-card"
 
 export interface ItemCardCollectionChip {
   id: string
@@ -46,12 +46,6 @@ export interface ItemCardProps {
   className?: string
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 8) return "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
-  if (score >= 5) return "bg-primary/10 text-primary border-primary/30"
-  return "bg-secondary text-muted-foreground border-border"
-}
-
 /* -------------------------------------------------------------------------- */
 /* WatchlistButton                                                            */
 /*                                                                            */
@@ -90,200 +84,6 @@ function WatchlistButton({
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* MatchBadge                                                                 */
-/*                                                                            */
-/* Bottom-right overlay on the image. Compact pill that shows score.          */
-/*   - Single match: "🎯 9.2" with tooltip "Trade match for [item]"           */
-/*   - Multi match:  "🎯 9.2 ▾" + dropdown with item list                     */
-/* Hover-to-open intent on desktop, click-to-toggle for touch/keyboard.       */
-/* Floating overlay opens upward (above the badge) so it never gets clipped   */
-/* by adjacent cards in a horizontal scroll.                                  */
-/* -------------------------------------------------------------------------- */
-
-function MatchBadge({ match }: { match: ItemCardMatch }) {
-  const [open, setOpen] = useState(false)
-  const isMulti = match.matchedItems.length > 1
-  const direction = match.direction ?? "mutual"
-  const MatchIcon = direction === "inbound" ? ArrowRightFromLine : Repeat2
-  const singleItemTitle =
-    match.matchedItems[0]?.title ?? match.fallbackItemTitle ?? ""
-
-  const hoverIntentRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const cancelHoverIntent = () => {
-    if (hoverIntentRef.current !== null) {
-      clearTimeout(hoverIntentRef.current)
-      hoverIntentRef.current = null
-    }
-  }
-
-  const handleMouseEnter = () => {
-    if (!isMulti) return
-    cancelHoverIntent()
-    hoverIntentRef.current = setTimeout(() => {
-      setOpen(true)
-      hoverIntentRef.current = null
-    }, 250)
-  }
-
-  const handleMouseLeave = () => {
-    if (!isMulti) return
-    cancelHoverIntent()
-    setOpen(false)
-  }
-
-  useEffect(() => cancelHoverIntent, [])
-
-  const tooltip = isMulti
-    ? `Matches ${match.matchedItems.length} of your items`
-    : `Trade match for your ${singleItemTitle}`
-
-  const labelText = isMulti
-    ? `${match.matchedItems.length} of yours`
-    : singleItemTitle
-
-  const pillColor =
-    direction === "inbound"
-      ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
-      : getScoreColor(match.score)
-
-  const pill = (
-    <span
-      className={cn(
-        "inline-flex max-w-[200px] items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[11px] font-semibold shadow-sm backdrop-blur",
-        pillColor,
-      )}
-      data-onboarding={match.showScoreOnboarding ? "match-score" : undefined}
-    >
-      <span className="inline-flex items-center gap-0.5">
-        <MatchIcon className="h-3 w-3" />
-        <span>{match.score.toFixed(1)}</span>
-      </span>
-      <span className="h-3 w-px bg-current opacity-30" aria-hidden />
-      <span className="min-w-0 truncate text-[10px] font-medium opacity-90">
-        {labelText}
-      </span>
-      {isMulti ? (
-        <ChevronDown
-          className={cn(
-            "h-3 w-3 flex-shrink-0 transition-transform",
-            open && "rotate-180",
-          )}
-        />
-      ) : null}
-    </span>
-  )
-
-  return (
-    <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className="relative inline-flex"
-    >
-      {isMulti ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            setOpen((prev) => !prev)
-          }}
-          aria-expanded={open}
-          aria-label={open ? "Hide matched items" : "Show matched items"}
-          title={tooltip}
-          className="min-w-0"
-        >
-          {pill}
-        </button>
-      ) : (
-        <span title={tooltip} className="min-w-0">
-          {pill}
-        </span>
-      )}
-
-      {isMulti && open ? (
-        <ul
-          role="list"
-          className="absolute bottom-full right-0 z-30 mb-1 w-56 overflow-hidden rounded-md border border-border bg-card shadow-lg"
-        >
-          <li className="border-b border-border/40 bg-secondary/40 px-2.5 py-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Matches {match.matchedItems.length} of your items
-            </p>
-          </li>
-          {match.matchedItems.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center gap-2 px-2.5 py-2 transition-colors [&:not(:last-child)]:border-b [&:not(:last-child)]:border-border/40 hover:bg-foreground/5"
-            >
-              <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded bg-secondary">
-                {item.image ? (
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    sizes="32px"
-                    className="object-cover"
-                  />
-                ) : null}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-foreground">
-                  {item.title}
-                </p>
-                {item.subtitle ? (
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {item.subtitle}
-                  </p>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* StatusIcons                                                                */
-/*                                                                            */
-/* Inline colored icons next to the price indicating For Sale / For Trade.    */
-/* Native HTML title attribute provides the hover tooltip explaining each.    */
-/* -------------------------------------------------------------------------- */
-
-function StatusIcons({
-  forSale,
-  forTrade,
-}: {
-  forSale?: boolean
-  forTrade?: boolean
-}) {
-  if (!forSale && !forTrade) return null
-  return (
-    <span className="inline-flex items-center gap-1">
-      {forSale ? (
-        <span
-          title="For Sale"
-          aria-label="For Sale"
-          className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-status-success/15 text-status-success"
-        >
-          <Tag className="h-2.5 w-2.5" />
-        </span>
-      ) : null}
-      {forTrade ? (
-        <span
-          title="For Trade"
-          aria-label="For Trade"
-          className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-status-info/15 text-status-info"
-        >
-          <Repeat2 className="h-2.5 w-2.5" />
-        </span>
-      ) : null}
-    </span>
-  )
-}
 
 /* -------------------------------------------------------------------------- */
 /* CollectionChips                                                            */
@@ -384,41 +184,48 @@ export function ItemCard({
         </Link>
 
         {hasCollections ? (
-          <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-            <CollectionChips chips={collections!} />
-            {location ? (
-              <p className="flex flex-shrink-0 items-center gap-1">
-                <MapPin className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">{location}</span>
-              </p>
-            ) : null}
-          </div>
-        ) : location ? (
-          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">{location}</span>
-          </p>
+          <CollectionChips chips={collections!} />
         ) : null}
 
-        {hasStatus || hasPrice || match ? (
-          <div
-            className={cn(
-              compact
-                ? "space-y-1"
-                : "flex items-center justify-between gap-2",
-            )}
-          >
-            {(hasStatus || hasPrice) ? (
-              <div className="flex items-center gap-2">
-                <StatusIcons forSale={forSale} forTrade={forTrade} />
-                {hasPrice ? (
-                  <p className="text-sm font-semibold text-primary">
-                    ${price!.toLocaleString()}
+        {hasStatus || hasPrice || location || match ? (
+          <div className="space-y-1.5">
+            {/* Price · swap icon · location — all on one row */}
+            {(hasStatus || hasPrice || location) ? (
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  {hasPrice ? (
+                    <p className="text-sm font-semibold text-primary">
+                      ${price!.toLocaleString()}
+                    </p>
+                  ) : null}
+                  {forTrade ? (
+                    <span title="For Trade" aria-label="For Trade" className="text-muted-foreground">
+                      <Repeat2 className="h-3.5 w-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+                {location ? (
+                  <p className="flex flex-shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span>{location}</span>
                   </p>
                 ) : null}
               </div>
             ) : null}
-            {match ? <MatchBadge match={match} /> : null}
+            {/* Trade match — own row at the bottom */}
+            {match ? (
+              <MatchFooter
+                variant={match.direction === "inbound" ? "inbound" : "perfect"}
+                singleLeadingLabel={match.direction === "inbound" ? "Interested in your" : "Trade match for your"}
+                multiLeadingLabel={match.direction === "inbound" ? "Interested in" : "Trade match for"}
+                fallbackItemTitle={match.fallbackItemTitle ?? ""}
+                matchedItems={match.matchedItems}
+                Icon={match.direction === "inbound" ? ArrowRightFromLine : Repeat2}
+                iconClassName={match.direction === "inbound" ? "text-muted-foreground" : "text-primary"}
+                matchScore={match.score}
+                showScoreOnboarding={match.showScoreOnboarding ?? false}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>

@@ -6,7 +6,11 @@ import Link from "next/link"
 import {
   ArrowLeft,
   ArrowLeftRight,
+  CalendarDays,
   ChevronRight,
+  FolderOpen,
+  MapPin,
+  Package,
   Send,
   Clock,
   Check,
@@ -402,6 +406,49 @@ export function ChatPanel({
 
       {/* Scrolling body */}
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        {/* Participant info header */}
+        <div className="flex items-start gap-4 pb-2">
+          <Avatar className="h-16 w-16 flex-shrink-0">
+            <AvatarImage src={participant.avatar_url || "/placeholder.svg"} />
+            <AvatarFallback className="text-lg font-semibold">
+              {participant.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <Link
+                href={`/profile/${participant.username}`}
+                className="text-lg font-bold text-foreground hover:underline"
+              >
+                {participant.username}
+              </Link>
+              <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              {participant.location && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {participant.location}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5" />
+                Joined {new Date(participant.joined_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              </span>
+            </div>
+            <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Package className="h-3.5 w-3.5" />
+                {participant.stats.items} items
+              </span>
+              <span className="flex items-center gap-1">
+                <FolderOpen className="h-3.5 w-3.5" />
+                {participant.stats.collections} collections
+              </span>
+            </div>
+          </div>
+        </div>
+
         {subject && (
           <div className="hidden py-3 lg:block">
             <p className="mb-2 text-xs text-muted-foreground">Discussing:</p>
@@ -482,32 +529,24 @@ export function ChatPanel({
           return (
             <div
               key={message.id}
-              className="group -mx-2 flex items-start gap-3 rounded px-2 py-1 transition-colors hover:bg-card/30"
+              className="group -mx-2 rounded px-2 py-1 transition-colors hover:bg-card/30"
             >
-              <Avatar className="mt-0.5 h-10 w-10 flex-shrink-0">
-                <AvatarImage src={isOwn ? "/placeholder.svg" : (participant.avatar_url || "/placeholder.svg")} />
-                <AvatarFallback className="text-sm">
-                  {isOwn ? "Y" : participant.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className={cn(
-                      "text-sm font-semibold",
-                      isOwn ? "text-green-600" : "text-primary",
-                    )}
-                  >
-                    {isOwn ? "You" : participant.username}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatTime(message.created_at)}
-                  </span>
-                </div>
-                <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
-                  {message.content}
-                </p>
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={cn(
+                    "text-sm font-semibold",
+                    isOwn ? "text-green-600" : "text-primary",
+                  )}
+                >
+                  {isOwn ? "You" : participant.username}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {formatTime(message.created_at)}
+                </span>
               </div>
+              <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
+                {message.content}
+              </p>
             </div>
           )
         })}

@@ -191,8 +191,8 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
       </div>
 
       {/* ── Tab navigation ──────────────────────────────────────────────────── */}
-      <div className="mb-8 border-b border-border/60">
-        <div className="-mb-px flex flex-nowrap items-center gap-8">
+      <div className="mb-8">
+        <div className="flex flex-nowrap items-center gap-8">
           <TabButton active={activeTab === "collections"} onClick={() => setActiveTab("collections")}>
             Collections
           </TabButton>
@@ -352,11 +352,11 @@ function BioRow({ bio }: { bio: string }) {
   const [expanded, setExpanded] = useState(false)
   const isLong = bio.length > 500
   if (!isLong || expanded) {
-    return <p className="text-sm leading-6 text-foreground">{bio}</p>
+    return <p className="text-sm leading-6 text-muted-foreground">{bio}</p>
   }
   return (
     <div className="mt-2 flex items-baseline gap-1.5">
-      <p className="min-w-0 truncate text-sm leading-6 text-foreground">{bio}</p>
+      <p className="min-w-0 truncate text-sm leading-6 text-muted-foreground">{bio}</p>
       <button
         type="button"
         onClick={() => setExpanded(true)}
@@ -442,10 +442,10 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={cn(
-        "shrink-0 border-b-2 py-2 text-xl font-bold transition-colors focus-visible:outline-none",
+        "shrink-0 py-2 text-xl font-bold transition-colors focus-visible:outline-none",
         active
-          ? "border-foreground text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground",
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {children}
@@ -472,16 +472,16 @@ function CollapsibleSection({ label, defaultOpen = false, children }: { label: s
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="mb-4 flex w-full items-center justify-between gap-3"
+        className="mb-4 flex items-center"
         aria-expanded={open}
       >
-        <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-foreground">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">
           {label}
+          <ChevronDown
+            className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")}
+            aria-hidden
+          />
         </span>
-        <ChevronDown
-          className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")}
-          aria-hidden
-        />
       </button>
       {open ? children : null}
     </div>

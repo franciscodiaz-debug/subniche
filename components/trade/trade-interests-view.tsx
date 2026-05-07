@@ -75,6 +75,7 @@ import {
 import type { TradeableItemSummary } from "@/lib/market-data"
 import { SavedInterestEditor } from "./saved-interest-editor"
 import { TradeItemSelector } from "./trade-item-selector"
+import { TradeInterestRow, savedInterestToChips, savedInterestDescription } from "./trade-interest-row"
 
 interface TradeInterestsViewProps {
   /** Return to the grid. Rendered as the back-arrow target in the header. */
@@ -283,8 +284,7 @@ export function TradeInterestsView({
         <InterestRow
           interest={interest}
           items={items}
-          contextItemId={selectedItem?.id ?? null}
-          expanded={isExpanded}
+expanded={isExpanded}
           expandedMode={isExpanded ? expandedMode : null}
           dimmed={dimmed}
           confirming={confirmingRemovalId === interest.id}
@@ -738,7 +738,6 @@ function AddExistingPicker({
 function InterestRow({
   interest,
   items,
-  contextItemId,
   expanded,
   expandedMode,
   dimmed = false,
@@ -753,21 +752,11 @@ function InterestRow({
 }: {
   interest: SavedTradeInterest
   items: TradeableItemSummary[]
-  /** When set, the row tailors its reach caption ("Just this item",
-   *  "Shared with N other listings", etc.) to the current item context. */
-  contextItemId: string | null
   expanded: boolean
-  /** Which mode the row is open in (only meaningful when `expanded`). */
   expandedMode: "detail" | "edit" | null
-  /** Visually de-emphasize this row because *another* row is currently
-   *  expanded. Pulls the user's focus to the expanded row without removing
-   *  the dimmed rows from the layout. The row remains fully interactive —
-   *  hovering it lifts the dim so the user can re-engage at any time. */
   dimmed?: boolean
   confirming: boolean
-  /** Click-row / click-chevron → open the lightweight pill-chip view. */
   onToggleDetail: () => void
-  /** Click-pencil → open the heavy editor form. */
   onToggleEdit: () => void
   onRequestRemove: () => void
   onCancelRemove: () => void
@@ -775,244 +764,67 @@ function InterestRow({
   onSaved: () => void
   onCancelEdit: () => void
 }) {
-  /* Single-line description. Brand/model if structured, otherwise the
-   * category breadcrumb, otherwise a short slice of the simple-mode prose.
-   * Keeps the list readable whether the user authored in Simple or Advanced. */
-  const description = (() => {
-    if (interest.mode === "simple" && interest.simpleText.trim()) {
-      const clean = interest.simpleText.trim().replace(/\s+/g, " ")
-      return clean.length > 80 ? clean.slice(0, 80).trimEnd() + "…" : clean
-    }
-    const brandModel = [interest.brand, interest.model].filter(Boolean).join(" ")
-    if (brandModel) return brandModel
-    const crumbs = [interest.category, interest.subcategory].filter(Boolean)
-    return crumbs.join(" · ") || "No criteria yet"
-  })()
-
-  /* Reach count — what number to show in parens on the right side of the row.
-   * Mirrors the count semantics in the screenshots: a quick "this many
-   * listings touch this interest". For a context-bound view we still show
-   * the raw count; the section label ("Individual") supplies the framing. */
   const isGlobal = isGlobalInterest(interest, items)
   const appliedCount = isGlobal ? items.length : interest.appliedTo.length
-
-  /* Pill chips for the detail view. Each chip pairs a muted label with a
-   * bold value, matching the screenshot's "Category Electric Guitars" look.
-   * Only chips with a value render — empty fields stay invisible so the
-   * detail panel stays tight no matter how sparse the interest is. */
-  const detailChips = (() => {
-    const chips: { label: string; value: string }[] = []
-    const push = (label: string, value: string | undefined) => {
-      const v = value?.trim()
-      if (v) chips.push({ label, value: v })
-    }
-    push("Category", interest.category)
-    push("Subcategory", interest.subcategory)
-    push("Brand", interest.brand)
-    push("Model", interest.model)
-    push("Condition", interest.condition)
-    /* Budget — combine min/max into a single chip if either is present. */
-    const min = interest.valueMin?.trim()
-    const max = interest.valueMax?.trim()
-    if (min || max) {
-      const fmt = (v: string) => `$${Number(v).toLocaleString()}`
-      const value =
-        min && max
-          ? `${fmt(min)} – ${fmt(max)}`
-          : min
-            ? `From ${fmt(min)}`
-            : `Up to ${fmt(max!)}`
-      chips.push({ label: "Budget", value })
-    }
-    /* Spec key/value pairs (e.g. era, wattage, tonewood) — surface each as
-     * its own chip so the detail view scales with the user's annotation. */
-    if (interest.specs) {
-      for (const [k, v] of Object.entries(interest.specs)) {
-        if (typeof v === "string" && v.trim())
-          chips.push({ label: k, value: v })
-      }
-    }
-    return chips
-  })()
-
+  const chips = savedInterestToChips(interest)
+  const description = savedInterestDescription(interest)
   const isDetailOpen = expanded && expandedMode === "detail"
   const isEditOpen = expanded && expandedMode === "edit"
 
-  return (
-    <div
-      className={cn(
-        "group transition-opacity duration-200",
-        isEditOpen && "bg-secondary/30",
-        /* Focus mode — dim siblings of the open row. `hover:opacity-100`
-         * lets the user re-engage a dimmed row without first closing the
-         * expanded one, which is important when scanning for a peer to
-         * compare against. */
-        dimmed && "opacity-30 hover:opacity-100",
-      )}
-    >
-      {/* Compact row -------------------------------------------------------
-          Lightweight chrome: title + one-line description on the left,
-          parenthesized listing count fused to the title; on the right the
-          edit + remove icons hover-reveal first, then the always-visible
-          chevron sits at the far right as the persistent expand/collapse
-          affordance. The row body is the click target for the detail-pills
-          view; the chevron mirrors that affordance visually. The pencil
-          opens the heavy editor on its own.
-
-          We preserve a left-side indent (w-4 spacer + gap-3 = 28px) to keep
-          the visual hierarchy from the previous design without the leading
-          icon — the detail-pills panel below also indents to this column
-          (pl-10) so saved criteria align under the title. */}
-      <div className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20">
-        <div aria-hidden="true" className="w-4 flex-shrink-0" />
-        <button
-          type="button"
-          onClick={onToggleDetail}
-          aria-expanded={isDetailOpen}
-          className="min-w-0 flex-1 text-left"
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className={cn(
-                "truncate text-sm font-semibold transition-colors",
-                !interest.name
-                  ? "italic text-muted-foreground"
-                  : "text-foreground group-hover:text-primary",
-                isDetailOpen && interest.name && "text-primary",
-              )}
-            >
-              {interest.name || "Untitled interest"}
-            </span>
-            {/* Listing count sits flush with the title so the row reads as
-                "<name> (n)" — a single scannable unit. tabular-nums keeps
-                the parens aligned across rows of varying digit width. */}
-            <span
-              className="flex-shrink-0 text-xs tabular-nums text-muted-foreground"
-              aria-label={`Applied to ${appliedCount} listing${appliedCount === 1 ? "" : "s"}`}
-            >
-              ({appliedCount})
-            </span>
-          </div>
-          {description ? (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {description}
-            </p>
-          ) : null}
-        </button>
-
-        {/* Actions cluster. Delete uses an inline 2-step confirm to avoid
-            stacking another dialog on top of the already-inline editor.
-
-            Order: pencil → X → chevron. The chevron is anchored to the
-            far-right edge as the row's permanent expand/collapse handle —
-            its position is stable so the eye learns where to look. Pencil
-            and X reveal on row hover or keyboard focus, since they're
-            management actions the user only needs occasionally. The pencil
-            stays visible while the editor is open as an explicit "way out". */}
-        {!confirming ? (
-          <div className="flex flex-shrink-0 items-center gap-1.5">
-            <button
-              type="button"
-              onClick={onToggleEdit}
-              aria-label={isEditOpen ? "Close editor" : "Edit interest"}
-              aria-expanded={isEditOpen}
-              className={cn(
-                "inline-flex h-8 w-8 items-center justify-center rounded-md transition-[color,background-color,opacity]",
-                isEditOpen
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground opacity-0 hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
-              )}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={onRequestRemove}
-              aria-label="Remove interest"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={onToggleDetail}
-              aria-label={isDetailOpen ? "Hide details" : "Show details"}
-              aria-expanded={isDetailOpen}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 transition-transform",
-                  isDetailOpen && "rotate-180",
-                )}
-              />
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-shrink-0 items-center gap-1.5">
-            <span className="text-xs text-muted-foreground">
-              Remove this interest?
-            </span>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={onConfirmRemove}
-              className="h-7 px-2.5"
-            >
-              <Trash2 className="mr-1 h-3 w-3" />
-              Remove
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onCancelRemove}
-              className="h-7 px-2"
-            >
-              Cancel
-            </Button>
-          </div>
+  const actions = !confirming ? (
+    <>
+      <button
+        type="button"
+        onClick={onToggleEdit}
+        aria-label={isEditOpen ? "Close editor" : "Edit interest"}
+        aria-expanded={isEditOpen}
+        className={cn(
+          "inline-flex h-8 w-8 items-center justify-center rounded-md transition-[color,background-color,opacity]",
+          isEditOpen
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground opacity-0 hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
         )}
-      </div>
-
-      {/* Detail pills — lightweight peek of the saved criteria. Each chip
-          renders as muted-label + bold-value, mirroring the design vision.
-          Falls back to a soft "no criteria yet" line when the interest is
-          a fresh draft so the detail panel never collapses to zero height. */}
-      {isDetailOpen ? (
-        <div className="px-3 pb-3 pl-10">
-          {detailChips.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {detailChips.map((chip, i) => (
-                <span
-                  key={`${chip.label}-${i}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2.5 py-1 text-xs"
-                >
-                  <span className="text-muted-foreground">{chip.label}</span>
-                  <span className="font-medium text-foreground">
-                    {chip.value}
-                  </span>
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs italic text-muted-foreground">
-              No criteria yet — click the pencil to add some.
-            </p>
-          )}
-        </div>
-      ) : null}
-
-      {/* Inline editor — heavy form opens via the pencil icon. */}
-      {isEditOpen ? (
-        <SavedInterestEditor
-          interest={interest}
-          onSaved={onSaved}
-          onCancel={onCancelEdit}
-        />
-      ) : null}
+      >
+        <Pencil className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={onRequestRemove}
+        aria-label="Remove interest"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </>
+  ) : (
+    <div className="flex flex-shrink-0 items-center gap-1.5">
+      <span className="text-xs text-muted-foreground">Remove this interest?</span>
+      <Button type="button" variant="destructive" size="sm" onClick={onConfirmRemove} className="h-7 px-2.5">
+        <Trash2 className="mr-1 h-3 w-3" />
+        Remove
+      </Button>
+      <Button type="button" variant="ghost" size="sm" onClick={onCancelRemove} className="h-7 px-2">
+        Cancel
+      </Button>
     </div>
+  )
+
+  return (
+    <TradeInterestRow
+      name={interest.name}
+      description={description}
+      chips={chips}
+      count={appliedCount}
+      actions={actions}
+      inlineEditor={isEditOpen ? (
+        <SavedInterestEditor interest={interest} onSaved={onSaved} onCancel={onCancelEdit} />
+      ) : null}
+      dimmed={dimmed}
+      expanded={isDetailOpen}
+      onToggle={onToggleDetail}
+      emptyChipsLabel="No criteria yet — click the pencil to add some."
+      className={isEditOpen ? "bg-secondary/30" : undefined}
+    />
   )
 }
 

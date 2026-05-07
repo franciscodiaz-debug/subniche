@@ -3,12 +3,12 @@
 import { useMemo, useState, type ComponentType } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
+  ArrowUpDown,
+  Check,
   Heart,
   SlidersHorizontal,
-  Sparkles,
   Telescope,
   TrendingUp,
-  Zap,
 } from "lucide-react"
 
 import Image from "next/image"
@@ -18,6 +18,12 @@ import { cn } from "@/lib/utils"
 import { exploreItems, type ExploreItem } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 import { ItemCard } from "@/components/item-card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { GridDensitySelector } from "@/components/shared/grid-density-selector"
 import { MarketTabs } from "@/components/shared/market-tabs"
 import { gridDensityConfig, useGridDensity } from "@/hooks/use-grid-density"
@@ -30,21 +36,26 @@ import {
 
 type SearchResultTab = "items" | "collections" | "users"
 
-type SortMode = "all" | "trending" | "just-listed" | "following"
-type SecondarySort = "default" | "recent" | "price-low" | "price-high"
+type SortMode = "all" | "trending" | "following"
+type SecondarySort = "newest" | "price-low" | "price-high" | "distance"
+
+const secondarySortOptions: { value: SecondarySort; label: string }[] = [
+  { value: "newest",     label: "Newest first" },
+  { value: "price-low",  label: "Price: low to high" },
+  { value: "price-high", label: "Price: high to low" },
+  { value: "distance",   label: "Distance: nearest" },
+]
 
 const sortPills: {
   value: SortMode
   label: string
   icon: ComponentType<{ className?: string }>
 }[] = [
-  { value: "all", label: "All", icon: Sparkles },
   { value: "trending", label: "Trending", icon: TrendingUp },
-  { value: "just-listed", label: "Just Listed", icon: Zap },
   { value: "following", label: "Following", icon: Heart },
 ]
 
-const VALID_SORTS: SortMode[] = ["all", "trending", "just-listed", "following"]
+const VALID_SORTS: SortMode[] = ["all", "trending", "following"]
 
 function isSortMode(value: string | null | undefined): value is SortMode {
   return !!value && (VALID_SORTS as string[]).includes(value)
@@ -62,7 +73,7 @@ export function MarketContent() {
     rawType === "collections" || rawType === "users" ? rawType : "items"
 
   const [sort, setSort] = useState<SortMode>(initialSort)
-  const [secondarySort, setSecondarySort] = useState<SecondarySort>("default")
+  const [secondarySort, setSecondarySort] = useState<SecondarySort>("newest")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { gridDensity } = useGridDensity()
   const [filters, setFilters] = useState<MarketFilterState>(initialMarketFilters)
@@ -100,9 +111,6 @@ export function MarketContent() {
       case "trending":
         list.sort((a, b) => (b.trendingScore ?? 0) - (a.trendingScore ?? 0))
         break
-      case "just-listed":
-        list.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        break
       case "following":
         list = list.filter((item) => item.isFollowed)
         break
@@ -125,7 +133,7 @@ export function MarketContent() {
     }
 
     switch (secondarySort) {
-      case "recent":
+      case "newest":
         list.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         break
       case "price-low":
@@ -177,6 +185,8 @@ export function MarketContent() {
     const qs = params.toString()
     router.replace(`/market${qs ? `?${qs}` : ""}`, { scroll: false })
   }
+
+  const filtersDisabled = sort !== "all"
 
   const heading = queryFromUrl ? `Results for "${queryFromUrl}"` : "Market"
   const subheading = queryFromUrl
@@ -262,14 +272,20 @@ export function MarketContent() {
           )}
 
           {(!queryFromUrl || searchTab === "items") && (
-          <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border pb-4">
+          <div className="mb-6 flex flex-wrap items-center gap-2">
             {!sidebarOpen ? (
               <button
                 type="button"
-                onClick={() => setSidebarOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                onClick={() => !filtersDisabled && setSidebarOpen(true)}
+                disabled={filtersDisabled}
+                className={cn(
+                  "inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium transition-colors",
+                  filtersDisabled
+                    ? "cursor-not-allowed opacity-40 text-muted-foreground"
+                    : "text-foreground hover:bg-secondary",
+                )}
               >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <SlidersHorizontal className="h-4 w-4" />
                 Filters
                 {activeFilterCount > 0 ? (
                   <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
@@ -286,7 +302,7 @@ export function MarketContent() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => updateSort(value)}
+                    onClick={() => updateSort(active ? "all" : value)}
                     aria-pressed={active}
                     className={cn(
                       "inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
@@ -303,21 +319,30 @@ export function MarketContent() {
             </div>
 
             <div className="ml-auto flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                  >
+                    <ArrowUpDown className="h-4 w-4 shrink-0" />
+                    {secondarySortOptions.find((o) => o.value === secondarySort)?.label ?? "Newest first"}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {secondarySortOptions.map(({ value, label }) => (
+                    <DropdownMenuItem
+                      key={value}
+                      onClick={() => setSecondarySort(value)}
+                      className="flex items-center justify-between"
+                    >
+                      {label}
+                      {secondarySort === value && <Check className="h-4 w-4 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <GridDensitySelector />
-              <label className="sr-only" htmlFor="market-secondary-sort">
-                Sort
-              </label>
-              <select
-                id="market-secondary-sort"
-                value={secondarySort}
-                onChange={(e) => setSecondarySort(e.target.value as SecondarySort)}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/40"
-              >
-                <option value="default">Sort: best match</option>
-                <option value="recent">Sort: most recent</option>
-                <option value="price-low">Sort: price low to high</option>
-                <option value="price-high">Sort: price high to low</option>
-              </select>
             </div>
           </div>
           )}

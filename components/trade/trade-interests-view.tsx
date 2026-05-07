@@ -365,7 +365,7 @@ export function TradeInterestsView({
           Indented to ml-10 to align with the H1 text and the For-selector
           row above it, keeping the header cluster visually unified. */}
       {isIndividual && selectedItem ? (
-        <div className="mb-5 ml-10 flex items-center gap-3 rounded-lg border border-border bg-card/50 p-2.5">
+        <div className="mb-5 ml-10 flex w-fit max-w-lg items-center gap-3 rounded-lg border border-border bg-card/50 p-2.5">
           <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
             <Image
               src={selectedItem.image || "/placeholder.svg"}
@@ -386,7 +386,7 @@ export function TradeInterestsView({
             ) : null}
           </div>
           {typeof selectedItem.price === "number" ? (
-            <p className="flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
+            <p className="ml-6 flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
               ${selectedItem.price.toLocaleString()}
             </p>
           ) : null}

@@ -79,7 +79,7 @@ export function NicheSwitcher({
     setCurrentNicheSlug(slug);
     setIsOpen(false);
     setSearchQuery("");
-    router.push(`/niche/${slug}`);
+    router.push(`/n/${slug}`);
   }
 
   function nicheInitial(name: string) {

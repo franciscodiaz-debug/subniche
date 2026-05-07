@@ -441,7 +441,7 @@ export function PhotoUploadSection({
       <div
         onClick={() => images.length === 0 && fileInputRef.current?.click()}
         className={cn(
-          "aspect-square relative rounded-lg overflow-hidden transition-colors",
+          "aspect-square relative rounded-lg overflow-hidden transition-colors group",
           images.length === 0
             ? "border border-dashed border-border hover:border-primary/60 bg-secondary/40 cursor-pointer"
             : "bg-card",
@@ -449,10 +449,10 @@ export function PhotoUploadSection({
       >
         {images.length === 0 ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-              <ImagePlus className="h-6 w-6 text-primary" />
+            <div className="w-14 h-14 rounded-lg bg-muted/60 flex items-center justify-center mb-3">
+              <ImagePlus className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" />
             </div>
-            <p className="text-sm font-medium text-foreground">Add Photos</p>
+            <p className="text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">Add photos</p>
           </div>
         ) : (
           <Image
@@ -1447,19 +1447,6 @@ export function CreateListingInline({
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-2xl font-bold text-foreground">Add Item</h1>
             <div className="flex gap-2 sm:gap-3">
-              {/* Prototype-only autofill. Kept visually distinct (dashed
-                  border + muted tone) so it reads as a demo affordance,
-                  not a real product action. */}
-              <Button
-                variant="quiet_outline"
-                onClick={handleAutofill}
-                className="gap-2 border-dashed text-muted-foreground hover:text-foreground"
-                title="Fills every field with a sample 1965 Stratocaster for prototype demos"
-              >
-                <Zap className="h-4 w-4" />
-                Autofill
-              </Button>
-
               <div data-onboarding="ai-assist">
                 <Tooltip>
                   <TooltipTrigger asChild>

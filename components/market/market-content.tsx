@@ -307,11 +307,11 @@ export function MarketContent() {
                     className={cn(
                       "inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                       active
-                        ? "border-primary bg-primary/10 text-primary"
+                        ? "border-primary bg-primary/10 text-foreground"
                         : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className={cn("h-3.5 w-3.5", active ? "text-primary" : "")} />
                     {label}
                   </button>
                 )

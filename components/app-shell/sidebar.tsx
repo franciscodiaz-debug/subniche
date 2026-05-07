@@ -65,7 +65,7 @@ export function Sidebar({
     }
   }, [mobileOpen, onMobileClose, pathname]);
 
-  const nicheHomeHref = currentNicheSlug ? `/niche/${currentNicheSlug}` : "/"
+  const nicheHomeHref = currentNicheSlug ? `/n/${currentNicheSlug}` : "/"
 
   const desktopNavItems = [
     { href: nicheHomeHref, icon: Home, label: "Home" },
@@ -98,7 +98,7 @@ export function Sidebar({
       } else if (item.label === "Trade") {
         isActive = isTradeArea;
       } else if (item.label === "Home") {
-        isActive = pathname === item.href || pathname.startsWith("/niche/");
+        isActive = pathname === item.href || pathname.startsWith("/n/");
       } else {
         isActive =
           pathname === item.href ||

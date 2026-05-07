@@ -15,7 +15,7 @@ export function ActionRequiredSection({ items }: ActionRequiredSectionProps) {
         icon={<Bell className="h-5 w-5 text-primary" />}
         title="Action Required"
         href="/inbox"
-        ctaLabel="See all"
+        ctaLabel="View inbox"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {items.map((item) => (

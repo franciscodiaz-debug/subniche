@@ -112,7 +112,14 @@ function GroupChips({
 /* needed.                                                                   */
 /* -------------------------------------------------------------------------- */
 
-interface MatchFooterProps {
+export interface MatchFooterItem {
+  id: string
+  title: string
+  subtitle?: string
+  image?: string
+}
+
+export interface MatchFooterProps {
   /** Determines chrome — primary tint for perfect, muted for inbound. */
   variant: "perfect" | "inbound"
   /** "Trade match for your" / "Interested in your" prefix. */
@@ -122,7 +129,7 @@ interface MatchFooterProps {
   /** Fallback title for the 1-item state when `matchedItems` is empty —
    *  preserves backwards compatibility with raw `match.my_item.title`. */
   fallbackItemTitle: string
-  matchedItems: TradeableItemSummary[]
+  matchedItems: MatchFooterItem[]
   /** The leading icon that sits inside the footer body row. */
   Icon: typeof Repeat2Icon
   iconClassName: string
@@ -130,7 +137,7 @@ interface MatchFooterProps {
   showScoreOnboarding: boolean
 }
 
-function MatchFooter({
+export function MatchFooter({
   variant,
   singleLeadingLabel,
   multiLeadingLabel,

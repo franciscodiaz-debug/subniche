@@ -5,6 +5,7 @@ import { useState } from "react"
 import {
   Activity,
   BadgeCheck,
+  CalendarDays,
   Check,
   ChevronDown,
   Clock,
@@ -12,7 +13,7 @@ import {
   FolderOpen,
   Heart,
   Mail,
-  MoreHorizontal,
+  MapPin,
   Package,
   Pencil,
   Phone,
@@ -27,7 +28,6 @@ import { ownProfile, otherProfile, profilePageData } from "@/lib/profile-page-da
 import type {
   ProfileActivityReference,
   ProfileSummaryReference,
-  ProfileTradeInterestReference,
 } from "@/lib/profile-page-types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,7 @@ import { ItemCard } from "@/components/item-card"
 import { ProfileEditView } from "./profile-edit-view"
 import { ProfileMobileSheet } from "./profile-mobile-sheet"
 import { ProfileNicheSwitcher } from "./profile-niche-switcher"
+import { TradeInterestRow } from "@/components/trade/trade-interest-row"
 
 type ProfileTab = "collections" | "for-sale" | "looking-for" | "activity"
 type ProfileViewMode = "own" | "other"
@@ -81,72 +82,56 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
   }
 
   return (
-    <div className="@container mx-auto max-w-4xl p-6 lg:p-8">
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 shrink-0 border border-border">
-            {profile.avatarUrl ? (
-              <AvatarImage
-                src={profile.avatarUrl}
-                alt={`${profile.username} avatar`}
-                className="object-cover"
-              />
-            ) : null}
-            <AvatarFallback className="bg-secondary text-xs font-semibold text-foreground">
-              {profile.avatarLabel}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-bold leading-tight text-foreground @sm:text-lg">
-              {profile.username}
-            </h1>
-            <p className="truncate text-xs text-muted-foreground">@{profile.ownerHandle}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1.5 @sm:gap-2">
-            {isOwnProfile ? (
-              <Button
-                type="button"
-                variant="quiet_outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="h-9 gap-2 px-3 @sm:h-8"
-                aria-label="Edit profile"
-              >
-                <Pencil className="h-4 w-4" />
-                <span>Edit</span>
-                <span className="hidden @sm:inline">Profile</span>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant={isFollowing ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setIsFollowing((v) => !v)}
-                className="h-9 gap-2 px-3 @sm:h-8"
-                aria-pressed={isFollowing}
-              >
-                {isFollowing ? <Check className="h-4 w-4" aria-hidden /> : null}
-                <span>{isFollowing ? "Following" : "Follow"}</span>
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="quiet_outline"
-              size="icon-sm"
-              className="flex h-9 w-9 @sm:hidden"
-              aria-label="More options"
-              onClick={() => setIsMobileSheetOpen(true)}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-            <div className="hidden items-center gap-2 @sm:flex">
+    <div className="mx-auto max-w-4xl p-6 lg:p-8">
+
+      {/* ── Profile header ─────────────────────────────────────────────────── */}
+      <div className="mb-8 flex gap-5 md:gap-7">
+
+        {/* Avatar */}
+        <Avatar className="h-20 w-20 shrink-0 border-2 border-border md:h-24 md:w-24">
+          {profile.avatarUrl ? (
+            <AvatarImage src={profile.avatarUrl} alt={`${profile.username} avatar`} className="object-cover" />
+          ) : null}
+          <AvatarFallback className="bg-secondary text-lg font-semibold text-foreground">
+            {profile.avatarLabel}
+          </AvatarFallback>
+        </Avatar>
+
+        {/* Info column */}
+        <div className="min-w-0 flex-1">
+
+          {/* Username + action buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl font-bold text-foreground md:text-2xl">{profile.username}</h1>
+            <div className="flex items-center gap-1.5">
+              {isOwnProfile ? (
+                <Button
+                  variant="quiet_outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="gap-1.5"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit Profile
+                </Button>
+              ) : (
+                <Button
+                  variant={isFollowing ? "secondary" : "quiet_outline"}
+                  size="sm"
+                  onClick={() => setIsFollowing((v) => !v)}
+                  aria-pressed={isFollowing}
+                  className="gap-1.5"
+                >
+                  {isFollowing ? <Check className="h-3.5 w-3.5" aria-hidden /> : null}
+                  {isFollowing ? "Following" : "Follow"}
+                </Button>
+              )}
               <ProfileNicheSwitcher
                 username={currentUser.username}
                 activeNicheName={profile.username}
                 isOwnProfile={isOwnProfile}
               />
               <Button
-                type="button"
                 variant="quiet_outline"
                 size="icon-sm"
                 aria-label="Share profile"
@@ -164,56 +149,50 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
               </Button>
             </div>
           </div>
-        </div>
 
-        <p className="mt-2 truncate text-xs text-muted-foreground">
-          {profile.location}
-          <span className="mx-1.5 text-muted-foreground/50" aria-hidden>
-            ·
-          </span>
-          Member since {formatMonthYear(profile.memberSince)}
-        </p>
-
-        {profile.bio ? (
-          <div className="hidden @sm:block">
-            <BioRow bio={profile.bio} />
+          {/* Location + member since */}
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {profile.location}
+            </span>
+            <span className="flex items-center gap-1">
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Member since {formatMonthYear(profile.memberSince)}
+            </span>
           </div>
-        ) : null}
 
-        <div className="scrollbar-hide mt-3 -mx-1 flex items-center gap-x-2 overflow-x-auto whitespace-nowrap px-1 text-sm">
-          <InlineStat label="Trades" value={profile.stats.totalTrades} />
-          <StatDivider />
-          <InlineStat label="Items" value={profile.stats.totalItems} />
-          <StatDivider />
-          <InlineStat label="Collections" value={profile.stats.totalCollections} />
-          {isOwnProfile ? (
-            <>
-              <StatDivider />
-              <InlineStat label="Following" value={profile.stats.totalFollowing} />
-            </>
-          ) : null}
-        </div>
+          {/* Bio */}
+          {profile.bio ? <BioRow bio={profile.bio} /> : null}
 
-        <div className="hidden @sm:block">
-          <VerifiedAndLinkedRow profile={profile} />
+          {/* Verified row */}
+          <VerifiedRow profile={profile} />
+
+          {/* Linked accounts row */}
+          <LinkedRow profile={profile} />
+
+          {/* Stats */}
+          <div className="mt-4 flex items-start gap-6">
+            <StatBlock value={profile.stats.totalItems} label="Items" />
+            <StatBlock value={profile.stats.totalCollections} label="Collections" />
+            <StatBlock value={profile.stats.totalTrades} label="Trades" />
+            {isOwnProfile ? (
+              <StatBlock value={profile.stats.totalFollowing} label="Following" />
+            ) : null}
+          </div>
         </div>
       </div>
 
+      {/* ── Tab navigation ──────────────────────────────────────────────────── */}
       <div className="mb-8 border-b border-border/60">
-        <div className="-mb-px flex flex-nowrap items-center gap-3 @sm:gap-8">
-          <TabButton
-            active={activeTab === "collections"}
-            onClick={() => setActiveTab("collections")}
-          >
+        <div className="-mb-px flex flex-nowrap items-center gap-6">
+          <TabButton active={activeTab === "collections"} onClick={() => setActiveTab("collections")}>
             Collections
           </TabButton>
           <TabButton active={activeTab === "for-sale"} onClick={() => setActiveTab("for-sale")}>
             For Sale/Trade
           </TabButton>
-          <TabButton
-            active={activeTab === "looking-for"}
-            onClick={() => setActiveTab("looking-for")}
-          >
+          <TabButton active={activeTab === "looking-for"} onClick={() => setActiveTab("looking-for")}>
             Looking For
           </TabButton>
           <TabButton active={activeTab === "activity"} onClick={() => setActiveTab("activity")}>
@@ -222,45 +201,40 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
         </div>
       </div>
 
+      {/* ── Tab content ─────────────────────────────────────────────────────── */}
+
       {activeTab === "collections" && (
-        <>
-          {profile.bio ? (
-            <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-foreground @sm:hidden">
-              {profile.bio}
-            </p>
-          ) : null}
-          {profilePageData.collections.length === 0 ? (
-            <EmptyState
-              icon={<FolderOpen className="h-10 w-10 text-muted-foreground/50" />}
-              title="No collections yet"
-              body="Create a collection to start organizing items on this profile."
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {profilePageData.collections.map((collection) => (
-                <CollectionCard
-                  key={collection.id}
-                  collection={{
-                    id: collection.id,
-                    name: collection.name,
-                    description: collection.description,
-                    visibility: collection.visibility,
-                    is_wishlist: collection.isWishlist,
-                    item_count: collection.itemCount,
-                    total_user_value: collection.totalValue,
-                  }}
-                  view="grid"
-                  itemImages={collection.previewImages}
-                  href={`/collection/${collection.id}`}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        profilePageData.collections.length === 0 ? (
+          <EmptyState
+            icon={<FolderOpen className="h-10 w-10 text-muted-foreground/50" />}
+            title="No collections yet"
+            body="Create a collection to start organizing items on this profile."
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {profilePageData.collections.map((collection) => (
+              <CollectionCard
+                key={collection.id}
+                collection={{
+                  id: collection.id,
+                  name: collection.name,
+                  description: collection.description,
+                  visibility: collection.visibility,
+                  is_wishlist: collection.isWishlist,
+                  item_count: collection.itemCount,
+                  total_user_value: collection.totalValue,
+                }}
+                view="grid"
+                itemImages={collection.previewImages}
+                href={`/collection/${collection.id}`}
+              />
+            ))}
+          </div>
+        )
       )}
 
-      {activeTab === "for-sale" &&
-        (profilePageData.forSaleItems.length === 0 ? (
+      {activeTab === "for-sale" && (
+        profilePageData.forSaleItems.length === 0 ? (
           <EmptyState
             icon={<Tag className="h-10 w-10 text-muted-foreground/50" />}
             title="No items for sale"
@@ -282,7 +256,8 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
               />
             ))}
           </div>
-        ))}
+        )
+      )}
 
       {activeTab === "looking-for" && (
         <div>
@@ -297,13 +272,19 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
                 body="Save a set of trade filters to show collectors what you're open to."
               />
             ) : (
-              <ul className="divide-y divide-border/60">
+              <div className="divide-y divide-border/60">
                 {profilePageData.tradeInterests.map((interest) => (
-                  <TradeInterestRow key={interest.id} interest={interest} />
+                  <TradeInterestRow
+                    key={interest.id}
+                    name={interest.name}
+                    description={interest.description}
+                    chips={interest.criteria}
+                  />
                 ))}
-              </ul>
+              </div>
             )}
           </CollapsibleSection>
+
           <CollapsibleSection
             label={`${profilePageData.lookingForItems.length} wishlist items`}
             defaultOpen
@@ -332,8 +313,8 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
         </div>
       )}
 
-      {activeTab === "activity" &&
-        (profilePageData.activity.length === 0 ? (
+      {activeTab === "activity" && (
+        profilePageData.activity.length === 0 ? (
           <EmptyState
             icon={<Activity className="h-10 w-10 text-muted-foreground/50" />}
             title="No recent activity"
@@ -345,7 +326,8 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
               <ActivityRow key={item.id} item={item} />
             ))}
           </div>
-        ))}
+        )
+      )}
 
       <ProfileMobileSheet
         open={isMobileSheetOpen}
@@ -361,7 +343,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
 
 function BioRow({ bio }: { bio: string }) {
   const [expanded, setExpanded] = useState(false)
-  const isLong = bio.length > 80
+  const isLong = bio.length > 120
   if (!isLong || expanded) {
     return <p className="mt-2 text-sm leading-relaxed text-foreground">{bio}</p>
   }
@@ -371,8 +353,7 @@ function BioRow({ bio }: { bio: string }) {
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        aria-expanded={false}
-        className="shrink-0 rounded text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="shrink-0 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         ·· more
       </button>
@@ -380,70 +361,70 @@ function BioRow({ bio }: { bio: string }) {
   )
 }
 
-function InlineStat({ label, value, onClick }: { label: string; value: number; onClick?: () => void }) {
+function StatBlock({ value, label }: { value: number; label: string }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="shrink-0 rounded px-1 py-0.5 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <span className="font-semibold text-foreground">{value}</span>
-      <span className="ml-1 text-muted-foreground">{label}</span>
-    </button>
+    <div className="text-center">
+      <p className="text-xl font-bold leading-tight text-foreground">{value}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
+    </div>
   )
 }
 
-function StatDivider() {
-  return (
-    <span className="select-none text-muted-foreground/40" aria-hidden>
-      ·
-    </span>
-  )
-}
-
-function VerifiedAndLinkedRow({ profile }: { profile: ProfileSummaryReference }) {
-  const verifiedItems = [
+function VerifiedRow({ profile }: { profile: ProfileSummaryReference }) {
+  const items = [
     profile.verification.email && { icon: Mail, label: "Email" },
     profile.verification.phone && { icon: Phone, label: "Phone" },
     profile.verification.id && { icon: ShieldCheck, label: "ID" },
   ].filter(Boolean) as { icon: ComponentType<{ className?: string }>; label: string }[]
 
-  if (verifiedItems.length === 0 && profile.linkedAccounts.length === 0) return null
+  if (items.length === 0) return null
 
   return (
-    <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      {verifiedItems.map(({ icon: Icon, label }) => (
-        <span key={label} className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">Verified:</span>
+      {items.map(({ icon: Icon, label }) => (
+        <span
+          key={label}
+          title={`${label} verified`}
+          className="inline-flex items-center gap-1 rounded border border-border/60 bg-secondary/60 px-2 py-0.5 text-xs text-muted-foreground"
+        >
           <Icon className="h-3 w-3 text-primary" aria-hidden />
-          <span>{label} verified</span>
+          <Check className="h-3 w-3 text-primary" aria-hidden />
         </span>
       ))}
-      {profile.linkedAccounts.slice(0, 3).map((account) => (
+    </div>
+  )
+}
+
+function LinkedRow({ profile }: { profile: ProfileSummaryReference }) {
+  const accounts = profile.linkedAccounts
+  if (accounts.length === 0) return null
+  const verifiedCount = accounts.filter((a) => a.verified).length
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">Linked:</span>
+      {accounts.slice(0, 4).map((account) => (
         <a
           key={`${account.platform}-${account.username}`}
           href="#"
-          className="inline-flex items-center gap-1 rounded text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-secondary/40 px-2.5 py-0.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary hover:text-foreground"
         >
-          <ExternalLink className="h-3 w-3" aria-hidden />
           <span className="capitalize">{account.platform}</span>
           {account.verified ? <BadgeCheck className="h-3 w-3 text-primary" aria-hidden /> : null}
+          <ExternalLink className="h-3 w-3 text-muted-foreground" aria-hidden />
         </a>
       ))}
+      {verifiedCount > 0 ? (
+        <span className="text-xs text-muted-foreground">({verifiedCount} verified)</span>
+      ) : null}
     </div>
   )
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
@@ -472,27 +453,21 @@ function EmptyState({ icon, title, body }: { icon: ReactNode; title: string; bod
   )
 }
 
-function CollapsibleSection({
-  label,
-  defaultOpen = false,
-  children,
-}: {
-  label: string
-  defaultOpen?: boolean
-  children: ReactNode
-}) {
+function CollapsibleSection({ label, defaultOpen = false, children }: { label: string; defaultOpen?: boolean; children: ReactNode }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="mb-6 last:mb-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="mb-3 flex w-full items-center justify-between gap-2 rounded px-0.5 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="mb-4 flex w-full items-center justify-between gap-3"
         aria-expanded={open}
       >
-        <span>{label}</span>
+        <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-foreground">
+          {label}
+        </span>
         <ChevronDown
-          className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
+          className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")}
           aria-hidden
         />
       </button>
@@ -501,48 +476,26 @@ function CollapsibleSection({
   )
 }
 
-// ── Content cards ─────────────────────────────────────────────────────────────
+// ── Content rows ──────────────────────────────────────────────────────────────
 
-function TradeInterestRow({ interest }: { interest: ProfileTradeInterestReference }) {
-  return (
-    <li className="py-4 first:pt-0 last:pb-0">
-      <p className="text-sm font-medium text-foreground">{interest.name}</p>
-      {interest.description ? (
-        <p className="mt-0.5 text-sm text-muted-foreground">{interest.description}</p>
-      ) : null}
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {interest.criteria.map((criterion) => (
-          <span
-            key={criterion.label}
-            className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground"
-          >
-            <span className="text-muted-foreground">{criterion.label}:</span>
-            <span>{criterion.value}</span>
-          </span>
-        ))}
-      </div>
-    </li>
-  )
-}
-
-
-const activityIconMap: Record<
+const activityIconConfig: Record<
   ProfileActivityReference["type"],
-  ComponentType<{ className?: string }>
+  { icon: ComponentType<{ className?: string }>; bg: string; color: string }
 > = {
-  listing: Tag,
-  trade: Repeat2,
-  collection: FolderOpen,
-  offer: Package,
-  follow: Heart,
+  listing: { icon: Tag,        bg: "bg-amber-500/10",   color: "text-amber-500" },
+  trade:   { icon: Repeat2,    bg: "bg-primary/10",     color: "text-primary" },
+  collection: { icon: FolderOpen, bg: "bg-blue-500/10", color: "text-blue-400" },
+  offer:   { icon: Package,    bg: "bg-orange-500/10",  color: "text-orange-400" },
+  follow:  { icon: Heart,      bg: "bg-rose-500/10",    color: "text-rose-400" },
 }
 
 function ActivityRow({ item }: { item: ProfileActivityReference }) {
-  const Icon = activityIconMap[item.type] ?? Activity
+  const config = activityIconConfig[item.type] ?? { icon: Activity, bg: "bg-muted", color: "text-muted-foreground" }
+  const Icon = config.icon
   return (
     <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" aria-hidden />
+      <span className={cn("mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full", config.bg)}>
+        <Icon className={cn("h-3.5 w-3.5", config.color)} aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-foreground">{item.description}</p>

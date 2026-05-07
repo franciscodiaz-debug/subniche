@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { exploreItems } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 
-export function SearchBar() {
+export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
@@ -88,6 +88,7 @@ export function SearchBar() {
           <input
             ref={inputRef}
             type="search"
+            autoFocus={autoFocus}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)

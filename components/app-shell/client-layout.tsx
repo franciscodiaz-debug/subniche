@@ -5,8 +5,8 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 import { Header } from "./header";
-import { MobileMenuButton } from "./mobile-menu-button";
 import { Sidebar } from "./sidebar";
+import { BottomNav } from "./bottom-nav";
 import { SavedTradeInterestsProvider } from "@/lib/saved-trade-interests-context";
 import { useIsNavCollapseRequested } from "@/hooks/use-nav-collapse-request";
 
@@ -25,6 +25,7 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
   if (isAuthPage || isAdminPage) return <>{children}</>;
 
   const isInboxPage = pathname === "/inbox" || pathname.startsWith("/inbox/");
+  const isCreatePage = pathname === "/create-listing" || pathname.startsWith("/create-listing/");
   const sidebarCollapsed = isInboxPage || collapseRequested;
 
   return (
@@ -41,16 +42,17 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
           />
         </Suspense>
 
-        <MobileMenuButton onClick={() => setMobileMenuOpen(true)} />
-
         <main
-          className={`w-full min-w-0 flex-1 ${
+          suppressHydrationWarning
+          className={`w-full min-w-0 flex-1 ${isCreatePage || isInboxPage ? "overflow-hidden" : "pb-[72px]"} lg:pb-0 ${
             sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[220px]"
           }`}
         >
-          <Header isAuthenticated={isAuthenticated} />
+          <Header isAuthenticated={isAuthenticated} onMobileMenuOpen={() => setMobileMenuOpen(true)} />
           {children}
         </main>
+
+        {!isCreatePage && <BottomNav isAuthenticated={isAuthenticated} />}
       </div>
     </SavedTradeInterestsProvider>
   );

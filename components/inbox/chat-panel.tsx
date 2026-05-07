@@ -6,6 +6,7 @@ import Link from "next/link"
 import {
   ArrowLeft,
   ArrowLeftRight,
+  Info,
   ChevronRight,
   Send,
   Clock,
@@ -289,7 +290,7 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Sticky header */}
       <div className="flex-shrink-0 border-b border-border">
         <div className="flex items-center gap-3 p-4 py-2">
@@ -320,6 +321,13 @@ export function ChatPanel({
               {participant.username}
             </Link>
           </div>
+          <button
+            onClick={onViewProfile}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-card hover:text-foreground lg:hidden"
+            aria-label="View profile info"
+          >
+            <Info className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -401,7 +409,7 @@ export function ChatPanel({
       )}
 
       {/* Scrolling body */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         {subject && (
           <div className="hidden py-3 lg:block">
             <p className="mb-2 text-xs text-muted-foreground">Discussing:</p>
@@ -482,14 +490,8 @@ export function ChatPanel({
           return (
             <div
               key={message.id}
-              className="group -mx-2 flex items-start gap-3 rounded px-2 py-1 transition-colors hover:bg-card/30"
+              className="group -mx-2 rounded px-2 py-1 transition-colors hover:bg-card/30"
             >
-              <Avatar className="mt-0.5 h-10 w-10 flex-shrink-0">
-                <AvatarImage src={isOwn ? "/placeholder.svg" : (participant.avatar_url || "/placeholder.svg")} />
-                <AvatarFallback className="text-sm">
-                  {isOwn ? "Y" : participant.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span
@@ -500,7 +502,7 @@ export function ChatPanel({
                   >
                     {isOwn ? "You" : participant.username}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span suppressHydrationWarning className="text-xs text-muted-foreground">
                     {formatTime(message.created_at)}
                   </span>
                 </div>

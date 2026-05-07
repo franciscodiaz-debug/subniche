@@ -1,120 +1,129 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, X } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, CirclePlay, Heart, Package, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface ChecklistItem {
+interface OnboardingStep {
   id: string
-  label: string
+  icon: React.ElementType
+  title: string
+  description: string
   href: string
-  done: boolean
+  current: number
+  target: number | null
+  totalForPercent?: number
 }
 
-const defaultItems: ChecklistItem[] = [
-  { id: 'profile', label: 'Complete your profile', href: '/profile/edit', done: false },
-  { id: 'listing', label: 'Create your first listing', href: '/create-listing', done: false },
-  { id: 'trade', label: 'Set trade interests on a listing', href: '/my-stuff', done: false },
-  { id: 'community', label: 'Join a community', href: '/communities', done: false },
-  { id: 'collection', label: 'Start a collection', href: '/my-stuff?tab=collections', done: false },
+const steps: OnboardingStep[] = [
+  {
+    id: 'listings',
+    icon: Package,
+    title: 'List 3 items',
+    description: 'Show the community what you are bringing to the table.',
+    href: '/create-listing',
+    current: 1,
+    target: 3,
+  },
+  {
+    id: 'trade',
+    icon: Heart,
+    title: 'Set 3 trade interests',
+    description: 'Tell other collectors what you are looking for.',
+    href: '/my-stuff',
+    current: 0,
+    target: 3,
+  },
+  {
+    id: 'profile',
+    icon: User,
+    title: 'Complete profile',
+    description: 'A few details help buyers and traders know who you are.',
+    href: '/profile/edit',
+    current: 0,
+    target: null,
+    totalForPercent: 5,
+  },
 ]
 
-interface OnboardingChecklistProps {
-  className?: string
+function getProgressLabel(step: OnboardingStep): string {
+  if (step.target !== null) return `${step.current}/${step.target}`
+  const pct = step.totalForPercent
+    ? Math.round((step.current / step.totalForPercent) * 100)
+    : 0
+  return `${pct}%`
 }
 
-export function OnboardingChecklist({ className }: OnboardingChecklistProps) {
-  const [items, setItems] = useState(defaultItems)
-  const [expanded, setExpanded] = useState(true)
+export function OnboardingChecklist({ className }: { className?: string }) {
   const [dismissed, setDismissed] = useState(false)
 
   if (dismissed) return null
 
-  const doneCount = items.filter((i) => i.done).length
-  const total = items.length
-
-  const toggleItem = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item))
-    )
-  }
-
   return (
-    <section
-      className={cn(
-        'rounded-xl border border-primary/30 bg-card p-4 md:p-5',
-        className
-      )}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary text-sm font-bold">
-            {doneCount}/{total}
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Get started with SubNiche
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {doneCount === total
-                ? "You're all set! 🎉"
-                : `${total - doneCount} step${total - doneCount !== 1 ? 's' : ''} left`}
-            </p>
-          </div>
-        </div>
+    <section className={cn('space-y-3', className)}>
+      {steps.map((step) => {
+        const active = step.current > 0
+        const Icon = step.icon
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            aria-label={expanded ? 'Collapse' : 'Expand'}
+        return (
+          <Link
+            key={step.id}
+            href={step.href}
+            className={cn(
+              'flex items-center gap-4 rounded-xl border bg-card px-5 py-4 transition-colors hover:border-primary/50',
+              active ? 'border-primary/50' : 'border-border',
+            )}
           >
-            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setDismissed(true)}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            aria-label="Dismiss"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+            {/* Step icon */}
+            <div
+              className={cn(
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+                active ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground',
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
 
-      {expanded ? (
-        <ul className="mt-4 space-y-2">
-          {items.map((item) => (
-            <li key={item.id}>
-              <a
-                href={item.href}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-secondary/50"
-                onClick={(e) => {
-                  e.preventDefault()
-                  toggleItem(item.id)
-                }}
-              >
-                {item.done ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                ) : (
-                  <Circle className="h-4 w-4 shrink-0 text-muted-foreground/40" />
-                )}
+            {/* Text content */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">{step.title}</span>
                 <span
                   className={cn(
-                    'text-sm',
-                    item.done
-                      ? 'text-muted-foreground line-through'
-                      : 'text-foreground'
+                    'inline-flex items-center rounded-full px-1.5 py-0.5 text-[11px] font-medium',
+                    active
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-secondary text-muted-foreground',
                   )}
                 >
-                  {item.label}
+                  {getProgressLabel(step)}
                 </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">{step.description}</p>
+            </div>
+
+            {/* Video play trigger — own fixed-width zone so it sits
+                visually between the text and the nav arrow */}
+            <div className="flex w-14 shrink-0 items-center justify-center">
+              <CirclePlay className="h-7 w-7 text-muted-foreground/40 transition-colors hover:text-primary" />
+            </div>
+
+            {/* Nav arrow */}
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+        )
+      })}
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          I'll do this later
+        </button>
+      </div>
     </section>
   )
 }

@@ -280,7 +280,7 @@ export function CashCounterOfferModal({
         </div>
 
         <div className="flex gap-3 border-t border-border p-4">
-          <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent py-6 text-base font-semibold" disabled={isLoading}>
+          <Button variant="quiet_outline" onClick={onClose} className="flex-1 bg-transparent py-6 text-base font-semibold" disabled={isLoading}>
             Cancel
           </Button>
           <Button

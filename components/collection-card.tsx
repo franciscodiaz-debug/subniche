@@ -36,9 +36,9 @@ export function CollectionCard({
 
   const listContent = (
     <>
-      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-secondary">
+      <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-secondary">
         {gridImages.length > 0 ? (
-          <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-0.5">
+          <div className="grid h-full w-full grid-cols-4 gap-px">
             {[0, 1, 2, 3].map((index) => (
               <div key={index} className="overflow-hidden bg-secondary">
                 {gridImages[index] ? (
@@ -112,11 +112,12 @@ export function CollectionCard({
 
   const gridContent = (
     <>
-      <div className="p-1">
+      {/* Image section — 4-in-a-row on mobile, 2×2 quad on desktop */}
+      <div>
         {gridImages.length > 0 ? (
-          <div className="grid grid-cols-4 gap-0.5">
+          <div className="grid grid-cols-4 md:grid-cols-2 gap-px">
             {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="relative aspect-square overflow-hidden rounded bg-secondary">
+              <div key={index} className="relative aspect-square overflow-hidden bg-secondary">
                 {gridImages[index] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -131,9 +132,9 @@ export function CollectionCard({
             ))}
           </div>
         ) : collection.cover_image ? (
-          <div className="grid grid-cols-4 gap-0.5">
+          <div className="grid grid-cols-4 md:grid-cols-2 gap-px">
             {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="relative aspect-square overflow-hidden rounded bg-secondary">
+              <div key={index} className="relative aspect-square overflow-hidden bg-secondary">
                 {index === 0 ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -148,7 +149,7 @@ export function CollectionCard({
             ))}
           </div>
         ) : (
-          <div className="flex h-16 items-center justify-center rounded bg-muted">
+          <div className="flex h-16 md:aspect-square items-center justify-center bg-muted">
             {collection.is_wishlist ? (
               <Heart className="h-6 w-6 text-chart-5/60" />
             ) : (
@@ -158,17 +159,18 @@ export function CollectionCard({
         )}
       </div>
 
+      {/* Info section */}
       <div className="px-3 pb-3 pt-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-medium text-foreground">{collection.name}</h3>
+            <h3 className="truncate text-sm font-semibold md:text-base text-foreground">{collection.name}</h3>
             {collection.description ? (
               <p className="truncate text-xs text-muted-foreground">
                 {collection.description}
               </p>
             ) : null}
           </div>
-          <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
+          <div className="flex shrink-0 items-center gap-1">
             {collection.is_wishlist ? (
               <Heart className="h-3.5 w-3.5 fill-current text-chart-5" />
             ) : null}
@@ -176,15 +178,40 @@ export function CollectionCard({
           </div>
         </div>
 
-        <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{collection.item_count || 0} items</span>
-          {(collection.total_user_value || 0) > 0 ? (
-            <>
-              <span aria-hidden>·</span>
-              <span>${(collection.total_user_value || 0).toLocaleString()}</span>
-            </>
-          ) : null}
-        </div>
+        <p className="mt-1 text-xs text-muted-foreground">{collection.item_count || 0} items</p>
+
+        {/* Desktop: labelled two-column estimate block */}
+        {(collection.total_user_value || 0) > 0 ? (
+          <div className="mt-3 hidden md:flex items-end justify-between gap-2">
+            <div>
+              <p className="text-[11px] text-muted-foreground">Your Estimate</p>
+              <p className="text-base font-bold text-foreground">
+                ${(collection.total_user_value || 0).toLocaleString()}
+              </p>
+            </div>
+            {(collection.total_ai_value || 0) > 0 ? (
+              <div className="text-right">
+                <p className="text-[11px] text-muted-foreground">AI Estimate</p>
+                <p className="text-base font-bold text-chart-2">
+                  ${(collection.total_ai_value || 0).toLocaleString()}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Mobile: compact inline value */}
+        {(collection.total_user_value || 0) > 0 ? (
+          <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
+            <span>${(collection.total_user_value || 0).toLocaleString()}</span>
+            {(collection.total_ai_value || 0) > 0 ? (
+              <>
+                <span aria-hidden>·</span>
+                <span>AI: ${(collection.total_ai_value || 0).toLocaleString()}</span>
+              </>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </>
   )

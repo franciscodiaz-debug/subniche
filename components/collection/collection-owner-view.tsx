@@ -137,7 +137,7 @@ export function CollectionOwnerView({
   const AddItemDropdown = ({ align = "start" }: { align?: "start" | "center" | "end" }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="outline" className="h-9 gap-1.5">
+        <Button size="sm" variant="quiet_outline" className="h-9 gap-1.5">
           <Plus className="h-4 w-4" />
           Add Item
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />

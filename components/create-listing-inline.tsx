@@ -1477,7 +1477,7 @@ export function CreateListingInline({
                   border + muted tone) so it reads as a demo affordance,
                   not a real product action. */}
               <Button
-                variant="outline"
+                variant="quiet_outline"
                 onClick={handleAutofill}
                 className="gap-2 border-dashed text-muted-foreground hover:text-foreground"
                 title="Fills every field with a sample 1965 Stratocaster for prototype demos"
@@ -1491,7 +1491,7 @@ export function CreateListingInline({
                   <TooltipTrigger asChild>
                     <div>
                       <Button
-                        variant="outline"
+                        variant="quiet_outline"
                         onClick={handleEnhance}
                         disabled={!canEnhance || isEnhancing}
                         className={cn(
@@ -1536,7 +1536,7 @@ export function CreateListingInline({
               {/* Publish actions — desktop only; mobile uses the sticky bottom bar.
                   "Add Item" now opens the Publish Confirm Screen overlay rather
                   than publishing directly, per the flow redesign. */}
-              <Button variant="outline" className="hidden lg:inline-flex">
+              <Button variant="quiet_outline" className="hidden lg:inline-flex">
                 Save Draft
               </Button>
               <Button

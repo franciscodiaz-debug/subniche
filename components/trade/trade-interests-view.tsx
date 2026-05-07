@@ -640,7 +640,7 @@ function AddExistingPicker({
     <div className="relative" ref={containerRef}>
       <Button
         type="button"
-        variant="outline"
+        variant="quiet_outline"
         size="sm"
         onClick={() => setOpen((v) => !v)}
         className="h-8"

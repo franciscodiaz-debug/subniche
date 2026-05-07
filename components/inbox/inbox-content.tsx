@@ -397,7 +397,7 @@ export function InboxContent() {
               Accept
             </Button>
             <Button
-              variant="outline"
+              variant="quiet_outline"
               className="min-h-[52px] w-full border-border bg-transparent"
               onClick={() => handleOfferDetailAction("counter")}
             >

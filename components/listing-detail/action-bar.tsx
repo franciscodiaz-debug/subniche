@@ -165,7 +165,7 @@ export function OwnerActions({
 
         <Button
           size="lg"
-          variant="outline"
+          variant="quiet_outline"
           className="w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />

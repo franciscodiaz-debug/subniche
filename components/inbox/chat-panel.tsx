@@ -221,21 +221,21 @@ export function ChatPanel({
               )}
               <div className="flex w-full gap-2">
                 <Button
-                  variant="outline"
+                  variant="quiet_outline"
                   className="min-h-[48px] flex-1 border bg-transparent text-sm font-medium hover:border-green-500"
                   onClick={() => onOfferAction("accept")}
                 >
                   Accept
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="quiet_outline"
                   className="min-h-[48px] flex-1 bg-transparent text-sm font-medium hover:border-primary"
                   onClick={() => onOfferAction("counter")}
                 >
                   Counter
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="quiet_outline"
                   className="min-h-[48px] flex-1 bg-transparent text-sm font-medium text-foreground hover:border-destructive"
                   onClick={() => onOfferAction("decline")}
                 >
@@ -264,7 +264,7 @@ export function ChatPanel({
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="quiet_outline"
                   className="h-7 bg-transparent px-2.5 text-xs"
                   onClick={() => onOfferAction("counter")}
                 >
@@ -273,7 +273,7 @@ export function ChatPanel({
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="quiet_outline"
                   className="h-7 bg-transparent px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => onOfferAction("decline")}
                 >

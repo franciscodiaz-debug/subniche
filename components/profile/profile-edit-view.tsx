@@ -164,7 +164,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
             </p>
             <Button
               type="button"
-              variant="outline"
+              variant="quiet_outline"
               size="sm"
               className="mt-2 gap-2"
               aria-label="Upload new photo"
@@ -229,7 +229,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
           action={
             <Button
               type="button"
-              variant="outline"
+              variant="quiet_outline"
               size="sm"
               className="gap-1.5"
               onClick={() => setShowAddAccount((v) => !v)}
@@ -312,7 +312,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
                 <div className="flex gap-2 @sm:pb-0.5">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="quiet_outline"
                     size="sm"
                     onClick={() => {
                       setShowAddAccount(false)

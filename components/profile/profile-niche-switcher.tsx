@@ -53,7 +53,7 @@ export function ProfileNicheSwitcher({
     <div ref={containerRef} className="relative">
       <Button
         type="button"
-        variant="outline"
+        variant="quiet_outline"
         size="icon-sm"
         className={buttonClassName}
         aria-label={tooltip}

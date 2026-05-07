@@ -130,7 +130,7 @@ export function CategoryTree({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
         <p className="text-sm font-medium text-muted-foreground">Categories</p>
-        <Button size="sm" variant="outline" onClick={() => setAddCatOpen(true)} className="gap-1.5">
+        <Button size="sm" variant="quiet_outline" onClick={() => setAddCatOpen(true)} className="gap-1.5">
           <Plus className="h-3.5 w-3.5" />
           Add
         </Button>

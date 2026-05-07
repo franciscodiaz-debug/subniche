@@ -79,7 +79,7 @@ export function NicheHero({ slug, authState, user }: NicheHeroProps) {
               <Button asChild size="lg" className="rounded-xl">
                 <Link href="/create-listing">List your gear</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-xl border-border/50 bg-card/60 backdrop-blur">
+              <Button asChild size="lg" variant="quiet_outline" className="rounded-xl border-border/50 bg-card/60 backdrop-blur">
                 <Link href="/market?tab=for-sale">Browse the market</Link>
               </Button>
             </div>

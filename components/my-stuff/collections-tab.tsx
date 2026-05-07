@@ -99,7 +99,7 @@ function NewCollectionButton({ className }: { className?: string }) {
     <Button
       asChild
       size="sm"
-      variant="outline"
+      variant="quiet_outline"
       className={cn(
         "h-9 shrink-0 rounded-md border-border bg-card px-3 text-sm font-medium text-foreground shadow-none transition-colors hover:border-primary/40",
         className,

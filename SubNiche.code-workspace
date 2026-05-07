@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../subniche-kyles-alternate-design"
 		}
 	],
 	"settings": {}

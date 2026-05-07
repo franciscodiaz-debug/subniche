@@ -85,10 +85,10 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
     <div className="mx-auto max-w-4xl p-6 lg:p-8">
 
       {/* ── Profile header ─────────────────────────────────────────────────── */}
-      <div className="mb-8 flex gap-5 md:gap-7">
+      <div className="mb-8 flex gap-6 md:gap-8">
 
         {/* Avatar */}
-        <Avatar className="h-20 w-20 shrink-0 border-2 border-border md:h-24 md:w-24">
+        <Avatar className="h-24 w-24 shrink-0 border-2 border-border md:h-32 md:w-32">
           {profile.avatarUrl ? (
             <AvatarImage src={profile.avatarUrl} alt={`${profile.username} avatar`} className="object-cover" />
           ) : null}
@@ -102,7 +102,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
 
           {/* Username + action buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold text-foreground md:text-2xl">{profile.username}</h1>
+            <h1 className="text-2xl font-semibold leading-tight text-foreground">{profile.username}</h1>
             <div className="flex items-center gap-1.5">
               {isOwnProfile ? (
                 <Button
@@ -172,7 +172,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
           <LinkedRow profile={profile} />
 
           {/* Stats */}
-          <div className="mt-4 flex items-start gap-6">
+          <div className="mt-4 flex flex-wrap items-start gap-x-9 gap-y-3">
             <StatBlock value={profile.stats.totalItems} label="Items" />
             <StatBlock value={profile.stats.totalCollections} label="Collections" />
             <StatBlock value={profile.stats.totalTrades} label="Trades" />
@@ -185,7 +185,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
 
       {/* ── Tab navigation ──────────────────────────────────────────────────── */}
       <div className="mb-8 border-b border-border/60">
-        <div className="-mb-px flex flex-nowrap items-center gap-6">
+        <div className="-mb-px flex flex-nowrap items-center gap-8">
           <TabButton active={activeTab === "collections"} onClick={() => setActiveTab("collections")}>
             Collections
           </TabButton>
@@ -345,11 +345,11 @@ function BioRow({ bio }: { bio: string }) {
   const [expanded, setExpanded] = useState(false)
   const isLong = bio.length > 120
   if (!isLong || expanded) {
-    return <p className="mt-2 text-sm leading-relaxed text-foreground">{bio}</p>
+    return <p className="mt-2 text-sm leading-6 text-muted-foreground">{bio}</p>
   }
   return (
     <div className="mt-2 flex items-baseline gap-1.5">
-      <p className="min-w-0 truncate text-sm text-foreground">{bio}</p>
+      <p className="min-w-0 truncate text-sm text-muted-foreground">{bio}</p>
       <button
         type="button"
         onClick={() => setExpanded(true)}
@@ -364,7 +364,7 @@ function BioRow({ bio }: { bio: string }) {
 function StatBlock({ value, label }: { value: number; label: string }) {
   return (
     <div className="text-center">
-      <p className="text-xl font-bold leading-tight text-foreground">{value}</p>
+      <p className="text-xl font-semibold leading-tight text-foreground">{value}</p>
       <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
     </div>
   )
@@ -386,9 +386,9 @@ function VerifiedRow({ profile }: { profile: ProfileSummaryReference }) {
         <span
           key={label}
           title={`${label} verified`}
-          className="inline-flex items-center gap-1 rounded border border-border/60 bg-secondary/60 px-2 py-0.5 text-xs text-muted-foreground"
+          className="inline-flex items-center gap-1 rounded-full bg-secondary/40 px-2.5 py-1 text-xs text-muted-foreground"
         >
-          <Icon className="h-3 w-3 text-primary" aria-hidden />
+          <Icon className="h-3 w-3" aria-hidden />
           <Check className="h-3 w-3 text-primary" aria-hidden />
         </span>
       ))}
@@ -397,7 +397,7 @@ function VerifiedRow({ profile }: { profile: ProfileSummaryReference }) {
 }
 
 function LinkedRow({ profile }: { profile: ProfileSummaryReference }) {
-  const accounts = profile.linkedAccounts
+  const accounts = [...profile.linkedAccounts].sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0))
   if (accounts.length === 0) return null
   const verifiedCount = accounts.filter((a) => a.verified).length
 
@@ -408,7 +408,7 @@ function LinkedRow({ profile }: { profile: ProfileSummaryReference }) {
         <a
           key={`${account.platform}-${account.username}`}
           href="#"
-          className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-secondary/40 px-2.5 py-0.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="inline-flex items-center gap-1 rounded-full bg-secondary/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
         >
           <span className="capitalize">{account.platform}</span>
           {account.verified ? <BadgeCheck className="h-3 w-3 text-primary" aria-hidden /> : null}
@@ -430,7 +430,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={cn(
-        "shrink-0 border-b-2 pb-3 text-sm font-medium transition-colors focus-visible:outline-none",
+        "shrink-0 border-b-2 py-2 text-xl font-bold transition-colors focus-visible:outline-none",
         active
           ? "border-foreground text-foreground"
           : "border-transparent text-muted-foreground hover:text-foreground",

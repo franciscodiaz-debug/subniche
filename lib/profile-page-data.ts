@@ -9,7 +9,7 @@ export const ownProfile: ProfilePageReferenceData["profile"] = {
   memberSince: "2022-06-12T00:00:00.000Z",
   bio: "Producer and DJ. Collecting vinyl, vintage synths, and studio outboard. Always trading.",
   stats: { totalItems: 18, totalCollections: 4, totalTrades: 6, totalFollowing: 23 },
-  verification: { email: true, phone: false, id: false },
+  verification: { email: true, phone: true, id: false },
   linkedAccounts: [
     { platform: "spotify", username: "jillmusic", verified: true },
     { platform: "soundcloud", username: "jillmusic", verified: false },

@@ -11,7 +11,6 @@ import { StatsCards } from "@/components/stats-cards"
 import { SubnicheLogo } from "@/components/app-shell/subniche-logo"
 import { ItemCard } from "@/components/item-card"
 import { CollectionCard } from "@/components/collection-card"
-import { ListingCard } from "@/components/listing-card"
 import { DiscoverListingCard } from "@/components/discover-listing-card"
 import { MyItemGridCard, MyItemRow, MyItemListHeader } from "@/components/my-stuff/my-item-card"
 import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist"
@@ -235,37 +234,6 @@ export function CustomSection() {
         </div>
       </DSSection>
 
-      {/* ListingCard */}
-      <DSSection id="custom-listing-card" title="ListingCard" source="Custom">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <ListingCard
-            image="https://placehold.co/800x600/1a2035/d4a853?text=Stratocaster"
-            title="1962 Fender Stratocaster"
-            subtitle="Sunburst, all original"
-            price={45000}
-            badge="Just Listed"
-            badgeVariant="primary"
-            href="#"
-          />
-          <ListingCard
-            image="https://placehold.co/800x600/1a2035/d4a853?text=Les+Paul"
-            title="Gibson Les Paul"
-            subtitle="Cherry Sunburst, 2019"
-            price={2800}
-            badge="Trade Only"
-            badgeVariant="info"
-            href="#"
-          />
-          <ListingCard
-            image="https://placehold.co/800x600/1a2035/d4a853?text=Marshall"
-            title="Marshall JCM800"
-            subtitle="100W head, 1984"
-            price={1200}
-            badge="Sold"
-            badgeVariant="success"
-          />
-        </div>
-      </DSSection>
 
       {/* DiscoverListingCard */}
       <DSSection id="custom-discover-card" title="DiscoverListingCard" source="Custom">

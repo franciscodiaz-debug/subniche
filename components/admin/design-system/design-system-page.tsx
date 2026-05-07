@@ -46,7 +46,6 @@ const nav = [
       { id: "custom-logo", label: "SubnicheLogo" },
       { id: "custom-item-card", label: "ItemCard" },
       { id: "custom-collection-card", label: "CollectionCard" },
-      { id: "custom-listing-card", label: "ListingCard" },
       { id: "custom-discover-card", label: "DiscoverListingCard" },
       { id: "custom-my-item-card", label: "MyItemCard" },
       { id: "custom-action-card", label: "ActionCard" },

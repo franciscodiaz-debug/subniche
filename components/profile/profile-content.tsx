@@ -102,7 +102,10 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
 
           {/* Username + action buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold leading-tight text-foreground">{profile.username}</h1>
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-2xl font-semibold leading-tight text-foreground">{profile.username}</h1>
+              <span className="text-xs text-muted-foreground">@{profile.ownerHandle}</span>
+            </div>
             <div className="flex items-center gap-1.5">
               {isOwnProfile ? (
                 <Button
@@ -126,11 +129,6 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
                   {isFollowing ? "Following" : "Follow"}
                 </Button>
               )}
-              <ProfileNicheSwitcher
-                username={currentUser.username}
-                activeNicheName={profile.username}
-                isOwnProfile={isOwnProfile}
-              />
               <Button
                 variant="quiet_outline"
                 size="icon-sm"
@@ -147,10 +145,15 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
               >
                 <Share2 className="h-4 w-4" />
               </Button>
+              <ProfileNicheSwitcher
+                username={currentUser.username}
+                activeNicheName={profile.username}
+                isOwnProfile={isOwnProfile}
+              />
             </div>
           </div>
 
-          {/* Location + member since */}
+          {/* Location + member since — stays with identity */}
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -162,17 +165,21 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
             </span>
           </div>
 
-          {/* Bio */}
-          {profile.bio ? <BioRow bio={profile.bio} /> : null}
+          {/* Bio — separate group */}
+          {profile.bio ? (
+            <div className="mt-4">
+              <BioRow bio={profile.bio} />
+            </div>
+          ) : null}
 
-          {/* Verified row */}
-          <VerifiedRow profile={profile} />
-
-          {/* Linked accounts row */}
-          <LinkedRow profile={profile} />
+          {/* Trust signals — verified + linked */}
+          <div className="mt-5 space-y-2">
+            <VerifiedRow profile={profile} />
+            <LinkedRow profile={profile} />
+          </div>
 
           {/* Stats */}
-          <div className="mt-4 flex flex-wrap items-start gap-x-9 gap-y-3">
+          <div className="mt-6 flex flex-wrap items-start gap-x-9 gap-y-3">
             <StatBlock value={profile.stats.totalItems} label="Items" />
             <StatBlock value={profile.stats.totalCollections} label="Collections" />
             <StatBlock value={profile.stats.totalTrades} label="Trades" />
@@ -343,13 +350,13 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
 
 function BioRow({ bio }: { bio: string }) {
   const [expanded, setExpanded] = useState(false)
-  const isLong = bio.length > 120
+  const isLong = bio.length > 500
   if (!isLong || expanded) {
-    return <p className="mt-2 text-sm leading-6 text-muted-foreground">{bio}</p>
+    return <p className="text-sm leading-6 text-foreground">{bio}</p>
   }
   return (
     <div className="mt-2 flex items-baseline gap-1.5">
-      <p className="min-w-0 truncate text-sm text-muted-foreground">{bio}</p>
+      <p className="min-w-0 truncate text-sm leading-6 text-foreground">{bio}</p>
       <button
         type="button"
         onClick={() => setExpanded(true)}
@@ -380,13 +387,13 @@ function VerifiedRow({ profile }: { profile: ProfileSummaryReference }) {
   if (items.length === 0) return null
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-muted-foreground">Verified:</span>
       {items.map(({ icon: Icon, label }) => (
         <span
           key={label}
           title={`${label} verified`}
-          className="inline-flex items-center gap-1 rounded-full bg-secondary/40 px-2.5 py-1 text-xs text-muted-foreground"
+          className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
         >
           <Icon className="h-3 w-3" aria-hidden />
           <Check className="h-3 w-3 text-primary" aria-hidden />
@@ -402,13 +409,18 @@ function LinkedRow({ profile }: { profile: ProfileSummaryReference }) {
   const verifiedCount = accounts.filter((a) => a.verified).length
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-muted-foreground">Linked:</span>
       {accounts.slice(0, 4).map((account) => (
         <a
           key={`${account.platform}-${account.username}`}
           href="#"
-          className="inline-flex items-center gap-1 rounded-full bg-secondary/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+            account.verified
+              ? "bg-secondary text-secondary-foreground hover:bg-muted hover:text-foreground"
+              : "border border-border/60 bg-transparent text-muted-foreground hover:bg-secondary/60 hover:border-border hover:text-foreground",
+          )}
         >
           <span className="capitalize">{account.platform}</span>
           {account.verified ? <BadgeCheck className="h-3 w-3 text-primary" aria-hidden /> : null}

@@ -377,7 +377,7 @@ export function CustomSection() {
 
       {/* OnboardingChecklist */}
       <DSSection id="custom-onboarding" title="OnboardingChecklist" source="Custom">
-        <div className="max-w-sm">
+        <div className="max-w-xl">
           <OnboardingChecklist />
         </div>
       </DSSection>

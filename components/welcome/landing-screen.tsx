@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
 import {
-  Menu, X, ArrowRight, Check, ChevronDown, ChevronUp,
+  ArrowRight, Check, ChevronDown, ChevronUp,
   Store, Repeat2, FolderHeart, Users, SlidersHorizontal,
   Guitar, Bike, LayoutGrid, Watch, Shirt,
 } from "lucide-react"
@@ -179,30 +179,148 @@ function BrowserMockup() {
   )
 }
 
+function MobileTabsCarousel() {
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [activeIndex, setActiveIndex] = useState(0)
+  const userInteractedRef = useRef(false)
+
+  useEffect(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            const index = Number(entry.target.getAttribute("data-index"))
+            if (!Number.isNaN(index)) setActiveIndex(index)
+          }
+        })
+      },
+      { root: scroller, threshold: [0.5, 0.75] },
+    )
+    cardRefs.current.forEach((card) => card && observer.observe(card))
+    return () => observer.disconnect()
+  }, [])
+
+  const goToTab = (index: number) => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    scroller.scrollTo({ left: index * scroller.clientWidth, behavior: "smooth" })
+  }
+
+  // Autoplay
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (userInteractedRef.current) return
+      const scroller = scrollerRef.current
+      if (!scroller) return
+      const current = Math.round(scroller.scrollLeft / scroller.clientWidth)
+      const next = (current + 1) % featureTabs.length
+      scroller.scrollTo({ left: next * scroller.clientWidth, behavior: "smooth" })
+    }, 4500)
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleUserInteract = () => {
+    userInteractedRef.current = true
+  }
+
+  return (
+    <section className="relative z-10 pb-12 pt-12 md:hidden">
+      {/* Swipeable scroller */}
+      <div
+        ref={scrollerRef}
+        onTouchStart={handleUserInteract}
+        onPointerDown={handleUserInteract}
+        className="flex snap-x snap-mandatory items-stretch overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {featureTabs.map((tab, i) => (
+          <div
+            key={tab.id}
+            ref={(el) => { cardRefs.current[i] = el }}
+            data-index={i}
+            className="flex w-full flex-shrink-0 snap-center px-6"
+          >
+            <div className="flex w-full flex-col rounded-2xl border border-border bg-card/50 p-6">
+              {/* Chip */}
+              <div className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                <tab.icon className="h-3.5 w-3.5" />
+                {tab.label}
+              </div>
+
+              <h3 className="mb-5 text-2xl font-bold">{tab.title}</h3>
+              <ul className="mb-6 space-y-3">
+                {tab.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20">
+                      <Check className="h-3 w-3 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground/80">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto rounded-xl border-l-2 border-primary/50 bg-card/80 p-5 pl-6">
+                <p className="mb-4 text-sm italic text-foreground/80">&ldquo;{tab.testimonial.quote}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-sm font-medium">
+                    {tab.testimonial.author[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{tab.testimonial.author}</p>
+                    <p className="text-xs text-foreground/50">{tab.testimonial.role}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dots indicator */}
+      <div className="mt-6 flex justify-center">
+        <div className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-2 backdrop-blur-sm">
+          {featureTabs.map((tab, i) => (
+            <button
+              key={tab.id}
+              onClick={() => { handleUserInteract(); goToTab(i) }}
+              aria-label={`Go to ${tab.label}`}
+              className={`h-2 rounded-full transition-all ${
+                activeIndex === i ? "w-8 bg-primary" : "w-2 bg-foreground/40"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function LandingScreen() {
   const [scrollY, setScrollY] = useState(0)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("niche-markets")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [heroImageIndex, setHeroImageIndex] = useState(0)
   const tabSectionRef = useRef<HTMLDivElement>(null)
   const tabIndexRef = useRef(0)
 
-  const { scrollYProgress } = useScroll({
-    target: tabSectionRef,
-    offset: ["start start", "end end"],
-  })
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 80, damping: 20 })
-
   useEffect(() => {
-    return smoothProgress.on("change", (v) => {
-      const newIndex = Math.min(featureTabs.length - 1, Math.floor(v * featureTabs.length))
-      if (newIndex !== tabIndexRef.current) {
+    const handleScroll = () => {
+      const el = tabSectionRef.current
+      if (!el) return
+      const { top, height } = el.getBoundingClientRect()
+      const progress = Math.max(0, Math.min(1, -top / (height - window.innerHeight)))
+      const newIndex = Math.min(featureTabs.length - 1, Math.floor(progress * featureTabs.length))
+if (newIndex !== tabIndexRef.current) {
         tabIndexRef.current = newIndex
         setActiveTab(featureTabs[newIndex].id)
       }
-    })
-  }, [smoothProgress])
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -220,9 +338,14 @@ export function LandingScreen() {
   const currentTab = featureTabs.find((t) => t.id === activeTab) || featureTabs[0]
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-background">
+    <div className="relative min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed left-0 right-0 top-0 z-50 px-6 md:px-10" style={{ height: "72px" }}>
+      <header
+        className={`fixed left-0 right-0 top-0 z-50 px-6 transition-all duration-200 md:px-10 ${
+          scrollY > 20 ? "border-b border-border bg-background/95 shadow-sm backdrop-blur-md" : "bg-transparent"
+        }`}
+        style={{ height: "72px" }}
+      >
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between">
           <Link href="/" aria-label="SubNiche home">
             <SubnicheLogo width={117} height={36} light priority />
@@ -238,42 +361,14 @@ export function LandingScreen() {
           </div>
 
           <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-foreground/80 hover:text-foreground"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            size="sm"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 md:hidden"
+            asChild
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Link href="/login">Sign in</Link>
           </Button>
         </div>
       </header>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            className="fixed inset-0 z-40 md:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-            <motion.div
-              className="absolute left-0 right-0 top-[72px] flex flex-col gap-4 border-b border-border bg-card p-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <Button variant="outline" className="w-full" asChild onClick={() => setMobileMenuOpen(false)}>
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button className="w-full bg-primary text-primary-foreground" asChild onClick={() => setMobileMenuOpen(false)}>
-                <Link href="/signup">Sign up</Link>
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Hero */}
       <section className="relative flex min-h-[85vh] items-center overflow-hidden px-6 pt-[72px]">
@@ -295,51 +390,35 @@ export function LandingScreen() {
         </div>
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16">
-          <motion.p
-            className="mb-4 text-sm font-medium text-primary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            The platform
-          </motion.p>
-          <motion.h1
-            className="mb-6 max-w-3xl text-balance text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.05 }}
-          >
+          <p className="mb-4 text-sm font-medium text-primary">The platform</p>
+          <h1 className="mb-6 max-w-3xl text-balance text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
             Where enthusiasts meet to buy, sell, and{" "}
             <span className="rounded-md bg-primary/15 px-3 py-1 text-primary">trade</span>.
-          </motion.h1>
-          <motion.p
-            className="mb-8 max-w-2xl text-base leading-relaxed text-foreground/70 md:text-lg"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
+          </h1>
+          <p className="mb-8 max-w-2xl text-base leading-relaxed text-foreground/70 md:text-lg">
             Built to bring people together to buy, sell, trade, and connect with others who care about the same thing.
             No generic categories. No yard-sale chaos. Designed by enthusiasts, for enthusiasts.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          </p>
+          <div>
             <Button className="group gap-2 bg-primary font-semibold text-primary-foreground hover:bg-primary/90" asChild>
-              <Link href="/signup">
+              <Link href="/find-niche">
                 Find your people
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Feature tabs — scroll-driven */}
+      {/* Feature tabs — mobile: swipeable carousel · desktop: scroll-driven */}
+
+      {/* MOBILE: swipeable horizontal carousel */}
+      <MobileTabsCarousel />
+
+      {/* DESKTOP: scroll-driven sticky tabs */}
       <section
         ref={tabSectionRef}
-        className="relative z-10 px-6"
+        className="relative z-10 hidden px-6 md:block"
         style={{ height: `${featureTabs.length * 100}vh` }}
       >
         <div className="sticky top-0 flex h-screen flex-col justify-start pb-8 pt-16">
@@ -416,7 +495,7 @@ export function LandingScreen() {
       <section className="relative z-10 px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 md:grid-cols-2">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <motion.div >
               <h2 className="mb-6 text-3xl font-bold md:text-4xl">Purpose built for enthusiasts.</h2>
               <p className="mb-8 text-foreground/70">
                 Community and social groups try to make existing platforms fit when they don&apos;t. Experience a
@@ -435,7 +514,7 @@ export function LandingScreen() {
                 ))}
               </ul>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <motion.div >
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <span className="font-medium">Marketplace</span>
@@ -458,7 +537,7 @@ export function LandingScreen() {
       <section className="relative z-10 bg-card/30 px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 md:grid-cols-2">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-2 md:order-1">
+            <motion.div className="order-2 md:order-1">
               <div className="rounded-xl border border-border bg-card p-6">
                 <div className="mb-4 flex items-center gap-4">
                   <div className="h-12 w-12 overflow-hidden rounded-lg bg-primary/20">
@@ -476,7 +555,7 @@ export function LandingScreen() {
                 </div>
               </div>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 md:order-2">
+            <motion.div className="order-1 md:order-2">
               <h2 className="mb-6 text-3xl font-bold md:text-4xl">Not just groups. Real communities.</h2>
               <p className="text-foreground/70">
                 User-led communities bring interests, listings, and discussion into the same space. Create your own —
@@ -491,7 +570,7 @@ export function LandingScreen() {
       <section className="relative z-10 px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 md:grid-cols-2">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <motion.div >
               <h2 className="mb-6 text-3xl font-bold md:text-4xl">Your collection, organized.</h2>
               <ul className="space-y-4">
                 {[
@@ -507,7 +586,7 @@ export function LandingScreen() {
                 ))}
               </ul>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <motion.div >
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-4 grid grid-cols-3 gap-3">
                   {gearImages.map((img, i) => (
@@ -536,7 +615,7 @@ export function LandingScreen() {
       <section className="relative z-10 bg-card/30 px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 md:grid-cols-2">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-2 md:order-1">
+            <motion.div className="order-2 md:order-1">
               <div className="rounded-xl border border-border bg-card p-6">
                 <h4 className="mb-4 font-semibold">Trade Matches</h4>
                 <div className="space-y-4">
@@ -562,7 +641,7 @@ export function LandingScreen() {
                 </div>
               </div>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 md:order-2">
+            <motion.div className="order-1 md:order-2">
               <h2 className="mb-6 text-3xl font-bold md:text-4xl">Trade gear, not dollars.</h2>
               <p className="mb-8 text-foreground/70">Trading made easy.</p>
               <ul className="space-y-4">
@@ -581,7 +660,7 @@ export function LandingScreen() {
       {/* How it works */}
       <section className="relative z-10 px-6 py-24">
         <div className="mx-auto max-w-6xl">
-          <motion.h2 className="mb-16 text-center text-3xl font-bold md:text-4xl" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.h2 className="mb-16 text-center text-3xl font-bold md:text-4xl" >
             How it works
           </motion.h2>
           <div className="grid gap-6 md:grid-cols-3">
@@ -590,7 +669,7 @@ export function LandingScreen() {
               { step: "02", title: "Build your collections & profile", description: "Upload items, create collections, organize and track. Curate your profile. Establish your cred." },
               { step: "03", title: "Share, connect & invite", description: "Share collections, explore trades, join communities and connect with like-minded enthusiasts." },
             ].map((item, i) => (
-              <motion.div key={item.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="rounded-xl border border-border bg-card p-6">
+              <motion.div key={item.step} className="rounded-xl border border-border bg-card p-6">
                 <span className="text-4xl font-bold text-primary/30">{item.step}</span>
                 <h3 className="mb-2 mt-4 text-lg font-semibold">{item.title}</h3>
                 <p className="text-sm text-foreground/60">{item.description}</p>
@@ -603,13 +682,13 @@ export function LandingScreen() {
       {/* CTA */}
       <section className="relative z-10 px-6 py-24">
         <div className="mx-auto max-w-4xl text-center">
-          <motion.h2 className="mb-6 text-3xl font-bold md:text-5xl" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.h2 className="mb-6 text-3xl font-bold md:text-5xl" >
             For those who get it
           </motion.h2>
-          <motion.p className="mb-10 text-lg text-foreground/70" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+          <motion.p className="mb-10 text-lg text-foreground/70" >
             When you&apos;re with the right people, everything works better.
           </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+          <motion.div >
             <Button size="lg" className="group h-auto gap-2 bg-primary px-8 py-6 text-lg text-primary-foreground hover:bg-primary/90" asChild>
               <Link href="/signup">
                 Find your people
@@ -623,10 +702,10 @@ export function LandingScreen() {
       {/* Current niches */}
       <section className="relative z-10 bg-card/30 px-6 py-24">
         <div className="mx-auto max-w-6xl">
-          <motion.p className="mb-4 text-center text-foreground/50" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+          <motion.p className="mb-4 text-center text-foreground/50" >
             already live on SubNiche
           </motion.p>
-          <motion.h2 className="mb-12 text-center text-3xl font-bold md:text-4xl" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.h2 className="mb-12 text-center text-3xl font-bold md:text-4xl" >
             Current niches
           </motion.h2>
           <div className="flex flex-wrap justify-center gap-4">
@@ -637,7 +716,7 @@ export function LandingScreen() {
               { icon: LayoutGrid, label: "Collectors", available: false },
               { icon: Shirt, label: "Clothes", available: false },
             ].map((niche, i) => (
-              <motion.div key={niche.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
+              <motion.div key={niche.label} >
                 {niche.available && niche.href ? (
                   <Link
                     href={niche.href}
@@ -661,12 +740,12 @@ export function LandingScreen() {
       {/* FAQ */}
       <section className="relative z-10 px-6 py-24">
         <div className="mx-auto max-w-3xl">
-          <motion.h2 className="mb-16 text-center text-3xl font-bold md:text-4xl" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.h2 className="mb-16 text-center text-3xl font-bold md:text-4xl" >
             Frequently asked questions
           </motion.h2>
           <div className="space-y-4">
             {faqItems.map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="overflow-hidden rounded-xl border border-border">
+              <motion.div key={i} className="overflow-hidden rounded-xl border border-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-card/50"

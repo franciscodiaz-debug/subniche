@@ -10,27 +10,49 @@
  * by the parent via `highlightedItemIds` so this file stays data-agnostic.
  */
 
-import { Repeat2 } from "lucide-react"
+import { Repeat2, Sparkles } from "lucide-react"
+import Link from "next/link"
 
-import type { MockTradeInterest } from "@/lib/mock-listing-detail"
+import type { MockTradeInterest, MockMutualMatch } from "@/lib/mock-listing-detail"
 import { cn } from "@/lib/utils"
 import { SectionHeading } from "./info-sections"
 
 interface TradeInterestViewProps {
   data: MockTradeInterest | null
-  /** Item ids the current viewer already has a match on (renders gold ring). */
   highlightedItemIds?: string[]
+  mutualMatch?: MockMutualMatch | null
 }
 
 export function TradeInterestView({
   data,
   highlightedItemIds = [],
+  mutualMatch,
 }: TradeInterestViewProps) {
   if (!data) return null
 
   return (
     <section aria-label="Trade interests">
       <SectionHeading icon={Repeat2} title="Open to trade for" />
+
+      {mutualMatch && (
+        <div className="mb-3 flex items-center gap-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-2.5">
+          <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-primary">Mutual Match</span>
+              <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-primary">
+                {mutualMatch.matchScore.toFixed(1)}
+              </span>
+            </div>
+            <Link
+              href={mutualMatch.viewerListingHref}
+              className="truncate text-xs text-muted-foreground hover:text-foreground"
+            >
+              Your listing: {mutualMatch.viewerListingTitle}
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-card border border-border bg-card p-4 md:p-5">
         {data.mode === "simple" ? (

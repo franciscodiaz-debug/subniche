@@ -17,6 +17,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+
 import {
   Bookmark,
   Heart,
@@ -34,73 +35,83 @@ import type { AvailabilityType, MockListing } from "@/lib/mock-listing-detail"
 
 interface ViewerActionsProps {
   availability: AvailabilityType[]
+  markedAsSold?: boolean
+  mutualMatch?: { matchScore: number; viewerListingTitle: string; viewerListingHref: string } | null
 }
 
-export function ViewerActions({ availability }: ViewerActionsProps) {
+export function ViewerActions({ availability, markedAsSold, mutualMatch }: ViewerActionsProps) {
   const [wishlisted, setWishlisted] = useState(false)
 
   const isForSale = availability.includes("for-sale")
   const isForTrade = availability.includes("for-trade")
-  const isCollectionOnly =
-    availability.includes("collection") && !isForSale && !isForTrade
+  const isCollectionOnly = !isForSale && !isForTrade
+
+  // Sold state: only Send a Message
+  if (markedAsSold) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
+          <ShoppingBag className="h-4 w-4 shrink-0" />
+          This item has been sold
+        </div>
+        <Link href="/inbox" className="w-full">
+          <Button size="lg" className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            <MessageCircle className="h-4 w-4" />
+            Send a Message
+          </Button>
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Stacked primary CTAs. Order: buy > trade > message-only fallback. */}
+      {/* Primary CTAs */}
       <div className="flex flex-col gap-2">
-        {isForSale ? (
-          <Button
-            size="lg"
-            className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <ShoppingBag className="h-4 w-4" />
-            Buy — Contact Seller
-          </Button>
-        ) : null}
+        {isForSale && (
+          <Link href="/inbox" className="w-full">
+            <Button size="lg" className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+              <MessageCircle className="h-4 w-4" />
+              Contact Seller
+            </Button>
+          </Link>
+        )}
 
-        {isForTrade ? (
-          <Button
-            size="lg"
-            variant={isForSale ? "outline" : "default"}
-            className={cn(
-              "w-full gap-2",
-              !isForSale && "bg-primary text-primary-foreground hover:bg-primary/90",
-            )}
-          >
-            <Repeat2 className="h-4 w-4" />
-            Propose a Trade
-          </Button>
-        ) : null}
+        {isForTrade && (
+          <Link href="/inbox?propose=true" className="w-full">
+            <Button
+              size="lg"
+              variant={isForSale ? "outline" : "default"}
+              className={cn("w-full gap-2", !isForSale && "bg-primary text-primary-foreground hover:bg-primary/90")}
+            >
+              <Repeat2 className="h-4 w-4" />
+              Propose a Trade
+            </Button>
+          </Link>
+        )}
 
-        {isCollectionOnly ? (
-          <Button size="lg" className="w-full gap-2">
-            <MessageCircle className="h-4 w-4" />
-            Message Owner
-          </Button>
-        ) : null}
-
-        {/* "Message Owner" is always available as a quieter secondary option
-            for for-sale/trade listings, since not every buyer wants to lead
-            with a commerce action. */}
-        {!isCollectionOnly ? (
-          <Button variant="ghost" size="sm" className="w-full gap-2">
-            <MessageCircle className="h-4 w-4" />
-            Message Owner
-          </Button>
-        ) : null}
+        {isCollectionOnly && (
+          <Link href="/inbox" className="w-full">
+            <Button size="lg" className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+              <MessageCircle className="h-4 w-4" />
+              Send a Message
+            </Button>
+          </Link>
+        )}
       </div>
 
-      {/* Secondary icon row. Kept quiet so it doesn't compete with primary CTAs. */}
+      {/* Secondary icon row */}
       <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-card/60 px-3 py-2">
         <IconAction
           active={wishlisted}
           onClick={() => setWishlisted((v) => !v)}
           icon={wishlisted ? Bookmark : Heart}
-          label={wishlisted ? "Saved" : "Wishlist"}
+          label={wishlisted ? "Saved" : "Watchlist"}
         />
         <div className="h-5 w-px bg-border" aria-hidden="true" />
         <IconAction icon={Share2} label="Share" onClick={() => {}} />
       </div>
+
     </div>
   )
 }

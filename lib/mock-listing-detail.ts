@@ -139,7 +139,7 @@ const marcoSeller: MockSeller = {
   id: "user-marco-amp",
   username: "marco_amp",
   displayName: "Marco Lennox",
-  avatarUrl: "/placeholder.svg?height=120&width=120",
+  avatarUrl: "https://i.pravatar.cc/150?img=11",
   location: "Austin, TX",
   joinedYear: 2019,
   ratingAverage: 4.8,
@@ -151,7 +151,7 @@ const sashaSeller: MockSeller = {
   id: "user-sasha-keys",
   username: "sasha.keys",
   displayName: "Sasha Reyes",
-  avatarUrl: "/placeholder.svg?height=120&width=120",
+  avatarUrl: "https://i.pravatar.cc/150?img=9",
   location: "Portland, OR",
   joinedYear: 2022,
   ratingAverage: 5.0,
@@ -170,7 +170,7 @@ function buildMarcoGear(): MockRelatedCard[] {
       title: "Fender '65 Deluxe Reverb Reissue",
       subtitle: "All-tube combo, recently serviced",
       price: 1150,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&h=800&fit=crop",
       href: "/listings/rel-1",
     },
     {
@@ -178,7 +178,7 @@ function buildMarcoGear(): MockRelatedCard[] {
       title: "Vintage 1973 Gibson SG Standard",
       subtitle: "Cherry, original case, T-top pickups",
       price: 3200,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=600&h=800&fit=crop",
       forTrade: true,
       href: "/listings/rel-2",
     },
@@ -187,7 +187,7 @@ function buildMarcoGear(): MockRelatedCard[] {
       title: "Boss CE-1 Chorus Ensemble",
       subtitle: "Original unit, serviced",
       price: 550,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=600&h=800&fit=crop",
       href: "/listings/rel-3",
     },
     {
@@ -195,7 +195,7 @@ function buildMarcoGear(): MockRelatedCard[] {
       title: "Shure SM7B",
       subtitle: "Podcast / broadcast microphone",
       price: 320,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=800&fit=crop",
       href: "/listings/rel-4",
     },
   ]
@@ -208,7 +208,7 @@ function buildRelated(): MockRelatedCard[] {
       title: "1961 Fender Stratocaster",
       subtitle: "Slab board, all original",
       price: 31500,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=600&h=800&fit=crop",
       forTrade: true,
       href: "/listings/ymal-1",
     },
@@ -217,7 +217,7 @@ function buildRelated(): MockRelatedCard[] {
       title: "1966 Fender Jazzmaster",
       subtitle: "Sonic blue refin, matching headstock",
       price: 9200,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1516924357985-d921c87e79a0?w=600&h=800&fit=crop",
       href: "/listings/ymal-2",
     },
     {
@@ -225,7 +225,7 @@ function buildRelated(): MockRelatedCard[] {
       title: "1968 Gibson ES-335",
       subtitle: "Sunburst, trapeze tailpiece",
       price: 7800,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1477722480804-e4b895d14a77?w=600&h=800&fit=crop",
       href: "/listings/ymal-3",
     },
     {
@@ -233,7 +233,7 @@ function buildRelated(): MockRelatedCard[] {
       title: "2019 Fender Custom Shop '63 Strat Relic",
       subtitle: "Aged lake placid blue",
       price: 4500,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1548174773-c9cd8b9ff1e2?w=600&h=800&fit=crop",
       href: "/listings/ymal-4",
     },
     {
@@ -241,7 +241,7 @@ function buildRelated(): MockRelatedCard[] {
       title: "1965 Fender Deluxe Reverb",
       subtitle: "Blackface, original transformers",
       price: 2400,
-      imageUrl: "/placeholder.svg?height=600&width=800",
+      imageUrl: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&h=800&fit=crop",
       href: "/listings/ymal-5",
     },
   ]
@@ -262,10 +262,10 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       "All-original 1965 Fender Stratocaster in three-tone sunburst with a rosewood fretboard. Frets were dressed in 2022 and the guitar plays effortlessly up and down the neck. Pickups read 5.8k / 5.9k / 6.1k and sound exactly as they should — glassy in position 2, vocal in 4, pure Hendrix in 5. Comes with the original tweed case, case candy, and a 2024 tech invoice. Zero issues, no breaks, no refinish. One of the cleanest 65s I've ever owned.",
   price: 28500,
   images: [
-    "/listings/strat-hero.jpg",
-    "/placeholder.svg?height=900&width=1200",
-    "/placeholder.svg?height=900&width=1200",
-    "/placeholder.svg?height=900&width=1200",
+    "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1516924357985-d921c87e79a0?w=900&h=1200&fit=crop",
   ],
     conditionLabel: "Used — As New",
     conditionExplanation:
@@ -322,7 +322,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
     mutualMatch: {
       viewerListingTitle: "1968 Gibson ES-335",
       viewerListingHref: "/listings/viewer-es-335",
-      viewerListingImage: "/placeholder.svg?height=160&width=200",
+      viewerListingImage: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&h=800&fit=crop",
       summary: "Marco wants a late-60s ES-335 — your listing matches.",
       matchScore: 9.2,
     },
@@ -331,7 +331,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       {
         id: "c-1",
         authorName: "Kyle B.",
-        authorAvatarUrl: "/placeholder.svg?height=64&width=64",
+        authorAvatarUrl: "https://i.pravatar.cc/64?img=14",
         timestamp: "3 days ago",
         body: "Would you consider splitting shipping with a 2024 tech invoice amount? Happy to pay half if you want to post the receipt.",
         replies: [
@@ -348,7 +348,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       {
         id: "c-2",
         authorName: "Reva M.",
-        authorAvatarUrl: "/placeholder.svg?height=64&width=64",
+        authorAvatarUrl: "https://i.pravatar.cc/64?img=17",
         timestamp: "5 days ago",
         body: "Is the neck pickup the original grey-bottom? Looks like it in the pics but wanted to confirm.",
         replies: [
@@ -377,9 +377,9 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       "Clean Two Rock Classic Reverb Signature head. The classic Dumble-flavored clean with a singing overdrive channel. Serviced by Two Rock in early 2024 — new valves, bias set to spec. Pairs beautifully with a 2x12 cab and a Strat. No issues, selling because I'm consolidating heads.",
   price: 4200,
   images: [
-    "/listings/dumble-hero.jpg",
-    "/placeholder.svg?height=900&width=1200",
-    "/placeholder.svg?height=900&width=1200",
+    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1477722480804-e4b895d14a77?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=900&h=1200&fit=crop",
   ],
     conditionLabel: "Used — Excellent",
     conditionExplanation:
@@ -413,7 +413,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       {
         id: "c-1",
         authorName: "Devon A.",
-        authorAvatarUrl: "/placeholder.svg?height=64&width=64",
+        authorAvatarUrl: "https://i.pravatar.cc/64?img=20",
         timestamp: "1 day ago",
         body: "Any chance of a short clip through your usual rig? Curious how the overdrive channel breaks up.",
       },
@@ -425,7 +425,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "Fuchs Overdrive Supreme 50",
         subtitle: "Head, 2018, serviced",
         price: 2400,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=600&h=800&fit=crop",
         href: "/listings/ymal-amp-1",
       },
       {
@@ -433,7 +433,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "Bludotone Bludo-Drive",
         subtitle: "Head — Mk III, 2020",
         price: 6800,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=600&h=800&fit=crop",
         href: "/listings/ymal-amp-2",
       },
       {
@@ -441,7 +441,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "Ceriatone Overtone Special 100",
         subtitle: "HRM build, 2022",
         price: 2100,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=800&fit=crop",
         href: "/listings/ymal-amp-3",
       },
       {
@@ -449,7 +449,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "Matchless Chieftain",
         subtitle: "Combo, 40W, recovered",
         price: 3300,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=600&h=800&fit=crop",
         href: "/listings/ymal-amp-4",
       },
     ],
@@ -465,8 +465,8 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       "Historic Makeovers conversion on a 2019 Gibson Custom Shop R9. Double-bound top, Brazilian board, re-topped with a monster flame. Pickups are Throbaks SLE-101+. It plays like butter and looks like a hundred grand. Living in my collection for life.",
   price: null,
   images: [
-    "/listings/lespaul-hero.jpg",
-    "/placeholder.svg?height=900&width=1200",
+    "https://images.unsplash.com/photo-1548174773-c9cd8b9ff1e2?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=900&h=1200&fit=crop",
   ],
     conditionLabel: "Used — Excellent",
     conditionExplanation:
@@ -490,7 +490,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       {
         id: "c-1",
         authorName: "Lou P.",
-        authorAvatarUrl: "/placeholder.svg?height=64&width=64",
+        authorAvatarUrl: "https://i.pravatar.cc/64?img=25",
         timestamp: "1 week ago",
         body: "Absolutely stunning. Who did the HM conversion?",
         replies: [
@@ -511,7 +511,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "2021 Collings 290 DC S",
         subtitle: "TV Yellow, mastery bridge",
         price: null,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1516924357985-d921c87e79a0?w=600&h=800&fit=crop",
         href: "/listings/sasha-1",
       },
       {
@@ -519,7 +519,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "1964 Gibson SG Junior",
         subtitle: "Cherry, single P-90",
         price: null,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1477722480804-e4b895d14a77?w=600&h=800&fit=crop",
         href: "/listings/sasha-2",
       },
       {
@@ -527,7 +527,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "2020 Nash T-63",
         subtitle: "Aged olympic white",
         price: null,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1548174773-c9cd8b9ff1e2?w=600&h=800&fit=crop",
         href: "/listings/sasha-3",
       },
     ],
@@ -544,9 +544,9 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       "Custom Shop Tele in aged Lake Placid Blue with a matching headstock. Relic'd tastefully — not beat to death. Neck is a medium C profile with a 7.25” radius and vintage-tall frets. Sounds bright and clear with real Tele quack in position 2. Comes with the original case, COA, and polish cloth.",
   price: 3800,
   images: [
-    "/listings/owner-amp-hero.jpg",
-    "/placeholder.svg?height=900&width=1200",
-    "/placeholder.svg?height=900&width=1200",
+    "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=900&h=1200&fit=crop",
+    "https://images.unsplash.com/photo-1516924357985-d921c87e79a0?w=900&h=1200&fit=crop",
   ],
     conditionLabel: "Used — Excellent",
     conditionExplanation:
@@ -594,14 +594,14 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
       {
         id: "c-1",
         authorName: "Tanya V.",
-        authorAvatarUrl: "/placeholder.svg?height=64&width=64",
+        authorAvatarUrl: "https://i.pravatar.cc/64?img=32",
         timestamp: "4 hours ago",
         body: "Is the neck profile closer to a soft V or medium C? Hard to tell from the photos.",
       },
       {
         id: "c-2",
         authorName: "Will D.",
-        authorAvatarUrl: "/placeholder.svg?height=64&width=64",
+        authorAvatarUrl: "https://i.pravatar.cc/64?img=36",
         timestamp: "1 day ago",
         body: "Would you ship international (UK)? Happy to cover the full cost + any VAT docs you'd need.",
       },
@@ -612,7 +612,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "1972 Fender Telecaster Thinline",
         subtitle: "Natural, Wide Range humbuckers",
         price: 3950,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&h=800&fit=crop",
         href: "/listings/jill-1",
       },
       {
@@ -620,7 +620,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "1965 Vox AC30",
         subtitle: "Copper panel, serviced",
         price: 2800,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=600&h=800&fit=crop",
         href: "/listings/jill-2",
       },
       {
@@ -628,7 +628,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
         title: "Klon Centaur (Silver, non-horsie)",
         subtitle: "Original, excellent",
         price: 4600,
-        imageUrl: "/placeholder.svg?height=600&width=800",
+        imageUrl: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=600&h=800&fit=crop",
         href: "/listings/jill-3",
       },
     ],

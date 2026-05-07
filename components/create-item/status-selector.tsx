@@ -44,9 +44,9 @@ const sizeStyles = {
     wrapper: "flex flex-wrap items-center gap-2",
   },
   md: {
-    chip: "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border-2",
+    chip: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
     icon: "h-4 w-4",
-    divider: "w-px h-6 mx-1.5",
+    divider: "w-px h-4 mx-1",
     wrapper: "flex flex-wrap items-center gap-2",
   },
   lg: {

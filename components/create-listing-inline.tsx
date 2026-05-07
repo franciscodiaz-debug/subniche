@@ -712,15 +712,11 @@ export function CreateListingInline({
   // while something is still unfilled. It stays dismissed on the happy path.
   const [showMissingError, setShowMissingError] = useState(false)
 
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleFieldsVisible = (label: string) => {
-    // For Trade shows its own dedicated notice instead of the generic "fields added below".
-    if (label === "For Trade") {
-      setTradeNoticeVisible(true)
-      setTimeout(() => setTradeNoticeVisible(false), 4000)
-      return
-    }
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
     setStatusFieldsAdded(label)
-    setTimeout(() => setStatusFieldsAdded(null), 4000)
+    statusTimerRef.current = setTimeout(() => setStatusFieldsAdded(null), 2500)
   }
 
   const [saleData, setSaleData] = useState<ItemSaleStatus>({
@@ -1447,31 +1443,9 @@ export function CreateListingInline({
 
       <div id="create-listing-top" className="hidden md:block px-4 py-6 md:px-6 lg:px-8">
         <div className="flex flex-col gap-4 mb-4">
-          {/* Top row: status now takes the title slot — a more relevant, minimal
-              anchor than a generic "Add Item" heading. */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div
-              data-onboarding="status"
-              className="flex items-center gap-3 flex-wrap"
-            >
-              <StatusSelector
-                size="md"
-                forSale={forSaleActive}
-                forTrade={forTradeActive}
-                inCollection={inCollectionActive}
-                isWishlist={isWishlistActive}
-                onForSaleChange={handleForSaleChange}
-                onForTradeChange={handleForTradeChange}
-                onInCollectionChange={handleInCollectionChange}
-                onWishlistChange={handleWishlistChange}
-              />
-              {initialCollectionName && (
-                <span className="text-xs text-muted-foreground border border-border rounded-md px-2 py-0.5">
-                  to {initialCollectionName}
-                </span>
-              )}
-            </div>
-
+          {/* Row 1: page title + action buttons */}
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold text-foreground">Add Item</h1>
             <div className="flex gap-2 sm:gap-3">
               {/* Prototype-only autofill. Kept visually distinct (dashed
                   border + muted tone) so it reads as a demo affordance,
@@ -1546,6 +1520,52 @@ export function CreateListingInline({
                 {getPublishStatus().label}
                 <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Button>
+            </div>
+          </div>
+
+          {/* Row 2: status selector */}
+          <div data-onboarding="status" className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted-foreground">Status</span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+              {statusFieldsAdded && (
+                <>
+                  <span
+                    className={cn(
+                      "flex items-center gap-1 font-medium",
+                      statusFieldsAdded === "For Sale" && "text-emerald-400",
+                      statusFieldsAdded === "For Trade" && "text-sky-400",
+                      statusFieldsAdded === "Collection" && "text-primary",
+                      statusFieldsAdded === "Wishlist" && "text-rose-400",
+                    )}
+                  >
+                    <span>•</span>
+                    <span>{statusFieldsAdded}</span>
+                  </span>
+                  <span className="text-foreground">
+                    fields added
+                    {statusFieldsAdded === "For Trade" && " – you'll set interests in the next step"}
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatusSelector
+                size="md"
+                forSale={forSaleActive}
+                forTrade={forTradeActive}
+                inCollection={inCollectionActive}
+                isWishlist={isWishlistActive}
+                onForSaleChange={handleForSaleChange}
+                onForTradeChange={handleForTradeChange}
+                onInCollectionChange={handleInCollectionChange}
+                onWishlistChange={handleWishlistChange}
+              />
+              {initialCollectionName && (
+                <span className="text-xs text-muted-foreground border border-border rounded-md px-2 py-0.5">
+                  to {initialCollectionName}
+                </span>
+              )}
             </div>
           </div>
 

@@ -45,7 +45,13 @@ import {
   TRADE_CONDITIONS,
   type TradeCategory,
 } from "@/lib/trade-specs"
-import { parseSimpleToAdvanced } from "@/components/create-item/trade-interest-section"
+import {
+  parseSimpleToAdvanced,
+  BrandModelCombobox,
+  SpecsChipSection,
+} from "@/components/create-item/trade-interest-section"
+import { CategorySelector } from "@/components/trade-interests/shared/category-selector"
+import { getBrandsFor, getModelsFor } from "@/lib/trade-brands"
 import {
   useSavedTradeInterests,
   type SavedTradeInterest,
@@ -319,74 +325,46 @@ export function SavedInterestEditor({
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Category" required>
-              <Select
-                value={draft.category || undefined}
-                onValueChange={(v) =>
-                  patch({
-                    category: v,
-                    subcategory: "",
-                    brand: "",
-                    model: "",
-                    specs: {},
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pick a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TRADE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field label="Subcategory">
-              <Select
-                value={draft.subcategory || undefined}
-                onValueChange={(v) => patch({ subcategory: v, specs: {} })}
-                disabled={subcategories.length === 0}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      draft.category
-                        ? subcategories.length
-                          ? "Any subcategory"
-                          : "No subcategories"
-                        : "Pick a category first"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {subcategories.map((sub) => (
-                    <SelectItem key={sub} value={sub}>
-                      {sub}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </div>
+          <CategorySelector
+            category={draft.category}
+            subcategory={draft.subcategory}
+            onCategoryChange={(v) =>
+              patch({
+                category: v,
+                subcategory: "",
+                brand: "",
+                model: "",
+                specs: {},
+              })
+            }
+            onSubcategoryChange={(v) => patch({ subcategory: v, specs: {} })}
+          />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Brand">
-              <Input
+              <BrandModelCombobox
                 value={draft.brand}
-                onChange={(e) => patch({ brand: e.target.value })}
+                unverified={false}
+                options={
+                  draft.category
+                    ? getBrandsFor(draft.category).map((b) => b.name)
+                    : []
+                }
                 placeholder="Any brand"
+                onChange={(v) => patch({ brand: v })}
               />
             </Field>
             <Field label="Model">
-              <Input
+              <BrandModelCombobox
                 value={draft.model}
-                onChange={(e) => patch({ model: e.target.value })}
+                unverified={false}
+                options={
+                  draft.brand && draft.category
+                    ? getModelsFor(draft.category, draft.brand)
+                    : []
+                }
                 placeholder="Any model"
+                onChange={(v) => patch({ model: v })}
               />
             </Field>
           </div>
@@ -396,35 +374,11 @@ export function SavedInterestEditor({
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Specs
               </p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {specFields.map((field) => (
-                  <Field key={field.key} label={field.label}>
-                    <Select
-                      value={draft.specs[field.key] ?? "Any"}
-                      onValueChange={(v) =>
-                        patch({
-                          specs: {
-                            ...draft.specs,
-                            [field.key]: v === "Any" ? "" : v,
-                          },
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Any" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Any">Any</SelectItem>
-                        {field.options.map((opt) => (
-                          <SelectItem key={opt} value={opt}>
-                            {opt}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                ))}
-              </div>
+              <SpecsChipSection
+                fields={specFields}
+                values={draft.specs}
+                onChange={(specs) => patch({ specs })}
+              />
             </div>
           ) : null}
 

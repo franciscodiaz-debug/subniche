@@ -21,6 +21,8 @@ interface TradeItemSelectorProps {
    *     Use when the selector is acting as the page's contextual subject
    *     ("Trade Interests / For [All items ▾]"), not as a sidebar filter. */
   variant?: "default" | "subtle"
+  /** Prefix shown before the selected value in the trigger ("Matches for", "Applied to", etc.). */
+  triggerPrefix?: string
 }
 
 export function TradeItemSelector({
@@ -29,6 +31,7 @@ export function TradeItemSelector({
   onSelect,
   totalMatches,
   variant = "default",
+  triggerPrefix = "Matches for",
 }: TradeItemSelectorProps) {
   // Interests drive matches, so make them the primary badge per item. The
   // selector is the closest surface to the user's mental model of "what am I
@@ -89,25 +92,15 @@ export function TradeItemSelector({
           ],
         )}
       >
-        {selected ? (
-          <span
-            className={cn(
-              "font-medium text-foreground",
-              variant === "default" ? "text-sm" : "text-base",
-            )}
-          >
-            {selected.title}
-          </span>
-        ) : (
-          <span
-            className={cn(
-              "font-medium text-foreground",
-              variant === "default" ? "text-sm" : "text-base",
-            )}
-          >
-            All items
-          </span>
-        )}
+        <span
+          className={cn(
+            "font-medium text-foreground",
+            variant === "default" ? "text-sm" : "text-base",
+          )}
+        >
+          <span className="text-muted-foreground">{triggerPrefix}</span>{" "}
+          {selected ? selected.title : "all items"}
+        </span>
         <ChevronDown
           className={cn(
             "text-muted-foreground transition-transform",

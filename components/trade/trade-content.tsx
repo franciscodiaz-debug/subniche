@@ -9,7 +9,10 @@ import {
   tradePerfectMatches,
   type TradeableItemSummary,
 } from "@/lib/market-data"
+import { Button } from "@/components/ui/button"
+import { X } from "lucide-react"
 import { GridDensitySelector } from "@/components/shared/grid-density-selector"
+import { MultiItemFilter } from "@/components/trade/multi-item-filter"
 import { MarketTabs } from "@/components/shared/market-tabs"
 import {
   OnboardingTooltip,
@@ -20,7 +23,6 @@ import {
   useGridDensity,
 } from "@/hooks/use-grid-density"
 import { ItemCard } from "@/components/item-card"
-import { TradeItemSelector } from "@/components/trade/trade-item-selector"
 import { TradeInterestsView } from "@/components/trade/trade-interests-view"
 
 const tradeOnboardingSteps: OnboardingStep[] = [
@@ -83,7 +85,13 @@ type DisplayEntry = {
 }
 
 export function TradeContent() {
-  const [filterMyItem, setFilterMyItem] = useState<string>("all")
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  // Single-item mode for the hub: only when exactly one is selected.
+  const filterMyItem =
+    selectedIds.length === 1 ? selectedIds[0] : "all"
+  const setFilterMyItem = (id: string) => {
+    setSelectedIds(id === "all" ? [] : [id])
+  }
   // "grid" is the default matches/interest grid; "interests" replaces the
   // whole Trade surface with the management view (reachable via the gear on
   // the filter row). No modal — it's plain section navigation inside Trade.
@@ -119,9 +127,9 @@ export function TradeContent() {
     /* Quick lookup so we don't scan myTradeableItems for every entry. */
     const itemsById = new Map(myTradeableItems.map((item) => [item.id, item]))
 
-    if (filterMyItem !== "all") {
+    if (selectedIds.length > 0) {
       return combined
-        .filter((entry) => entry.data.my_item_id === filterMyItem)
+        .filter((entry) => selectedIds.includes(entry.data.my_item_id))
         .map((entry) => {
           const matched = itemsById.get(entry.data.my_item_id)
           return {
@@ -183,7 +191,7 @@ export function TradeContent() {
     return Array.from(byTheirId.values()).sort(
       (a, b) => b.sortKey - a.sortKey,
     )
-  }, [combined, filterMyItem])
+  }, [combined, selectedIds])
 
   // When the user opens the Trade Interests management surface, the whole
   // Trade section is replaced — no overlay, no split screen. The back arrow
@@ -213,32 +221,62 @@ export function TradeContent() {
       <MarketTabs id="trade-tabs" className="mb-5" />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setView("interests")}
+          className="h-9 gap-1.5"
+        >
+          <Settings className="h-4 w-4" />
+          Set Trade Interests
+        </Button>
         <div
           className="flex flex-wrap items-center gap-2"
           data-onboarding-id="trade-item-selector"
         >
-          <span className="text-sm text-muted-foreground">Matches for</span>
-          <TradeItemSelector
+          <GridDensitySelector id="trade-density" />
+          <MultiItemFilter
             items={myTradeableItems}
-            selectedItemId={filterMyItem}
-            onSelect={setFilterMyItem}
-            totalMatches={combined.length}
+            selectedIds={selectedIds}
+            onChange={setSelectedIds}
           />
+        </div>
+      </div>
+
+      {selectedIds.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {selectedIds.map((id) => {
+            const item = myTradeableItems.find((i) => i.id === id)
+            if (!item) return null
+            return (
+              <span
+                key={id}
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 py-1 pl-2 pr-1 text-xs text-foreground"
+              >
+                <span className="font-medium">{item.title}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedIds(selectedIds.filter((i) => i !== id))
+                  }
+                  aria-label={`Remove ${item.title}`}
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/20 hover:text-foreground"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )
+          })}
           <button
             type="button"
-            onClick={() => setView("interests")}
-            aria-label="Manage trade interests"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            onClick={() => setSelectedIds([])}
+            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
-            <Settings className="h-4 w-4" />
+            Clear all
           </button>
-          <span className="text-sm text-muted-foreground">
-            {displayEntries.length}{" "}
-            {displayEntries.length === 1 ? "match" : "matches"}
-          </span>
         </div>
-        <GridDensitySelector id="trade-density" />
-      </div>
+      )}
 
       {displayEntries.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-12 text-center">

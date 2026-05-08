@@ -19,6 +19,14 @@ import { exploreItems, type ExploreItem } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 import { ItemCard } from "@/components/item-card"
 import { GridDensitySelector } from "@/components/shared/grid-density-selector"
+import { FilterPill } from "@/components/shared/filter-pill"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { MarketTabs } from "@/components/shared/market-tabs"
 import { gridDensityConfig, useGridDensity } from "@/hooks/use-grid-density"
 import { useRequestNavCollapse } from "@/hooks/use-nav-collapse-request"
@@ -280,44 +288,38 @@ export function MarketContent() {
             ) : null}
 
             <div className="scrollbar-hide flex gap-2 overflow-x-auto">
-              {sortPills.map(({ value, label, icon: Icon }) => {
-                const active = sort === value
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => updateSort(value)}
-                    aria-pressed={active}
-                    className={cn(
-                      "inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                      active
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    {label}
-                  </button>
-                )
-              })}
+              {sortPills.map(({ value, label, icon: Icon }) => (
+                <FilterPill
+                  key={value}
+                  active={sort === value}
+                  onClick={() => updateSort(value)}
+                  icon={Icon}
+                >
+                  {label}
+                </FilterPill>
+              ))}
             </div>
 
             <div className="ml-auto flex items-center gap-2">
               <GridDensitySelector />
-              <label className="sr-only" htmlFor="market-secondary-sort">
-                Sort
-              </label>
-              <select
-                id="market-secondary-sort"
+              <Select
                 value={secondarySort}
-                onChange={(e) => setSecondarySort(e.target.value as SecondarySort)}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/40"
+                onValueChange={(v) => setSecondarySort(v as SecondarySort)}
               >
-                <option value="default">Sort: best match</option>
-                <option value="recent">Sort: most recent</option>
-                <option value="price-low">Sort: price low to high</option>
-                <option value="price-high">Sort: price high to low</option>
-              </select>
+                <SelectTrigger
+                  id="market-secondary-sort"
+                  aria-label="Sort"
+                  className="h-9 w-auto gap-2 text-sm"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Sort: best match</SelectItem>
+                  <SelectItem value="recent">Sort: most recent</SelectItem>
+                  <SelectItem value="price-low">Sort: price low to high</SelectItem>
+                  <SelectItem value="price-high">Sort: price high to low</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           )}

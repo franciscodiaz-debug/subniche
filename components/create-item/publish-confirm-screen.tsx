@@ -21,13 +21,14 @@
  * is true.
  */
 
-import { ArrowLeft, Loader2, X } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
   TradeInterestSection,
   type TradeInterestData,
+  summarizeInterest,
 } from "@/components/create-item/trade-interest-section"
 import { ListingDetailView } from "@/components/listing-detail/listing-detail-view"
 import type {
@@ -347,11 +348,84 @@ function RightColumnContent({
     )
   }
 
+  const hasContent =
+    trade.value.advanced.length > 0 ||
+    trade.value.simpleText.trim().length > 0
+
   return (
-    <TradeInterestSection
-      bare
-      value={trade.value}
-      onChange={trade.onChange}
-    />
+    <div className="space-y-4">
+      <ReviewBanner data={trade.value} hasContent={hasContent} />
+      <TradeInterestSection
+        bare
+        value={trade.value}
+        onChange={trade.onChange}
+      />
+    </div>
+  )
+}
+
+function ReviewBanner({
+  data,
+  hasContent,
+}: {
+  data: TradeInterestData
+  hasContent: boolean
+}) {
+  if (!hasContent) {
+    return (
+      <div
+        role="alert"
+        className="flex items-start gap-2.5 rounded-lg border border-warning/40 bg-warning/10 px-3.5 py-3"
+      >
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+        <div className="min-w-0 flex-1 text-xs">
+          <p className="font-medium text-foreground">
+            Add at least one trade interest to publish
+          </p>
+          <p className="mt-0.5 text-muted-foreground">
+            Without a trade interest, your listing won&apos;t appear as For Trade.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const count =
+    data.mode === "simple"
+      ? data.simpleText.trim()
+        ? 1
+        : 0
+      : data.advanced.length
+
+  const summaryItems =
+    data.mode === "advanced"
+      ? data.advanced.slice(0, 3).map((item) => summarizeInterest(item))
+      : data.simpleText
+        ? [data.simpleText.slice(0, 80)]
+        : []
+
+  return (
+    <div className="rounded-lg border border-primary/30 bg-primary/[0.06] px-3.5 py-3">
+      <div className="flex items-center gap-2 text-xs">
+        <CheckCircle2 className="h-4 w-4 text-primary" />
+        <span className="font-medium text-foreground">
+          {count} trade interest{count === 1 ? "" : "s"} ready
+        </span>
+      </div>
+      {summaryItems.length > 0 && (
+        <ul className="mt-1.5 space-y-0.5 pl-6">
+          {summaryItems.map((item, i) => (
+            <li key={i} className="truncate text-xs text-muted-foreground">
+              · {item || "—"}
+            </li>
+          ))}
+          {data.mode === "advanced" && data.advanced.length > 3 && (
+            <li className="text-xs text-muted-foreground/70">
+              + {data.advanced.length - 3} more
+            </li>
+          )}
+        </ul>
+      )}
+    </div>
   )
 }

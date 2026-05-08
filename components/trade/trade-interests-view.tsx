@@ -52,7 +52,6 @@
  */
 
 import * as React from "react"
-import Image from "next/image"
 import {
   ArrowLeft,
   Check,
@@ -67,6 +66,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { FilterPill } from "@/components/shared/filter-pill"
 import {
   summarizeSavedInterest,
   useSavedTradeInterests,
@@ -75,6 +75,18 @@ import {
 import type { TradeableItemSummary } from "@/lib/market-data"
 import { SavedInterestEditor } from "./saved-interest-editor"
 import { TradeItemSelector } from "./trade-item-selector"
+import { InterestEmptyState } from "@/components/trade-interests/shared/empty-state"
+import { type InterestTemplate } from "@/components/trade-interests/shared/templates-strip"
+import { InterestCard } from "@/components/trade-interests/shared/interest-card"
+import { GridDensitySelector } from "@/components/shared/grid-density-selector"
+import { gridDensityConfig, useGridDensity } from "@/hooks/use-grid-density"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface TradeInterestsViewProps {
   /** Return to the grid. Rendered as the back-arrow target in the header. */
@@ -148,22 +160,21 @@ export function TradeInterestsView({
     string | null
   >(null)
 
-  /* Collapse state — opt-in by section key. We store the COLLAPSED set (not
-   * the expanded set) so the default behavior (everything expanded) requires
-   * no initialization beyond explicit defaults, and so a section appearing
-   * for the first time is automatically open.
-   *
-   * Section keys are scoped by mode:
-   *   - "global-all"        — Global section in All-items mode
-   *   - "global-individual" — Global section in individual-item mode
-   *   - "individual"        — Individual section (only in individual-item mode)
-   *
-   * Default collapsed:
-   *   - In all-items mode: Individual section is pre-collapsed so Global is the focus
-   *   - In individual-item mode: Global section is pre-collapsed so Individual is the focus */
+  /* Tab filter — toggleable. Both ON by default. */
+  const [activeTabs, setActiveTabs] = React.useState<{
+    global: boolean
+    individual: boolean
+  }>({ global: true, individual: true })
+
+  /* Sort + density */
+  type SortMode = "default" | "name-az" | "name-za" | "applied-most" | "applied-least"
+  const [sortMode, setSortMode] = React.useState<SortMode>("default")
+  const { gridDensity } = useGridDensity()
+
+  /* Section collapse state kept around for backward compat (used internally) */
   const [collapsedSections, setCollapsedSections] = React.useState<
     Set<string>
-  >(() => new Set(["global-individual", "individual"]))
+  >(() => new Set())
 
   const toggleSection = (key: string) => {
     setCollapsedSections((prev) => {
@@ -194,6 +205,21 @@ export function TradeInterestsView({
   const handleNew = () => {
     const seed: Partial<Omit<SavedTradeInterest, "id">> | undefined =
       isIndividual && selectedItem ? { appliedTo: [selectedItem.id] } : undefined
+    const created = create(seed)
+    setExpandedId(created.id)
+    setExpandedMode("edit")
+    setConfirmingRemovalId(null)
+  }
+
+  const handlePickTemplate = (template: InterestTemplate) => {
+    const { icon: _icon, tagline: _tagline, ...payload } = template
+    void _icon
+    void _tagline
+    const seed: Partial<Omit<SavedTradeInterest, "id">> = {
+      ...payload,
+      appliedTo:
+        isIndividual && selectedItem ? [selectedItem.id] : [],
+    }
     const created = create(seed)
     setExpandedId(created.id)
     setExpandedMode("edit")
@@ -271,216 +297,232 @@ export function TradeInterestsView({
 
   /* ------------------------------------------------------------------------ */
 
-  const renderRow = (interest: SavedTradeInterest) => {
-    const isExpanded = expandedId === interest.id
-    /* Focus mode — when *any* row is open, all others dim down so the eye
-     * lands on the expanded one. Computed once per render from `expandedId`
-     * and passed in so the row itself doesn't need to know the parent's
-     * full state shape. */
-    const dimmed = expandedId !== null && !isExpanded
+  const renderCard = (interest: SavedTradeInterest) => {
+    const isGlobal = isGlobalInterest(interest, items)
+    const appliedCount = interest.appliedTo.length
+    let reachLabel = ""
+    let reachTone: "global" | "individual" | "template" = "individual"
+    if (isGlobal) {
+      reachLabel = "Global"
+      reachTone = "global"
+    } else if (appliedCount === 0) {
+      reachLabel = "Draft"
+      reachTone = "template"
+    } else {
+      reachLabel = `${appliedCount} ${appliedCount === 1 ? "listing" : "listings"}`
+      reachTone = "individual"
+    }
     return (
-      <li key={interest.id}>
-        <InterestRow
-          interest={interest}
-          items={items}
-          contextItemId={selectedItem?.id ?? null}
-          expanded={isExpanded}
-          expandedMode={isExpanded ? expandedMode : null}
-          dimmed={dimmed}
-          confirming={confirmingRemovalId === interest.id}
-          onToggleDetail={() => handleToggleDetail(interest.id)}
-          onToggleEdit={() => handleToggleEdit(interest.id)}
-          onRequestRemove={() => setConfirmingRemovalId(interest.id)}
-          onCancelRemove={() => setConfirmingRemovalId(null)}
-          onConfirmRemove={() => handleRemove(interest.id)}
-          onSaved={() => setExpandedId(null)}
-          onCancelEdit={() => setExpandedId(null)}
-        />
-      </li>
+      <InterestCard
+        key={interest.id}
+        interest={interest}
+        reachLabel={reachLabel}
+        reachTone={reachTone}
+        onEdit={() => handleToggleEdit(interest.id)}
+        onRequestRemove={() => setConfirmingRemovalId(interest.id)}
+        confirming={confirmingRemovalId === interest.id}
+        onCancelRemove={() => setConfirmingRemovalId(null)}
+        onConfirmRemove={() => handleRemove(interest.id)}
+      />
     )
   }
 
+  // Sidebar editing state — derived from existing expanded/edit pattern.
+  const editingInterest =
+    expandedMode === "edit" && expandedId
+      ? interests.find((i) => i.id === expandedId) ?? null
+      : null
+
   return (
-    <div className="px-4 pb-6 pt-3 md:px-8">
-      {/* Header ----------------------------------------------------------
-          Single creation entry point lives in the top-right, matching the
-          rectangular primary-button styling used elsewhere on the platform
-          (saved-interest editor, listing screens, etc.). The label adapts
-          to context so the user knows what scope the click implies. */}
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Back to Trade"
-            className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <h1 className="truncate text-2xl font-bold text-foreground">
-            Trade Interests
-          </h1>
-        </div>
+    <div className="flex">
+      <div
+        className={cn(
+          "min-w-0 flex-1 px-4 pb-6 pt-3 md:px-8",
+          editingInterest && "lg:max-w-[calc(100%-480px)]",
+        )}
+      >
+      {/* Header — title only */}
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to Trade"
+          className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <h1 className="truncate text-2xl font-bold text-foreground">
+          Trade Interests
+        </h1>
+      </div>
+
+      {/* Toolbar row: [New Interest] [Global] [Individual]   ←gap→   [Filter] */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
         <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={handleNew}
-          className="h-11 flex-shrink-0 px-4 text-sm"
+          className="h-9 gap-1.5"
         >
-          <Plus className="mr-1.5 h-4 w-4" />
+          <Plus className="h-4 w-4" />
           New Interest
         </Button>
-      </div>
-
-      {/* "For" row ----------------------------------------------------------
-          Sits flush beneath the H1 (mb-1 above, no header card) so the title
-          and selector read as a single header cluster: "Trade Interests / For
-          [All items ▾]". Subtle selector variant drops the card-button chrome
-          and uses larger text to match the title's visual weight. Indented by
-          ml-10 to align with the H1's text start (back arrow width + gap).
-
-          The selector is controlled by TradeContent; switching here also
-          changes the upstream grid filter, so backing out preserves the user's
-          focus context. When "All items" is selected → Global / Individual
-          buckets render across the whole portfolio. When a specific item is
-          selected → the page reframes around that item. */}
-      <div className="mb-3 ml-10 flex w-full flex-wrap items-center gap-2">
-        <span className="text-sm text-muted-foreground">For</span>
-        <TradeItemSelector
-          items={items}
-          selectedItemId={selectedItemId}
-          onSelect={onSelectItem}
-          totalMatches={0}
-        />
-      </div>
-
-      {/* Selected-item preview ---------------------------------------------
-          When the user has narrowed to a specific listing, render a compact
-          visual card so they aren't relying on the selector text alone to
-          confirm which item they're managing. Three signals at a glance:
-          thumbnail (recognizes shape/finish faster than reading), title +
-          subtitle (model + condition), and asking price (anchors the trade
-          value the interests will be evaluated against). Not shown for the
-          "All items" mode since there's no single subject to preview.
-
-          Indented to ml-10 to align with the H1 text and the For-selector
-          row above it, keeping the header cluster visually unified. */}
-      {isIndividual && selectedItem ? (
-        <div className="mb-5 ml-10 flex items-center gap-3 rounded-lg border border-border bg-card/50 p-2.5">
-          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-            <Image
-              src={selectedItem.image || "/placeholder.svg"}
-              alt={selectedItem.title}
-              width={48}
-              height={48}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {selectedItem.title}
-            </p>
-            {selectedItem.subtitle ? (
-              <p className="truncate text-xs text-muted-foreground">
-                {selectedItem.subtitle}
-              </p>
-            ) : null}
-          </div>
-          {typeof selectedItem.price === "number" ? (
-            <p className="flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
-              ${selectedItem.price.toLocaleString()}
-            </p>
-          ) : null}
+        <FilterPill
+          active={activeTabs.global}
+          onClick={() => {
+            const next = !activeTabs.global
+            if (!next && !activeTabs.individual) return
+            setActiveTabs((p) => ({ ...p, global: next }))
+          }}
+          trailing={
+            <span className="tabular-nums opacity-70">
+              {buckets.global.length}
+            </span>
+          }
+        >
+          Global
+        </FilterPill>
+        <FilterPill
+          active={activeTabs.individual}
+          onClick={() => {
+            const next = !activeTabs.individual
+            if (!next && !activeTabs.global) return
+            setActiveTabs((p) => ({ ...p, individual: next }))
+          }}
+          tone="info"
+          trailing={
+            <span className="tabular-nums opacity-70">
+              {isIndividual
+                ? buckets.itemSpecific.length
+                : buckets.partial.length + buckets.templates.length}
+            </span>
+          }
+        >
+          Individual
+        </FilterPill>
+        <div className="ml-auto flex items-center gap-2">
+          <Select
+            value={sortMode}
+            onValueChange={(v) => setSortMode(v as SortMode)}
+          >
+            <SelectTrigger
+              aria-label="Sort"
+              className="h-9 w-auto gap-2 text-sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Sort: default</SelectItem>
+              <SelectItem value="name-az">Sort: A → Z</SelectItem>
+              <SelectItem value="name-za">Sort: Z → A</SelectItem>
+              <SelectItem value="applied-most">Sort: most applied</SelectItem>
+              <SelectItem value="applied-least">Sort: least applied</SelectItem>
+            </SelectContent>
+          </Select>
+          <GridDensitySelector id="trade-interests-density" />
+          <TradeItemSelector
+            items={items}
+            selectedItemId={selectedItemId}
+            onSelect={onSelectItem}
+            totalMatches={0}
+            triggerPrefix="Applied to"
+          />
         </div>
-      ) : (
-        <div className="mb-5" />
-      )}
+      </div>
 
-      {/* Body ------------------------------------------------------------- */}
+      {/* Body — unified grid */}
       {interests.length === 0 ? (
         <EmptyState onCreate={handleNew} />
-      ) : isIndividual && selectedItem ? (
-        <div className="space-y-6">
-          <Section
-            title="Global"
-            caption="Applied to every listing — including this one. Edits here update everywhere."
-            count={buckets.global.length}
-            empty="No interests here yet."
-            collapsed={collapsedSections.has("global-individual")}
-            onToggleCollapse={() => toggleSection("global-individual")}
-          >
-            {buckets.global.length > 0 ? (
-              <ul className="overflow-hidden">
-                {buckets.global.map(renderRow)}
-              </ul>
-            ) : null}
-          </Section>
-
-          <Section
-            title="Individual"
-            caption="Applied to this listing. May also be shared with other listings."
-            count={buckets.itemSpecific.length}
-            empty="No interests here yet."
-            collapsed={collapsedSections.has("individual")}
-            onToggleCollapse={() => toggleSection("individual")}
-            actions={
-              buckets.availableForItem.length > 0 ? (
-                <AddExistingPicker
-                  available={buckets.availableForItem}
-                  onApply={handleApplyExisting}
-                />
-              ) : null
-            }
-          >
-            {buckets.itemSpecific.length > 0 ? (
-              <ul className="overflow-hidden">
-                {buckets.itemSpecific.map(renderRow)}
-              </ul>
-            ) : null}
-          </Section>
-        </div>
       ) : (
-        <div className="space-y-6">
-          <Section
-            title="Global"
-            caption="Applied to every listing"
-            count={buckets.global.length}
-            empty="No interests here yet."
-            collapsed={collapsedSections.has("global-all")}
-            onToggleCollapse={() => toggleSection("global-all")}
-          >
-            {buckets.global.length > 0 ? (
-              <ul className="overflow-hidden">
-                {buckets.global.map(renderRow)}
-              </ul>
-            ) : null}
-          </Section>
+        (() => {
+          // Build the unified list based on active tabs
+          const list: SavedTradeInterest[] = []
+          if (activeTabs.global) list.push(...buckets.global)
+          if (activeTabs.individual) {
+            if (isIndividual && selectedItem) {
+              list.push(...buckets.itemSpecific)
+            } else {
+              list.push(...buckets.partial, ...buckets.templates)
+            }
+          }
 
-          {/* Templates (interests with empty appliedTo) live alongside partial
-              ones in this view so a brand-new draft created from "+ New" in
-              this section doesn't disappear before the user finishes editing
-              its scope. */}
-          {(() => {
-            const otherInterests = [...buckets.partial, ...buckets.templates]
+          // Apply sort
+          const sorted = [...list]
+          switch (sortMode) {
+            case "name-az":
+              sorted.sort((a, b) =>
+                (a.name || "").localeCompare(b.name || ""),
+              )
+              break
+            case "name-za":
+              sorted.sort((a, b) =>
+                (b.name || "").localeCompare(a.name || ""),
+              )
+              break
+            case "applied-most":
+              sorted.sort((a, b) => b.appliedTo.length - a.appliedTo.length)
+              break
+            case "applied-least":
+              sorted.sort((a, b) => a.appliedTo.length - b.appliedTo.length)
+              break
+            default:
+              break
+          }
+
+          if (sorted.length === 0) {
             return (
-              <Section
-                title="Individual"
-                caption="Applied to individual listings"
-                count={otherInterests.length}
-                empty="No interests here yet."
-                collapsed={collapsedSections.has("individual")}
-                onToggleCollapse={() => toggleSection("individual")}
-              >
-                {otherInterests.length > 0 ? (
-                  <ul className="overflow-hidden">
-                    {otherInterests.map(renderRow)}
-                  </ul>
-                ) : null}
-              </Section>
+              <div className="rounded-xl border border-dashed border-border bg-card/40 p-10 text-center text-sm text-muted-foreground">
+                No interests match the current filters.
+              </div>
             )
-          })()}
-        </div>
+          }
+
+          // When sidebar is open, force 2-col grid so cards keep their width
+          // and the layout simply re-flows instead of squeezing every card.
+          const gridClass = editingInterest
+            ? "grid grid-cols-1 gap-3 md:grid-cols-2"
+            : gridDensityConfig[gridDensity].gridClass
+          return (
+            <div className={gridClass}>{sorted.map(renderCard)}</div>
+          )
+        })()
       )}
 
+      </div>
+
+      {/* Split-screen sidebar editor */}
+      {editingInterest && (
+        <aside className="sticky top-0 hidden h-[100dvh] w-[480px] shrink-0 overflow-y-auto border-l border-border bg-background lg:block">
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-background px-5 py-4">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                {editingInterest.name ? "Edit Interest" : "New Interest"}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {editingInterest.mode === "simple"
+                  ? "Describe what you'd accept; structure with AI before saving."
+                  : "Fill in the structured fields below."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpandedId(null)}
+              aria-label="Close editor"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-5">
+            <SavedInterestEditor
+              interest={editingInterest}
+              onSaved={() => setExpandedId(null)}
+              onCancel={() => setExpandedId(null)}
+            />
+          </div>
+        </aside>
+      )}
     </div>
   )
 }
@@ -850,21 +892,9 @@ function InterestRow({
         dimmed && "opacity-30 hover:opacity-100",
       )}
     >
-      {/* Compact row -------------------------------------------------------
-          Lightweight chrome: title + one-line description on the left,
-          parenthesized listing count fused to the title; on the right the
-          edit + remove icons hover-reveal first, then the always-visible
-          chevron sits at the far right as the persistent expand/collapse
-          affordance. The row body is the click target for the detail-pills
-          view; the chevron mirrors that affordance visually. The pencil
-          opens the heavy editor on its own.
-
-          We preserve a left-side indent (w-4 spacer + gap-3 = 28px) to keep
-          the visual hierarchy from the previous design without the leading
-          icon — the detail-pills panel below also indents to this column
-          (pl-10) so saved criteria align under the title. */}
-      <div className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20">
-        <div aria-hidden="true" className="w-4 flex-shrink-0" />
+      {/* Compact row — leading icon + title + reach badge + summary chips */}
+      <div className="flex items-start gap-3 px-3 py-3 transition-colors hover:bg-secondary/20">
+        <CategoryIcon category={interest.category} />
         <button
           type="button"
           onClick={onToggleDetail}
@@ -883,21 +913,20 @@ function InterestRow({
             >
               {interest.name || "Untitled interest"}
             </span>
-            {/* Listing count sits flush with the title so the row reads as
-                "<name> (n)" — a single scannable unit. tabular-nums keeps
-                the parens aligned across rows of varying digit width. */}
-            <span
-              className="flex-shrink-0 text-xs tabular-nums text-muted-foreground"
-              aria-label={`Applied to ${appliedCount} listing${appliedCount === 1 ? "" : "s"}`}
-            >
-              ({appliedCount})
-            </span>
+            <ReachBadge
+              isGlobal={isGlobal}
+              appliedCount={appliedCount}
+            />
           </div>
           {description ? (
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
               {description}
             </p>
           ) : null}
+          <SummaryChips
+            chips={detailChips.slice(0, 3)}
+            extra={detailChips.length > 3 ? detailChips.length - 3 : 0}
+          />
         </button>
 
         {/* Actions cluster. Delete uses an inline 2-step confirm to avoid
@@ -1021,19 +1050,81 @@ function InterestRow({
 /* -------------------------------------------------------------------------- */
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
+  return <InterestEmptyState variant="full" onAddNew={onCreate} />
+}
+
+/* -------------------------------------------------------------------------- */
+/* Visual helpers for InterestRow                                             */
+/* -------------------------------------------------------------------------- */
+
+function CategoryIcon({ category }: { category: string }) {
+  // Lightweight category → emoji mapping. Covers the main niches; fallback
+  // covers everything else with a neutral package symbol.
+  const emoji = (() => {
+    const c = category.toLowerCase()
+    if (c.includes("guitar")) return "🎸"
+    if (c.includes("audio") || c.includes("amp")) return "🔊"
+    if (c.includes("drum")) return "🥁"
+    if (c.includes("key")) return "🎹"
+    return "🎵"
+  })()
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card/40 px-6 py-16 text-center">
-      <p className="text-sm font-medium text-foreground">
-        No interests saved yet.
-      </p>
-      <p className="max-w-sm text-xs text-muted-foreground">
-        Create reusable trade interests and apply them to any listing without
-        retyping the same criteria every time.
-      </p>
-      <Button type="button" size="sm" onClick={onCreate} className="mt-2 h-8">
-        <Plus className="mr-1 h-4 w-4" />
-        New interest
-      </Button>
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/40 text-base">
+      {emoji}
     </div>
   )
 }
+
+function ReachBadge({
+  isGlobal,
+  appliedCount,
+}: {
+  isGlobal: boolean
+  appliedCount: number
+}) {
+  if (isGlobal) {
+    return (
+      <span className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+        Global
+      </span>
+    )
+  }
+  if (appliedCount === 0) {
+    return (
+      <span className="shrink-0 rounded-full border border-border/60 bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        Template
+      </span>
+    )
+  }
+  return (
+    <span className="shrink-0 rounded-full border border-border/60 bg-background/40 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+      {appliedCount} {appliedCount === 1 ? "listing" : "listings"}
+    </span>
+  )
+}
+
+function SummaryChips({
+  chips,
+  extra,
+}: {
+  chips: { label: string; value: string }[]
+  extra: number
+}) {
+  if (chips.length === 0) return null
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+      {chips.map((chip) => (
+        <span
+          key={`${chip.label}-${chip.value}`}
+          className="inline-flex items-center rounded-md bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+        >
+          {chip.value}
+        </span>
+      ))}
+      {extra > 0 && (
+        <span className="text-[10px] text-muted-foreground/70">+{extra}</span>
+      )}
+    </div>
+  )
+}
+

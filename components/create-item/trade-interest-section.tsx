@@ -71,6 +71,9 @@ import {
   useSavedTradeInterests,
   type SavedTradeInterest,
 } from "@/lib/saved-trade-interests-context"
+import { InterestEmptyState } from "@/components/trade-interests/shared/empty-state"
+import { LoadSavedPicker } from "@/components/trade-interests/shared/load-saved-picker"
+import { Coachmarks, type CoachmarkStep } from "@/components/trade-interests/shared/coachmarks"
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */
@@ -332,6 +335,9 @@ export function TradeInterestSection({
   // (not in `value`) so toggling expansion never mutates the parent form.
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set())
 
+  // Saved interests for the "Load from saved" picker.
+  const { interests: savedInterests } = useSavedTradeInterests()
+
   const [parseState, setParseState] = React.useState<{
     status: "idle" | "loading" | "empty" | "error"
     message?: string
@@ -375,6 +381,25 @@ export function TradeInterestSection({
       const next = new Set(prev)
       next.delete(id)
       return next
+    })
+  }
+
+  const loadFromSaved = (saved: SavedTradeInterest) => {
+    const next = createEmptyInterestItem()
+    next.category = saved.category
+    next.subcategory = saved.subcategory
+    next.brand = saved.brand
+    next.model = saved.model
+    next.condition = saved.condition
+    next.valueMin = saved.valueMin
+    next.valueMax = saved.valueMax
+    next.notes = saved.notes
+    next.specs = { ...saved.specs }
+    setExpandedIds((prev) => new Set(prev).add(next.id))
+    onChange({
+      ...value,
+      mode: "advanced",
+      advanced: [...value.advanced, next],
     })
   }
 
@@ -461,7 +486,7 @@ export function TradeInterestSection({
   }
 
   const headerChrome = (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3" data-coachmark="trade-interests-header">
       <div className="flex items-center gap-2 min-w-0">
         <Repeat2 className="h-4 w-4 text-primary flex-shrink-0" />
         <h3 className="text-sm font-semibold truncate">Trade Interest</h3>
@@ -506,9 +531,18 @@ export function TradeInterestSection({
           onUpdateCard={updateCard}
           onUpdateCategory={updateCardCategory}
           onUpdateSubcategory={updateCardSubcategory}
+          savedInterests={savedInterests}
+          onLoadSaved={loadFromSaved}
         />
       )}
     </>
+  )
+
+  const tour = (
+    <Coachmarks
+      storageKey="trade-interests-tour-v1"
+      steps={tourSteps(savedInterests.length > 0)}
+    />
   )
 
   if (bare) {
@@ -516,6 +550,7 @@ export function TradeInterestSection({
       <div className={cn("space-y-4", className)}>
         {headerChrome}
         {body}
+        {tour}
       </div>
     )
   }
@@ -529,8 +564,35 @@ export function TradeInterestSection({
     >
       {headerChrome}
       {body}
+      {tour}
     </div>
   )
+}
+
+function tourSteps(hasSaved: boolean): CoachmarkStep[] {
+  const steps: CoachmarkStep[] = [
+    {
+      target: "trade-interests-header",
+      title: "What are trade interests?",
+      body: "Describe what you'd accept in trade for this item. The more specific, the better the matches we surface.",
+      placement: "bottom",
+    },
+    {
+      target: "trade-interests-content",
+      title: "Add your first interest",
+      body: "Each interest is one thing you'd consider — vintage Strat, tube amp, etc. You can add as many as you want.",
+      placement: "top",
+    },
+  ]
+  if (hasSaved) {
+    steps.push({
+      target: "trade-interests-content",
+      title: "Or reuse a saved one",
+      body: "If you already have saved interests, load them in with one click — no retyping.",
+      placement: "top",
+    })
+  }
+  return steps
 }
 
 /* -------------------------------------------------------------------------- */
@@ -700,6 +762,8 @@ function AdvancedMode({
   onUpdateCard,
   onUpdateCategory,
   onUpdateSubcategory,
+  savedInterests,
+  onLoadSaved,
 }: {
   items: TradeInterestItem[]
   expandedIds: Set<string>
@@ -709,43 +773,68 @@ function AdvancedMode({
   onUpdateCard: (id: string, patch: Partial<TradeInterestItem>) => void
   onUpdateCategory: (id: string, category: string) => void
   onUpdateSubcategory: (id: string, subcategory: string) => void
+  savedInterests: SavedTradeInterest[]
+  onLoadSaved: (interest: SavedTradeInterest) => void
 }) {
-  return (
-    <div className="space-y-2.5">
-      {items.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-background/50 px-4 py-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            No interests added yet.
-          </p>
-          <p className="text-xs text-muted-foreground/80 mt-1">
-            Add one to describe something you&apos;d accept in trade.
-          </p>
-        </div>
-      ) : (
-        items.map((item) => (
-          <InterestCard
-            key={item.id}
-            item={item}
-            expanded={expandedIds.has(item.id)}
-            onToggle={() => onToggleCard(item.id)}
-            onRemove={() => onRemoveCard(item.id)}
-            onUpdate={(patch) => onUpdateCard(item.id, patch)}
-            onUpdateCategory={(cat) => onUpdateCategory(item.id, cat)}
-            onUpdateSubcategory={(sub) => onUpdateSubcategory(item.id, sub)}
-          />
-        ))
-      )}
+  if (items.length === 0) {
+    return (
+      <div data-coachmark="trade-interests-content">
+        <InterestEmptyState
+          variant="compact"
+          onAddNew={onAddCard}
+          onLoadSaved={savedInterests.length > 0 ? () => {} : undefined}
+          hasSavedAvailable={savedInterests.length > 0}
+        />
+        {savedInterests.length > 0 && (
+          <div className="mt-3 flex justify-center">
+            <LoadSavedPicker
+              saved={savedInterests}
+              onPick={onLoadSaved}
+              triggerVariant="ghost"
+              triggerSize="sm"
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onAddCard}
-        className="w-full border-dashed"
-      >
-        <Plus className="h-4 w-4 mr-1.5" />
-        Add interest
-      </Button>
+  return (
+    <div className="space-y-2.5" data-coachmark="trade-interests-content">
+      {items.map((item) => (
+        <InterestCard
+          key={item.id}
+          item={item}
+          expanded={expandedIds.has(item.id)}
+          onToggle={() => onToggleCard(item.id)}
+          onRemove={() => onRemoveCard(item.id)}
+          onUpdate={(patch) => onUpdateCard(item.id, patch)}
+          onUpdateCategory={(cat) => onUpdateCategory(item.id, cat)}
+          onUpdateSubcategory={(sub) => onUpdateSubcategory(item.id, sub)}
+        />
+      ))}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onAddCard}
+          className="flex-1 border-dashed"
+          data-coachmark="trade-interests-add"
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          Add interest
+        </Button>
+        {savedInterests.length > 0 && (
+          <LoadSavedPicker
+            saved={savedInterests}
+            onPick={onLoadSaved}
+            triggerVariant="ghost"
+            triggerSize="sm"
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -1014,7 +1103,7 @@ function InterestCard({
   )
 }
 
-function FieldRow({
+export function FieldRow({
   label,
   hint,
   required,
@@ -1045,7 +1134,7 @@ function FieldRow({
 /* Specs chip section                                                         */
 /* -------------------------------------------------------------------------- */
 
-function SpecsChipSection({
+export function SpecsChipSection({
   fields,
   values,
   onChange,
@@ -1137,7 +1226,7 @@ function SpecsChipSection({
 /* Brand / model combobox                                                     */
 /* -------------------------------------------------------------------------- */
 
-function BrandModelCombobox({
+export function BrandModelCombobox({
   value,
   unverified,
   options,

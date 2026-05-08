@@ -6,7 +6,13 @@ import { AlertTriangle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { verifyEmailAction } from "@/app/actions/auth"
 
-export function VerifyHandler({ token }: { token: string }) {
+export function VerifyHandler({
+  token,
+  niche,
+}: {
+  token: string
+  niche?: string
+}) {
   const [status, setStatus] = React.useState<"verifying" | "error">(
     "verifying",
   )
@@ -16,7 +22,7 @@ export function VerifyHandler({ token }: { token: string }) {
   React.useEffect(() => {
     if (ranRef.current) return
     ranRef.current = true
-    verifyEmailAction(token).catch((err: unknown) => {
+    verifyEmailAction(token, niche).catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : "Something went wrong"
       // NEXT_REDIRECT is the internal symbol Next.js throws for redirect();
       // it surfaces here as an error but is actually a successful redirect.
@@ -24,7 +30,7 @@ export function VerifyHandler({ token }: { token: string }) {
       setStatus("error")
       setErrorMessage(msg)
     })
-  }, [token])
+  }, [token, niche])
 
   if (status === "verifying") {
     return (

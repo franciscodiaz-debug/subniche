@@ -107,7 +107,7 @@ export default async function NichePage({ params }: PageProps) {
             description="Context matters – see shared collections, trade interests, profiles, and verified reputation before you ever reach out."
             icon={ShieldCheck}
             ctaLabel="Build your profile"
-            ctaHref="/signup"
+            ctaHref={`/signup?niche=${slug}`}
           />
           <StaffPicksSection />
           <InterstitialCard

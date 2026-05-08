@@ -11,7 +11,20 @@ const FEATURES = [
   'Free to join — always',
 ]
 
-export default async function SignupPage() {
+const NICHE_SLUG_RE = /^[a-z0-9-]{1,64}$/
+
+function safeNiche(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  return NICHE_SLUG_RE.test(value) ? value : undefined
+}
+
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ niche?: string }>
+}) {
+  const params = await searchParams
+  const niche = safeNiche(params.niche)
   return (
     <div className="flex min-h-screen bg-background">
       {/* Form panel */}
@@ -40,9 +53,16 @@ export default async function SignupPage() {
               <h1 className="text-3xl font-bold text-foreground">
                 Join the community
               </h1>
+              {niche && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  You&apos;ll join the{' '}
+                  <span className="font-medium text-foreground">{niche}</span>{' '}
+                  niche. You can add more later from your profile.
+                </p>
+              )}
             </div>
 
-            <SignupForm />
+            <SignupForm niche={niche} />
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Already have an account?{' '}

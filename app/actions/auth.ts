@@ -14,10 +14,11 @@ export interface AuthState {
 
 export interface SignupState extends AuthState {
   /** Set when the magic link was sent successfully. */
-  sent?: { email: string }
+  sent?: { email: string; niche?: string }
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const NICHE_SLUG_RE = /^[a-z0-9-]{1,64}$/
 const MAX_REDIRECT_LENGTH = 200
 
 function safeRedirectTo(value: FormDataEntryValue | null): string {
@@ -26,6 +27,11 @@ function safeRedirectTo(value: FormDataEntryValue | null): string {
   // Must be a same-origin relative path (no protocol, no //)
   if (!value.startsWith('/') || value.startsWith('//')) return '/'
   return value
+}
+
+function safeNiche(value: FormDataEntryValue | null): string | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined
+  return NICHE_SLUG_RE.test(value) ? value : undefined
 }
 
 export async function loginAction(
@@ -71,14 +77,16 @@ export async function signupAction(
     return { fieldErrors }
   }
 
+  const niche = safeNiche(formData.get('niche'))
+
   // In a real app: generate token, persist, send email with verification link.
   // Here we just acknowledge the request so the UI flips to the "Check your
   // email" confirmation screen. The user's auth cookie is set on first
   // verification (see /verify route).
-  return { sent: { email } }
+  return { sent: { email, niche } }
 }
 
-export async function verifyEmailAction(token: string) {
+export async function verifyEmailAction(token: string, niche?: string) {
   // Mock token validation. In a real app: lookup token in DB, check expiry,
   // mark account as verified, then set the cookie + redirect.
   if (!token || token.trim().length === 0) {
@@ -91,7 +99,10 @@ export async function verifyEmailAction(token: string) {
     maxAge: 60 * 60 * 24 * 30,
     sameSite: 'lax',
   })
-  redirect('/find-niche')
+  // If the user signed up from a niche home, drop them straight into that
+  // niche; otherwise send them to the niche selector first.
+  const safe = niche && NICHE_SLUG_RE.test(niche) ? niche : null
+  redirect(safe ? `/n/${safe}` : '/find-niche')
 }
 
 export async function loginWithGoogleAction(formData: FormData) {
@@ -108,7 +119,7 @@ export async function loginWithGoogleAction(formData: FormData) {
   redirect(redirectTo)
 }
 
-export async function signupWithGoogleAction() {
+export async function signupWithGoogleAction(formData: FormData) {
   const cookieStore = await cookies()
   cookieStore.set('subniche_auth', 'onboarding', {
     httpOnly: true,
@@ -116,7 +127,8 @@ export async function signupWithGoogleAction() {
     maxAge: 60 * 60 * 24 * 30,
     sameSite: 'lax',
   })
-  redirect('/find-niche')
+  const niche = safeNiche(formData.get('niche'))
+  redirect(niche ? `/n/${niche}` : '/find-niche')
 }
 
 export async function logoutAction() {

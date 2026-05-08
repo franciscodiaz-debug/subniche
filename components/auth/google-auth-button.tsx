@@ -5,17 +5,20 @@ import { Button } from "@/components/ui/button"
 interface GoogleAuthButtonProps {
   action: (formData: FormData) => void | Promise<void>
   redirectTo?: string
+  niche?: string
   label: string
 }
 
 export function GoogleAuthButton({
   action,
   redirectTo,
+  niche,
   label,
 }: GoogleAuthButtonProps) {
   return (
     <form action={action}>
       {redirectTo && <input type="hidden" name="redirect" value={redirectTo} />}
+      {niche && <input type="hidden" name="niche" value={niche} />}
       <Button
         type="submit"
         variant="quiet_outline"

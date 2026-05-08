@@ -16,7 +16,7 @@ import { GoogleAuthButton } from "@/components/auth/google-auth-button"
 
 const initialState: SignupState = {}
 
-export function SignupForm() {
+export function SignupForm({ niche }: { niche?: string }) {
   const [state, formAction, isPending] = useActionState(
     signupAction,
     initialState,
@@ -24,12 +24,18 @@ export function SignupForm() {
 
   // Confirmation view — magic link sent
   if (state.sent) {
-    return <SentConfirmation email={state.sent.email} />
+    return (
+      <SentConfirmation
+        email={state.sent.email}
+        niche={state.sent.niche}
+      />
+    )
   }
 
   return (
     <div className="space-y-4">
       <form action={formAction} className="space-y-4" noValidate>
+        {niche && <input type="hidden" name="niche" value={niche} />}
         {state.error && (
           <div
             role="alert"
@@ -100,16 +106,28 @@ export function SignupForm() {
       <GoogleAuthButton
         action={signupWithGoogleAction}
         label="Continue with Google"
+        niche={niche}
       />
     </div>
   )
 }
 
-function SentConfirmation({ email }: { email: string }) {
+function SentConfirmation({
+  email,
+  niche,
+}: {
+  email: string
+  niche?: string
+}) {
   // Reload to reset the action state and return to the form.
   const handleReset = () => {
     window.location.reload()
   }
+
+  // Demo helper — in real life the link is delivered by email. The slug is
+  // forwarded so the verify route knows whether to drop the user into a
+  // niche home or into the niche selector.
+  const mockLink = `/verify?token=mock${niche ? `&niche=${niche}` : ""}`
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -126,10 +144,17 @@ function SentConfirmation({ email }: { email: string }) {
         Click the link in your email to sign in. The link will expire in 1 hour.
       </p>
 
+      <a
+        href={mockLink}
+        className="mt-6 inline-flex items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+      >
+        Demo: open verification link
+      </a>
+
       <button
         type="button"
         onClick={handleReset}
-        className="mt-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="mt-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Use a different email

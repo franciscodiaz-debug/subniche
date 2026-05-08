@@ -7,9 +7,9 @@ import { VerifyHandler } from '@/components/auth/verify-handler'
 export default async function VerifyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>
+  searchParams: Promise<{ token?: string; niche?: string }>
 }) {
-  const { token } = await searchParams
+  const { token, niche } = await searchParams
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -23,7 +23,7 @@ export default async function VerifyPage({
       <div className="flex flex-1 items-center justify-center px-6 pb-12">
         <div className="mx-auto w-full max-w-sm">
           {token ? (
-            <VerifyHandler token={token} />
+            <VerifyHandler token={token} niche={niche} />
           ) : (
             <MissingTokenView />
           )}

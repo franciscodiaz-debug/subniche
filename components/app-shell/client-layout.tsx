@@ -20,7 +20,12 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
   const pathname = usePathname();
   const collapseRequested = useIsNavCollapseRequested();
 
-  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/welcome';
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/welcome' ||
+    pathname === '/verify' ||
+    pathname === '/find-niche';
   const isAdminPage = pathname === '/admin' || pathname.startsWith('/admin/');
   if (isAuthPage || isAdminPage) return <>{children}</>;
 

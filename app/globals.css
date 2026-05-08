@@ -201,6 +201,23 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Override Chromium's yellow/white autofill background. Uses an inset
+     box-shadow trick because the browser ignores `background-color` on
+     :-webkit-autofill. Applied globally so all inputs inherit the fix. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--background) inset !important;
+    -webkit-text-fill-color: var(--foreground) !important;
+    caret-color: var(--foreground) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 /* Hide scrollbar for horizontal scroll areas */

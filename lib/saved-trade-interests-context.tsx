@@ -66,8 +66,15 @@ export interface SavedTradeInterest {
   specs: Record<string, string>
   notes: string
   /** Listing IDs where this interest is currently applied. Drives the
-   *  "Applied to X listings" affordance and de-duplication in matchers. */
+   *  "Applied to X listings" affordance and de-duplication in matchers.
+   *  Ignored when `isGlobal === true` — globals apply to all For-Trade
+   *  listings except those in `excludedListingIds`. */
   appliedTo: string[]
+  /** When true, this interest auto-applies to every For-Trade listing the
+   *  user creates. The user can opt out per-listing via `excludedListingIds`. */
+  isGlobal: boolean
+  /** Listing IDs where the user opted out of an otherwise-global interest. */
+  excludedListingIds: string[]
 }
 
 interface SavedTradeInterestsContextValue {
@@ -123,7 +130,9 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     valueMax: "6000",
     specs: { era: "1990–present", pickups: "Humbucker" },
     notes: "Gibson, Fender Custom Shop, or PRS Core. No relics.",
-    appliedTo: [...ALL_MY_ITEMS],
+    appliedTo: [],
+    isGlobal: true,
+    excludedListingIds: [],
   },
   {
     id: "sti_vintage_tube_amps",
@@ -139,7 +148,9 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     valueMax: "4500",
     specs: { wattage: "15-50W", era: "1965–1979" },
     notes: "Pre-CBS Fender, plexi-era Marshall, AC-series Vox.",
-    appliedTo: [...ALL_MY_ITEMS],
+    appliedTo: [],
+    isGlobal: true,
+    excludedListingIds: [],
   },
   {
     id: "sti_pro_studio_gear",
@@ -156,7 +167,9 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     valueMax: "5000",
     specs: {},
     notes: "Studio interfaces, monitors, or outboard. Mint/excellent only.",
-    appliedTo: [...ALL_MY_ITEMS],
+    appliedTo: [],
+    isGlobal: true,
+    excludedListingIds: [],
   },
   {
     id: "sti_rare_effects_pedals",
@@ -173,7 +186,9 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     valueMax: "3000",
     specs: {},
     notes: "Discontinued / limited-run only. Open to trades up to $3k.",
-    appliedTo: [...ALL_MY_ITEMS],
+    appliedTo: [],
+    isGlobal: true,
+    excludedListingIds: [],
   },
 
   /* ---------- Partial reach --------------------------------------------- */
@@ -192,6 +207,8 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     specs: { bracing: "Scalloped X", tonewood: "Rosewood" },
     notes: "Prefer 2015+. Open to HD-28 variants.",
     appliedTo: ["my-1", "my-3"],
+    isGlobal: false,
+    excludedListingIds: [],
   },
   {
     id: "sti_vintage_tube_combo",
@@ -208,6 +225,8 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     specs: { wattage: "15-40W" },
     notes: "60s/70s Fender or Vox. No master volume preferred.",
     appliedTo: ["my-1"],
+    isGlobal: false,
+    excludedListingIds: [],
   },
 
   /* ---------- Templates (unbound) --------------------------------------- */
@@ -227,6 +246,8 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     specs: {},
     notes: "Strymon, Eventide, Chase Bliss — any flagship reverb/delay.",
     appliedTo: [],
+    isGlobal: false,
+    excludedListingIds: [],
   },
 ]
 
@@ -276,6 +297,8 @@ export function SavedTradeInterestsProvider({
         specs: {},
         notes: "",
         appliedTo: [],
+        isGlobal: false,
+        excludedListingIds: [],
         ...(data ?? {}),
       }
       setInterests((prev) => [...prev, next])

@@ -435,12 +435,54 @@ export function SavedInterestEditor({
         </div>
       )}
 
-      {/* Apply-to checklist --------------------------------------------- */}
-      <ApplyToList
-        interest={draft}
-        onApply={(id) => applyToListing(draft.id, id)}
-        onUnapply={(id) => unapplyFromListing(draft.id, id)}
-      />
+      {/* Global scope toggle --------------------------------------------- */}
+      <button
+        type="button"
+        onClick={() => patch({ isGlobal: !draft.isGlobal })}
+        aria-pressed={draft.isGlobal}
+        className={cn(
+          "flex w-full items-center justify-between gap-3 rounded-lg border px-3.5 py-3 text-left transition-colors",
+          draft.isGlobal
+            ? "border-primary/40 bg-primary/[0.06]"
+            : "border-border bg-background hover:border-primary/30",
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">
+            Apply to all my For-Trade listings
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {draft.isGlobal
+              ? "This is a global interest. You can opt-out per-listing."
+              : "Off by default. Turn on to make this global."}
+          </p>
+        </div>
+        <span
+          className={cn(
+            "relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full border transition-colors",
+            draft.isGlobal
+              ? "border-primary bg-primary"
+              : "border-border bg-muted",
+          )}
+          aria-hidden="true"
+        >
+          <span
+            className={cn(
+              "absolute h-3.5 w-3.5 rounded-full bg-background transition-transform",
+              draft.isGlobal ? "translate-x-4" : "translate-x-0.5",
+            )}
+          />
+        </span>
+      </button>
+
+      {/* Apply-to checklist (hidden when global — globals apply to all) */}
+      {!draft.isGlobal && (
+        <ApplyToList
+          interest={draft}
+          onApply={(id) => applyToListing(draft.id, id)}
+          onUnapply={(id) => unapplyFromListing(draft.id, id)}
+        />
+      )}
 
       {/* CTAs ----------------------------------------------------------- */}
       <div className="flex items-center justify-end gap-2 pt-1">

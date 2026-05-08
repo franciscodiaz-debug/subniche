@@ -118,11 +118,9 @@ interface TradeInterestsViewProps {
  */
 function isGlobalInterest(
   interest: SavedTradeInterest,
-  items: TradeableItemSummary[],
+  _items: TradeableItemSummary[],
 ): boolean {
-  if (items.length === 0) return false
-  const applied = new Set(interest.appliedTo)
-  return items.every((item) => applied.has(item.id))
+  return interest.isGlobal === true
 }
 
 /* -------------------------------------------------------------------------- */

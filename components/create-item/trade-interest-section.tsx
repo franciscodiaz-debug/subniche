@@ -110,6 +110,8 @@ export interface TradeInterestData {
    * yet still work, just without the saved-interest surface.
    */
   appliedInterestIds?: string[]
+  /** IDs of global SavedTradeInterests the user opted-out of for this listing. */
+  excludedGlobalIds?: string[]
 }
 
 export const emptyTradeInterest: TradeInterestData = {
@@ -117,6 +119,7 @@ export const emptyTradeInterest: TradeInterestData = {
   simpleText: "",
   advanced: [],
   appliedInterestIds: [],
+  excludedGlobalIds: [],
 }
 
 /* -------------------------------------------------------------------------- */

@@ -104,7 +104,13 @@ export interface MockListing {
     localPickup: boolean
   } | null
   returnPolicy: string | null
+  /** Inline trade interest (legacy). Use appliedInterestIds for new listings. */
   tradeInterest: MockTradeInterest | null
+  /** IDs of SavedTradeInterests applied to this listing. When present and
+   *  non-empty, the listing detail resolves these against the saved-interests
+   *  context to render the "Open to trade for" section. Takes precedence
+   *  over `tradeInterest` (inline). */
+  appliedInterestIds?: string[]
   mutualMatch: MockMutualMatch | null
   viewerIsOwner: boolean
   ownerStats?: {
@@ -299,6 +305,11 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
     },
     returnPolicy:
       "3-day approval window. Buyer covers return shipping. Guitar must be returned in the exact condition received.",
+    appliedInterestIds: [
+      "sti_premium_electrics",
+      "sti_vintage_tube_amps",
+      "sti_rare_effects_pedals",
+    ],
     tradeInterest: {
       mode: "structured",
       items: [

@@ -30,6 +30,7 @@ import {
   SpecificationsBlock,
 } from "./info-sections"
 import { TradeInterestView } from "./trade-interest-view"
+import { useSavedTradeInterests } from "@/lib/saved-trade-interests-context"
 import { OwnerActions, ViewerActions } from "./action-bar"
 import { CommentsSection } from "./comments-section"
 import { RelatedRow } from "./related-row"
@@ -63,6 +64,7 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
     shipping,
     returnPolicy,
     tradeInterest,
+    appliedInterestIds,
     mutualMatch,
     viewerIsOwner,
     ownerStats,
@@ -71,6 +73,47 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
     moreFromSeller,
     youMightAlsoLike,
   } = listing
+
+  // Resolve trade interests against the saved-interests context.
+  // Effective set = explicit applied (appliedInterestIds) + globals NOT
+  // excluded for this listing. De-duplicated.
+  const { interests: savedInterests } = useSavedTradeInterests()
+  const resolvedTradeInterest = (() => {
+    const effective: typeof savedInterests = []
+    const seen = new Set<string>()
+    if (appliedInterestIds && appliedInterestIds.length > 0) {
+      for (const i of savedInterests) {
+        if (appliedInterestIds.includes(i.id) && !seen.has(i.id)) {
+          effective.push(i)
+          seen.add(i.id)
+        }
+      }
+    }
+    // Globals not excluded for this listing (for-trade only)
+    if (availability.includes("for-trade")) {
+      for (const i of savedInterests) {
+        if (
+          i.isGlobal &&
+          !i.excludedListingIds.includes(listing.id) &&
+          !seen.has(i.id)
+        ) {
+          effective.push(i)
+          seen.add(i.id)
+        }
+      }
+    }
+    if (effective.length > 0) {
+      return {
+        mode: "structured" as const,
+        items: effective.map((i) => ({
+          id: i.id,
+          label: composeInterestLabel(i),
+          notes: composeInterestNotes(i),
+        })),
+      }
+    }
+    return tradeInterest
+  })()
 
   const isCollectionOnly =
     availability.includes("collection") &&
@@ -135,8 +178,8 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
     <ReturnPolicyBlock policy={returnPolicy} />
   ) : null
   const tradeBlockEl =
-    showCommerceSections && tradeInterest ? (
-      <TradeInterestView data={tradeInterest} />
+    showCommerceSections && resolvedTradeInterest ? (
+      <TradeInterestView data={resolvedTradeInterest} />
     ) : null
 
   return (
@@ -331,3 +374,30 @@ function MobileInnerContent({ children }: { children: React.ReactNode }) {
 }
 
 
+
+
+/* Helpers for resolving applied saved interests into MockTradeInterest items */
+function composeInterestLabel(i: { brand: string; model: string; category: string; subcategory: string; name: string }): string {
+  const brandModel = [i.brand, i.model].filter(Boolean).join(" ")
+  if (brandModel) return brandModel
+  const catSub = [i.category, i.subcategory].filter(Boolean).join(" / ")
+  return catSub || i.name || "Untitled interest"
+}
+
+function composeInterestNotes(i: {
+  mode: string
+  simpleText: string
+  condition: string
+  valueMin: string
+  valueMax: string
+  notes: string
+}): string | undefined {
+  const parts: string[] = []
+  if (i.condition && i.condition !== "Any") parts.push(i.condition)
+  if (i.valueMin && i.valueMax) parts.push(`$${i.valueMin}-$${i.valueMax}`)
+  if (i.notes?.trim()) parts.push(i.notes.trim())
+  if (i.mode === "simple" && i.simpleText.trim() && parts.length === 0) {
+    return i.simpleText.trim()
+  }
+  return parts.length > 0 ? parts.join(" · ") : undefined
+}

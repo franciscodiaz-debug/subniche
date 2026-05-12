@@ -653,9 +653,6 @@ function AddExistingPicker({
     return () => document.removeEventListener("mousedown", handler)
   }, [open])
 
-  React.useEffect(() => {
-    if (open) inputRef.current?.focus()
-  }, [open])
 
   const filtered = available.filter((interest) => {
     if (!query.trim()) return true
@@ -690,14 +687,6 @@ function AddExistingPicker({
 
       {open ? (
         <div className="absolute right-0 top-full z-[60] mt-1 w-80 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
-          <button
-            type="button"
-            onClick={() => { onAddNew(); setOpen(false) }}
-            className="flex w-full items-center gap-2 border-b border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            <Plus className="h-3.5 w-3.5 text-muted-foreground" />
-            New interest
-          </button>
           <div className="border-b border-border p-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -710,10 +699,15 @@ function AddExistingPicker({
                 className="w-full rounded-md border border-border bg-card py-1.5 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
-            <p className="mt-1.5 px-0.5 text-[11px] text-muted-foreground">
-              Pull an interest you&apos;ve already authored into this item.
-            </p>
           </div>
+          <button
+            type="button"
+            onClick={() => { onAddNew(); setOpen(false) }}
+            className="flex w-full items-center gap-2 border-b border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+            New interest
+          </button>
 
           <div className="max-h-72 overflow-y-auto">
             {filtered.length === 0 ? (

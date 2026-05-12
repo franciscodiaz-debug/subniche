@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type ReactNode } from "react"
-import { ChevronDown, Repeat2 } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SavedTradeInterest } from "@/lib/saved-trade-interests-context"
 
@@ -114,14 +114,13 @@ export function TradeInterestRow({
   return (
     <div
       className={cn(
-        "group transition-opacity duration-200",
+        "group/row overflow-hidden rounded-xl border border-border bg-card transition-all duration-200",
         dimmed && "opacity-30 hover:opacity-100",
         className,
       )}
     >
       {/* Compact row */}
       <div className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20">
-        <Repeat2 className="h-4 w-4 shrink-0 text-muted-foreground/60" aria-hidden />
 
         <button
           type="button"
@@ -135,7 +134,7 @@ export function TradeInterestRow({
                 "truncate text-sm font-semibold transition-colors",
                 !name
                   ? "italic text-muted-foreground"
-                  : "text-foreground group-hover:text-primary",
+                  : "text-foreground group-hover/row:text-primary",
                 expanded && name && "text-primary",
               )}
             >
@@ -173,7 +172,7 @@ export function TradeInterestRow({
 
       {/* Expanded criteria chips */}
       {expanded ? (
-        <div className="px-3 pb-3 pl-10">
+        <div className="px-3 pb-3">
           {chips.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
               {chips.map((chip, i) => (

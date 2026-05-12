@@ -5,14 +5,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Mail, Search, Info, Camera,
+  ArrowLeft, Mail, Search, Camera,
   Guitar, Bike, Watch, LayoutGrid, Sparkles, X, Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubnicheLogo } from '@/components/app-shell/subniche-logo'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 // ─── Niche data (4 niches) ────────────────────────────────────────────────────
@@ -149,7 +148,7 @@ function EmailStep({
           <div className="flex-1 border-t border-border" />
         </div>
 
-        <Button variant="outline" className="w-full gap-2 bg-card">
+        <Button variant="hollow" className="w-full gap-2 bg-card">
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -297,7 +296,6 @@ function NicheStep({
     setSuggestValue('')
     setSuggestNote('')
     setSuggestContact(false)
-    setTimeout(() => { setSubmitted(false); setShowSuggest(false) }, 3000)
   }
 
   return (
@@ -409,39 +407,38 @@ function NicheStep({
             className="mb-5"
           >
             {submitted ? (
-              <div className="relative flex flex-col items-center gap-2 py-12 text-center">
-                <button
-                  type="button"
-                  onClick={() => { setSubmitted(false); setShowSuggest(false) }}
-                  aria-label="Back to niche list"
-                  className="absolute right-0 top-0 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+              <div className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-6 text-center">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
                   <Check className="h-5 w-5 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-foreground">Thanks for the suggestion!</p>
-                <p className="text-xs text-muted-foreground">We&apos;ll review it and be in touch if we need more details.</p>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">Thanks for the suggestion!</p>
+                  <p className="text-xs text-muted-foreground">We read every submission and are always looking for ways to serve niche communities.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSubmitted(false); setShowSuggest(false) }}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to signup
+                </button>
               </div>
             ) : (
               <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Suggest a niche</p>
-                  </div>
+                <div className="flex items-start justify-between">
+                  <Label className="text-xs text-muted-foreground">What niche would you like to see supported?</Label>
                   <button
                     type="button"
                     onClick={() => { setShowSuggest(false); setSuggestValue(''); setSuggestNote(''); setSuggestContact(false) }}
                     aria-label="Back to niche list"
-                    className="text-muted-foreground hover:text-foreground"
+                    className="ml-2 shrink-0 text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">What niche would you like to see?</Label>
                   <Input
                     placeholder=""
                     value={suggestValue}
@@ -545,19 +542,7 @@ function ProfileStep({
 
         {/* Username */}
         <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5">
-            <Label htmlFor="username">Username</Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground">
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-[220px] text-xs">
-                Your username is permanent and identifies your account across every niche on SubNiche — it cannot be changed after signup.
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          <Label htmlFor="username">Username</Label>
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
               u/
@@ -572,7 +557,7 @@ function ProfileStep({
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            This identifies your account across all niches.
+            This identifies your account across all niches. It cannot be changed.
           </p>
         </div>
 
@@ -740,22 +725,24 @@ export function SignupFlow() {
       {/* Form panel */}
       <div className="flex w-full flex-col lg:w-1/2">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-8 py-6">
-          <button
-            type="button"
-            onClick={goBack}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </button>
+        <div className="flex items-center justify-end px-8 py-6">
           <Link href="/" aria-label="SubNiche home">
             <SubnicheLogo width={117} height={36} light priority />
           </Link>
         </div>
 
         {/* Step content */}
-        <div className="flex flex-1 flex-col justify-center px-8 pb-12 lg:px-16">
+        <div className="flex flex-1 flex-col justify-start px-8 pt-10 pb-12 lg:px-16">
+          <div className="mx-auto w-full max-w-sm">
+            <button
+              type="button"
+              onClick={goBack}
+              className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
               key={step}

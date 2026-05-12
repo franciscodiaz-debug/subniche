@@ -38,7 +38,6 @@ import {
   Tag,
   Truck,
   X,
-  Zap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -167,13 +166,6 @@ export interface MobileWizardProps {
    *  the draft. Shows a spinner on the terminal "Add Item" button and
    *  blocks re-entry. */
   publishing?: boolean
-
-  /**
-   * Prototype-only: fills every field with sample data in one tap. When
-   * supplied, the wizard surfaces a small "Autofill" pill in its header and
-   * on the intent screen. Optional — production builds simply omit it.
-   */
-  onAutofill?: () => void
 
   // Username for the review preview
   sellerUsername: string
@@ -320,14 +312,6 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
       if (!props.title.trim()) {
         issues.push({ fieldId: "title", message: "Title is required" })
       }
-
-      // 4. Price — numeric and > 0, only when the listing is For Sale
-      if (props.forSaleActive) {
-        const price = props.saleData.price
-        if (price === null || price === undefined || !(price > 0)) {
-          issues.push({ fieldId: "price", message: "Enter a price greater than $0" })
-        }
-      }
     }
   }
 
@@ -351,6 +335,10 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
 
   if (step === 4) {
     if (props.forSaleActive) {
+      const price = props.saleData.price
+      if (price === null || price === undefined || !(price > 0)) {
+        issues.push({ fieldId: "price", message: "Enter a price greater than $0" })
+      }
       if (props.saleData.paymentMethods.length === 0) {
         issues.push({ fieldId: "payment", message: "Pick a payment method" })
       }
@@ -517,7 +505,6 @@ export function MobileCreateListingWizard(props: MobileWizardProps) {
   if (!props.hasSelectedStatus) {
     return (
       <MobileIntentScreen
-        onAutofill={props.onAutofill}
         onPickForSale={() => props.onForSaleChange(true)}
         onPickForTrade={() => props.onForTradeChange(true)}
         onPickCollection={() => props.onInCollectionChange(true)}
@@ -542,23 +529,8 @@ export function MobileCreateListingWizard(props: MobileWizardProps) {
           <div className="text-sm font-medium text-foreground">
             {stepLabels[step - 1]}
           </div>
-          <div className="flex items-center gap-2">
-            {/* Prototype-only autofill affordance. The dashed border signals
-                this is a demo action rather than a product feature. */}
-            {props.onAutofill && (
-              <button
-                type="button"
-                onClick={props.onAutofill}
-                className="flex items-center gap-1 h-8 px-2.5 rounded-md border border-dashed border-border text-[11px] font-medium text-muted-foreground hover:text-foreground active:bg-muted transition-colors"
-                aria-label="Fill all fields with sample data"
-              >
-                <Zap className="h-3 w-3" />
-                Autofill
-              </button>
-            )}
-            <div className="text-xs text-muted-foreground tabular-nums">
-              {step}/{totalSteps}
-            </div>
+          <div className="text-xs text-muted-foreground tabular-nums">
+            {step}/{totalSteps}
           </div>
         </div>
         <ProgressBar current={step} total={totalSteps} />
@@ -1983,15 +1955,35 @@ function MobileIntentScreen({
   onPickForTrade,
   onPickCollection,
   onPickWishlist,
-  onAutofill,
 }: {
   onPickForSale: () => void
   onPickForTrade: () => void
   onPickCollection: () => void
   onPickWishlist: () => void
-  /** Prototype-only: see MobileWizardProps['onAutofill']. */
-  onAutofill?: () => void
 }) {
+  // Local multi-select state. We don't push to the parent until the user
+  // confirms via Continue, because the parent's status setters also flip
+  // `hasSelectedStatus`, which would unmount this screen on the first tap.
+  const [picked, setPicked] = useState<{
+    sale: boolean
+    trade: boolean
+    collection: boolean
+    wishlist: boolean
+  }>({ sale: false, trade: false, collection: false, wishlist: false })
+
+  const toggle = (key: "sale" | "trade" | "collection" | "wishlist") => {
+    setPicked((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const hasAnyPicked = picked.sale || picked.trade || picked.collection || picked.wishlist
+
+  const handleContinue = () => {
+    if (picked.sale) onPickForSale()
+    if (picked.trade) onPickForTrade()
+    if (picked.collection) onPickCollection()
+    if (picked.wishlist) onPickWishlist()
+  }
+
   // One row of config keeps every option visually consistent while still
   // letting each status carry its own brand accent.
   const options: Array<{
@@ -1999,13 +1991,8 @@ function MobileIntentScreen({
     title: string
     description: string
     icon: React.ElementType
-    // Tailwind class fragments. Split out so we can tint the icon tile and
-    // the press/hover ring independently of the neutral card surface.
     iconBg: string
     iconColor: string
-    hoverBorder: string
-    activeRing: string
-    onSelect: () => void
   }> = [
     {
       key: "sale",
@@ -2014,9 +2001,6 @@ function MobileIntentScreen({
       icon: DollarSign,
       iconBg: "bg-emerald-500/10",
       iconColor: "text-emerald-400",
-      hoverBorder: "hover:border-emerald-500/60",
-      activeRing: "active:ring-emerald-500/40",
-      onSelect: onPickForSale,
     },
     {
       key: "trade",
@@ -2025,9 +2009,6 @@ function MobileIntentScreen({
       icon: ArrowLeftRight,
       iconBg: "bg-sky-500/10",
       iconColor: "text-sky-400",
-      hoverBorder: "hover:border-sky-500/60",
-      activeRing: "active:ring-sky-500/40",
-      onSelect: onPickForTrade,
     },
     {
       key: "collection",
@@ -2036,9 +2017,6 @@ function MobileIntentScreen({
       icon: FolderOpen,
       iconBg: "bg-primary/10",
       iconColor: "text-primary",
-      hoverBorder: "hover:border-primary/60",
-      activeRing: "active:ring-primary/40",
-      onSelect: onPickCollection,
     },
     {
       key: "wishlist",
@@ -2047,9 +2025,6 @@ function MobileIntentScreen({
       icon: Heart,
       iconBg: "bg-rose-500/10",
       iconColor: "text-rose-400",
-      hoverBorder: "hover:border-rose-500/60",
-      activeRing: "active:ring-rose-500/40",
-      onSelect: onPickWishlist,
     },
   ]
 
@@ -2068,20 +2043,8 @@ function MobileIntentScreen({
             <X className="h-5 w-5" />
           </button>
           <div className="text-sm font-medium text-foreground">New Listing</div>
-          {onAutofill ? (
-            <button
-              type="button"
-              onClick={onAutofill}
-              className="flex items-center gap-1 h-8 px-2.5 rounded-md border border-dashed border-border text-[11px] font-medium text-muted-foreground hover:text-foreground active:bg-muted transition-colors"
-              aria-label="Fill all fields with sample data"
-            >
-              <Zap className="h-3 w-3" />
-              Autofill
-            </button>
-          ) : (
-            // Spacer keeps the title centered when autofill isn't supplied.
-            <div className="w-10" aria-hidden="true" />
-          )}
+          {/* Spacer keeps the title centered. */}
+          <div className="w-10" aria-hidden="true" />
         </div>
       </header>
 
@@ -2096,31 +2059,33 @@ function MobileIntentScreen({
               What do you want to do with this item?
             </h1>
             <p className="mt-2 text-sm text-muted-foreground text-pretty">
-              Pick one to get started. You can always add another later.
+              Pick one or more. You can always change this later.
             </p>
           </div>
 
-          {/* Option cards — stacked, one-tap-per-row. Radio-group semantics
-              give assistive tech a clear grouping even though tapping any
-              option advances the flow immediately. */}
-          <div className="flex flex-col gap-3" role="radiogroup" aria-label="Listing intent">
+          {/* Option cards — stacked, tap to toggle. Each card is a checkbox-style
+              control; the user confirms the picks via the sticky Continue
+              button below. */}
+          <div className="flex flex-col gap-3" role="group" aria-label="Listing intent">
             {options.map((opt) => {
               const Icon = opt.icon
+              const isSelected = picked[opt.key]
               return (
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={opt.onSelect}
-                  role="radio"
-                  aria-checked={false}
+                  onClick={() => toggle(opt.key)}
+                  role="checkbox"
+                  aria-checked={isSelected}
                   className={cn(
                     "group flex items-center gap-4 w-full text-left",
-                    "rounded-2xl border border-border bg-card",
+                    "rounded-2xl border-2 bg-card",
                     "px-4 py-4 min-h-[76px]",
                     "transition-[border-color,transform,box-shadow] duration-150",
-                    "active:scale-[0.99] active:ring-2",
-                    opt.hoverBorder,
-                    opt.activeRing,
+                    "active:scale-[0.99]",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/40"
+                      : "border-border",
                   )}
                 >
                   {/* Colored icon tile — the primary visual anchor for each
@@ -2143,10 +2108,20 @@ function MobileIntentScreen({
                       {opt.description}
                     </span>
                   </span>
-                  <ChevronRight
-                    className="h-5 w-5 text-muted-foreground/60 shrink-0 transition-transform group-active:translate-x-0.5"
+                  {/* Selection indicator — checkmark when selected, empty
+                      circle when not, so the toggle state is obvious without
+                      reading the border treatment. */}
+                  <span
+                    className={cn(
+                      "h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      isSelected
+                        ? "bg-foreground border-foreground"
+                        : "border-muted-foreground/40",
+                    )}
                     aria-hidden="true"
-                  />
+                  >
+                    {isSelected && <Check className="h-4 w-4 text-background" />}
+                  </span>
                 </button>
               )
             })}
@@ -2160,6 +2135,26 @@ function MobileIntentScreen({
           </p>
         </div>
       </main>
+
+      {/* Sticky action bar — Continue is enabled once at least one option
+          is picked. Matches the wizard's bottom-bar pattern so the user
+          recognizes the surface. */}
+      <footer
+        className="flex-shrink-0 border-t border-border bg-background"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="px-4 py-3">
+          <Button
+            type="button"
+            onClick={handleContinue}
+            disabled={!hasAnyPicked}
+            className="w-full h-12 text-base"
+          >
+            Continue
+            <ChevronRight className="ml-1 h-5 w-5" aria-hidden="true" />
+          </Button>
+        </div>
+      </footer>
     </div>
   )
 }

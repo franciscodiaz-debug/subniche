@@ -866,91 +866,6 @@ export function CreateListingInline({
 
   const canPublish = () => getMissingRequirements().length === 0
 
-  /* --------------------------------------------------------------------- */
-  /* Prototype-only: one-tap autofill                                      */
-  /*                                                                       */
-  /* Populates every field with a realistic "vintage Strat" example so     */
-  /* design reviews don't need to type a dozen inputs before seeing the    */
-  /* preview/publish states. Not exposed in production builds.             */
-  /* --------------------------------------------------------------------- */
-  const handleAutofill = () => {
-    // Category-first so downstream spec defaults resolve against Guitars.
-    setCategory("Guitars")
-    setSubcategory("Electric")
-
-    setImages([
-      "/autofill/guitar-1.jpg",
-      "/autofill/guitar-2.jpg",
-      "/autofill/guitar-3.jpg",
-    ])
-
-    setTitle("1965 Fender Stratocaster")
-    setSubtitle("Three-tone Sunburst, matching headstock, original case")
-    setDescription(
-      "All-original 1965 Fender Stratocaster in three-tone sunburst with a rosewood fretboard. Frets were dressed in 2022 and the guitar plays effortlessly up and down the neck. Pickups read 5.8k / 5.9k / 6.1k and sound exactly as they should — glassy in position 2, vocal in 4, pure Hendrix in 5. Comes with the original tweed case, case candy, and a 2024 tech invoice. Zero issues, no breaks, no refinish. One of the cleanest 65s I've ever owned.",
-    )
-
-    setCondition("Used")
-    setConditionGrade("used-as-new")
-    setBrand("Fender")
-    setYear("1965")
-    setColor("Sunburst")
-    setHandedness("Right")
-    setExtraSpecs({
-      bodyType: "Solid",
-      pickups: "Single Coil",
-      pickupConfig: "SSS",
-      bridgeType: "Tremolo",
-      fretboard: "Rosewood",
-      finish: "Gloss",
-    })
-
-    // Flip both sale + trade on so the Trade Interests sidebar exercises too.
-    setForSaleActive(true)
-    setForTradeActive(true)
-    setInCollectionActive(false)
-    setIsWishlistActive(false)
-    setHasSelectedStatus(true)
-    setShowNormalFields(true)
-
-    setSaleData({
-      active: true,
-      price: 28500,
-      paymentMethods: ["Cash", "PayPal - Goods and Services", "Bank transfer"],
-      localPickup: true,
-      pickupZip: "11201",
-      shippingAvailable: true,
-      shippingCost: 120,
-      returnPolicy: "3-day approval window. Buyer covers return shipping.",
-      publishTo: ["marketplace"],
-    })
-
-    setTradeData({
-      active: true,
-      estimatedValue: 28500,
-      interests: null,
-      interestsData: {
-        mode: "simple",
-        simpleText:
-          "Interested in pre-CBS Fenders, late-50s Gibsons, or a clean Dumble-style amp. Open to partial trade + cash on my end.",
-        advanced: [],
-      },
-      paymentMethods: ["Cash", "PayPal - Goods and Services"],
-      localPickup: true,
-      pickupZip: "11201",
-      shippingAvailable: true,
-      shippingCost: 120,
-      returnPolicy: "3-day approval window on the trade. Buyer covers return shipping.",
-      publishTo: ["marketplace"],
-    })
-
-    // Wipe any stale suggestion/error chrome so the filled form looks clean.
-    setSuggestions({})
-    setEnhanceError(null)
-    setShowMissingError(false)
-    setSpecsOpen(true)
-  }
-
   /**
    * Desktop "Add Item" now opens the Publish Confirm Screen — a dedicated
    * preview + trade-interest finalization step — instead of publishing
@@ -1436,7 +1351,6 @@ export function CreateListingInline({
             publishing={isPublishing}
         canPublish={canPublish()}
         missingRequirements={getMissingRequirements()}
-        onAutofill={handleAutofill}
         sellerUsername={currentUser.displayName}
         sellerAvatarUrl={currentUser.avatarUrl}
       />
@@ -2101,8 +2015,11 @@ export function CreateListingInline({
           </div>
         )}
 
-        {/* Mobile sticky actions — compact status + action buttons */}
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-card/95 backdrop-blur-sm border-t border-border z-40">
+        {/* Tablet sticky actions — compact status + action buttons.
+            Hidden on phones (md:block) because the mobile wizard owns its
+            own full-screen overlay, and hidden on lg+ because desktop has
+            its own action row. */}
+        <div className="hidden md:block lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-40">
           {(() => {
             const status = getPublishStatus()
             const missing = getMissingRequirements()
@@ -2139,7 +2056,7 @@ export function CreateListingInline({
             )
           })()}
         </div>
-        <div className="lg:hidden h-24" />
+        <div className="hidden md:block lg:hidden h-24" />
       </div>
 
       {/* Publish Confirm Screen.

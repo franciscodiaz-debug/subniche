@@ -301,7 +301,7 @@ function NicheStep({
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={1} total={4} />
+        <StepDots current={2} total={4} />
         <h1 className="mt-4 text-2xl font-bold text-foreground">Select your home niche</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           This will be your default niche when logging in.
@@ -499,50 +499,29 @@ function NicheStep({
 // ─── Step: Profile ────────────────────────────────────────────────────────────
 
 function ProfileStep({
-  displayName,
   username,
-  onChangeDisplay,
   onChangeUsername,
   onNext,
 }: {
-  displayName: string
   username: string
-  onChangeDisplay: (v: string) => void
   onChangeUsername: (v: string) => void
   onNext: () => void
 }) {
-  const canSubmit = displayName.trim() && username.trim()
+  const canSubmit = username.trim()
 
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={2} total={4} />
-        <h1 className="mt-4 text-2xl font-bold text-foreground">Basic info</h1>
+        <StepDots current={1} total={4} />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Username</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Some logistics to help you get set up.
+          This identifies your account across all niches. It cannot be changed. You can set a niche-specific display name later.
         </p>
       </div>
 
       <div className="space-y-5">
-        {/* Display name */}
-        <div className="space-y-1.5">
-          <Label htmlFor="displayName">Display name</Label>
-          <Input
-            id="displayName"
-            placeholder="e.g. Kyle's Guitars"
-            value={displayName}
-            onChange={(e) => onChangeDisplay(e.target.value)}
-            className="bg-card"
-            autoComplete="name"
-          />
-          <p className="text-xs text-muted-foreground">
-            This is how you&apos;ll appear in your home niche. You can change it later.
-          </p>
-        </div>
-
         {/* Username */}
         <div className="space-y-1.5">
-          <Label htmlFor="username">Username</Label>
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
               u/
@@ -556,9 +535,6 @@ function ProfileStep({
               autoComplete="username"
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            This identifies your account across all niches. It cannot be changed.
-          </p>
         </div>
 
         <Button className="w-full" disabled={!canSubmit} onClick={onNext}>
@@ -572,23 +548,30 @@ function ProfileStep({
 // ─── Step: Onboarding ─────────────────────────────────────────────────────────
 
 function OnboardingStep({
+  niche,
+  displayName,
   avatarPreview,
   bio,
   zipCode,
+  onChangeDisplay,
   onAvatarChange,
   onBioChange,
   onZipChange,
   onFinish,
 }: {
+  niche: string
+  displayName: string
   avatarPreview: string | null
   bio: string
   zipCode: string
+  onChangeDisplay: (v: string) => void
   onAvatarChange: (url: string | null) => void
   onBioChange: (v: string) => void
   onZipChange: (v: string) => void
   onFinish: () => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const nicheLabel = NICHES.find((n) => n.id === niche)?.label.toLowerCase() ?? 'community'
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -602,7 +585,7 @@ function OnboardingStep({
         <StepDots current={3} total={4} />
         <h1 className="mt-4 text-2xl font-bold text-foreground">You&apos;re in! Introduce yourself.</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Help the community get to know you.
+          Profiles are niche-specific. Help the {nicheLabel} community get to know you.
         </p>
       </div>
 
@@ -633,6 +616,19 @@ function OnboardingStep({
           >
             {avatarPreview ? 'Change avatar' : 'Upload avatar'}
           </button>
+        </div>
+
+        {/* Display name */}
+        <div className="space-y-1.5">
+          <Label htmlFor="displayName">Display name</Label>
+          <Input
+            id="displayName"
+            placeholder="e.g. Kyle's Guitars"
+            value={displayName}
+            onChange={(e) => onChangeDisplay(e.target.value)}
+            className="bg-card"
+            autoComplete="name"
+          />
         </div>
 
         {/* Bio */}
@@ -698,7 +694,7 @@ export function SignupFlow() {
     zipCode: '',
   }))
 
-  const stepOrder: Step[] = ['email', 'confirm-email', 'password', 'niche', 'profile', 'onboarding']
+  const stepOrder: Step[] = ['email', 'confirm-email', 'password', 'profile', 'niche', 'onboarding']
 
   function advance(next: Step) {
     const curr    = stepOrder.indexOf(step)
@@ -774,6 +770,13 @@ export function SignupFlow() {
                 <PasswordStep
                   password={state.password}
                   onChange={set('password')}
+                  onNext={() => advance('profile')}
+                />
+              )}
+              {step === 'profile' && (
+                <ProfileStep
+                  username={state.username}
+                  onChangeUsername={set('username')}
                   onNext={() => advance('niche')}
                 />
               )}
@@ -781,27 +784,24 @@ export function SignupFlow() {
                 <NicheStep
                   selected={state.niche}
                   onSelect={set('niche')}
-                  onNext={() => advance('profile')}
-                />
-              )}
-              {step === 'profile' && (
-                <ProfileStep
-                  displayName={state.displayName}
-                  username={state.username}
-                  onChangeDisplay={set('displayName')}
-                  onChangeUsername={set('username')}
                   onNext={() => advance('onboarding')}
                 />
               )}
               {step === 'onboarding' && (
                 <OnboardingStep
+                  niche={state.niche}
+                  displayName={state.displayName}
                   avatarPreview={state.avatarPreview}
                   bio={state.bio}
                   zipCode={state.zipCode}
+                  onChangeDisplay={set('displayName')}
                   onAvatarChange={set('avatarPreview')}
                   onBioChange={set('bio')}
                   onZipChange={set('zipCode')}
-                  onFinish={() => (window.location.href = `/n/${state.niche || 'guitars'}`)}
+                  onFinish={() => {
+                    document.cookie = 'subniche_auth=logged-in; path=/'
+                    window.location.href = `/n/${state.niche || 'guitars'}`
+                  }}
                 />
               )}
             </motion.div>

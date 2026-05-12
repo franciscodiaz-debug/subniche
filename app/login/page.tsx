@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { loginAction } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,8 +25,16 @@ export default async function LoginPage({
           </Link>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center px-8 pb-12 lg:px-16">
+        <div className="flex flex-1 flex-col justify-start px-8 pt-16 pb-12 lg:px-16">
           <div className="mx-auto w-full max-w-sm">
+            <Link
+              href="/"
+              className="mb-8 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Link>
+
             <div className="mb-8">
               <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -60,6 +69,14 @@ export default async function LoginPage({
                   required
                   className="bg-card"
                 />
+                <div className="flex justify-end pt-0.5">
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
               </div>
 
               <Button type="submit" className="w-full">

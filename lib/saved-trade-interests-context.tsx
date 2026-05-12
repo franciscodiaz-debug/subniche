@@ -311,7 +311,7 @@ export function SavedTradeInterestsProvider({
         appliedTo: [],
         ...(data ?? {}),
       }
-      setInterests((prev) => [...prev, next])
+      setInterests((prev) => [next, ...prev])
       return next
     },
     [],

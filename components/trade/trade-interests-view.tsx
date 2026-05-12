@@ -806,6 +806,24 @@ function InterestRow({
   const isDetailOpen = expanded && expandedMode === "detail"
   const isEditOpen = expanded && expandedMode === "edit"
 
+  // Name is edited inline in the row header while the editor is open.
+  // Reset to the saved value whenever the editor closes.
+  const [draftName, setDraftName] = React.useState(interest.name)
+  React.useEffect(() => {
+    if (!expanded) setDraftName(interest.name)
+  }, [expanded, interest.name])
+
+  const nameInput = isEditOpen ? (
+    <input
+      type="text"
+      value={draftName}
+      onChange={(e) => setDraftName(e.target.value)}
+      placeholder="Give this interest a name…"
+      autoFocus={false}
+      className="w-full bg-transparent text-sm font-semibold text-foreground placeholder:font-normal placeholder:italic placeholder:text-muted-foreground/70 focus:outline-none border-b border-dashed border-border/60 focus:border-primary pb-px"
+    />
+  ) : undefined
+
   const actions = !confirming ? (
     <>
       <button
@@ -847,12 +865,13 @@ function InterestRow({
   return (
     <TradeInterestRow
       name={interest.name}
+      nameInput={nameInput}
       description={description}
       chips={chips}
       count={appliedCount}
       actions={actions}
       inlineEditor={isEditOpen ? (
-        <SavedInterestEditor interest={interest} onSaved={onSaved} onCancel={onCancelEdit} />
+        <SavedInterestEditor interest={interest} name={draftName} onSaved={onSaved} onCancel={onCancelEdit} />
       ) : null}
       dimmed={dimmed}
       expanded={isDetailOpen}

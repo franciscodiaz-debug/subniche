@@ -91,6 +91,9 @@ interface TradeInterestRowProps {
   emptyChipsLabel?: string
   /** Extra classes applied to the outer wrapper (e.g. bg-secondary/30 when editing). */
   className?: string
+  /** When provided, replaces the name text with an inline editable element.
+   *  The expand chevron is hidden while this is set. */
+  nameInput?: ReactNode
 }
 
 export function TradeInterestRow({
@@ -105,6 +108,7 @@ export function TradeInterestRow({
   onToggle,
   emptyChipsLabel = "No criteria saved yet.",
   className,
+  nameInput,
 }: TradeInterestRowProps) {
   const [localExpanded, setLocalExpanded] = useState(false)
   const isControlled = controlledExpanded !== undefined
@@ -122,51 +126,57 @@ export function TradeInterestRow({
       {/* Compact row */}
       <div className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20">
 
-        <button
-          type="button"
-          onClick={toggle}
-          aria-expanded={expanded}
-          className="min-w-0 flex-1 text-left"
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className={cn(
-                "truncate text-sm font-semibold transition-colors",
-                !name
-                  ? "italic text-muted-foreground"
-                  : "text-foreground group-hover/row:text-primary",
-                expanded && name && "text-primary",
-              )}
-            >
-              {name || "Untitled interest"}
-            </span>
-            {count != null && (
-              <span
-                className="flex-shrink-0 text-xs tabular-nums text-muted-foreground"
-                aria-label={`${count} listing${count === 1 ? "" : "s"}`}
-              >
-                ({count})
-              </span>
-            )}
-          </div>
-          {description ? (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>
-          ) : null}
-        </button>
-
-        {/* Right-side controls: optional management actions + always-visible chevron */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          {actions}
+        {nameInput ? (
+          <div className="min-w-0 flex-1">{nameInput}</div>
+        ) : (
           <button
             type="button"
             onClick={toggle}
-            aria-label={expanded ? "Hide details" : "Show details"}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            aria-expanded={expanded}
+            className="min-w-0 flex-1 text-left"
           >
-            <ChevronDown
-              className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")}
-            />
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={cn(
+                  "truncate text-sm font-semibold transition-colors",
+                  !name
+                    ? "italic text-muted-foreground"
+                    : "text-foreground group-hover/row:text-primary",
+                  expanded && name && "text-primary",
+                )}
+              >
+                {name || "Untitled interest"}
+              </span>
+              {count != null && (
+                <span
+                  className="flex-shrink-0 text-xs tabular-nums text-muted-foreground"
+                  aria-label={`${count} listing${count === 1 ? "" : "s"}`}
+                >
+                  ({count})
+                </span>
+              )}
+            </div>
+            {description ? (
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>
+            ) : null}
           </button>
+        )}
+
+        {/* Right-side controls */}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {actions}
+          {!nameInput ? (
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={expanded ? "Hide details" : "Show details"}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")}
+              />
+            </button>
+          ) : null}
         </div>
       </div>
 

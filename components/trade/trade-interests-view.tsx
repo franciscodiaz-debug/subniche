@@ -201,6 +201,20 @@ export function TradeInterestsView({
     setConfirmingRemovalId(null)
   }
 
+  const handleNewGlobal = () => {
+    const created = create({ appliedTo: items.map((i) => i.id) })
+    setExpandedId(created.id)
+    setExpandedMode("edit")
+    setConfirmingRemovalId(null)
+  }
+
+  const handleApplyAsGlobal = (interestId: string) => {
+    items.forEach((item) => applyToListing(interestId, item.id))
+    setExpandedId(interestId)
+    setExpandedMode("edit")
+    setConfirmingRemovalId(null)
+  }
+
   /** Light "peek" toggle. Click the row body or chevron → open pill view. */
   const handleToggleDetail = (id: string) => {
     setConfirmingRemovalId(null)
@@ -396,10 +410,11 @@ expanded={isExpanded}
       )}
 
       {/* Body ------------------------------------------------------------- */}
+      <div className="ml-10">
       {interests.length === 0 ? (
         <EmptyState onCreate={handleNew} />
       ) : isIndividual && selectedItem ? (
-        <div className="space-y-6">
+        <div className="space-y-1.5">
           <Section
             title="Global"
             caption="Applied to every listing — including this one. Edits here update everywhere."
@@ -407,9 +422,16 @@ expanded={isExpanded}
             empty="No interests here yet."
             collapsed={collapsedSections.has("global-individual")}
             onToggleCollapse={() => toggleSection("global-individual")}
+            actions={
+              <AddExistingPicker
+                available={[...buckets.partial, ...buckets.templates]}
+                onApply={handleApplyAsGlobal}
+                onAddNew={handleNewGlobal}
+              />
+            }
           >
             {buckets.global.length > 0 ? (
-              <ul className="overflow-hidden">
+              <ul className="ml-6 space-y-2">
                 {buckets.global.map(renderRow)}
               </ul>
             ) : null}
@@ -423,23 +445,22 @@ expanded={isExpanded}
             collapsed={collapsedSections.has("individual")}
             onToggleCollapse={() => toggleSection("individual")}
             actions={
-              buckets.availableForItem.length > 0 ? (
-                <AddExistingPicker
-                  available={buckets.availableForItem}
-                  onApply={handleApplyExisting}
-                />
-              ) : null
+              <AddExistingPicker
+                available={buckets.availableForItem}
+                onApply={handleApplyExisting}
+                onAddNew={handleNew}
+              />
             }
           >
             {buckets.itemSpecific.length > 0 ? (
-              <ul className="overflow-hidden">
+              <ul className="ml-6 space-y-2">
                 {buckets.itemSpecific.map(renderRow)}
               </ul>
             ) : null}
           </Section>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-1.5">
           <Section
             title="Global"
             caption="Applied to every listing"
@@ -447,9 +468,16 @@ expanded={isExpanded}
             empty="No interests here yet."
             collapsed={collapsedSections.has("global-all")}
             onToggleCollapse={() => toggleSection("global-all")}
+            actions={
+              <AddExistingPicker
+                available={[...buckets.partial, ...buckets.templates]}
+                onApply={handleApplyAsGlobal}
+                onAddNew={handleNewGlobal}
+              />
+            }
           >
             {buckets.global.length > 0 ? (
-              <ul className="overflow-hidden">
+              <ul className="ml-6 space-y-2">
                 {buckets.global.map(renderRow)}
               </ul>
             ) : null}
@@ -469,9 +497,16 @@ expanded={isExpanded}
                 empty="No interests here yet."
                 collapsed={collapsedSections.has("individual")}
                 onToggleCollapse={() => toggleSection("individual")}
+                actions={
+                  <AddExistingPicker
+                    available={[]}
+                    onApply={() => {}}
+                    onAddNew={handleNew}
+                  />
+                }
               >
                 {otherInterests.length > 0 ? (
-                  <ul className="overflow-hidden">
+                  <ul className="ml-6 space-y-2">
                     {otherInterests.map(renderRow)}
                   </ul>
                 ) : null}
@@ -480,6 +515,7 @@ expanded={isExpanded}
           })()}
         </div>
       )}
+      </div>
 
     </div>
   )
@@ -503,72 +539,67 @@ function Section({
   caption?: string
   count: number
   children?: React.ReactNode
-  /** Rendered when `count === 0`. Falls back to a soft dashed empty card. */
   empty?: string
-  /** Right-aligned actions for the section header (e.g. add-existing picker).
-   *  Lives outside the collapse trigger so clicking the picker doesn't toggle
-   *  the section as a side effect. */
   actions?: React.ReactNode
-  /** Whether the body is hidden. Controlled by the parent so collapse state
-   *  survives unrelated re-renders (e.g. expanding an InterestRow editor). */
   collapsed?: boolean
-  /** When provided, the title cluster becomes a clickable toggle and a
-   *  chevron renders next to the title. Omit for a non-collapsible section. */
   onToggleCollapse?: () => void
 }) {
-  /* The title + count cluster is the toggle target. Caption is included
-   * inside the same button so the entire textual region is one big affordance
-   * — increases the click target on touch and matches the platform's other
-   * accordion-style UIs. */
-  const TitleCluster = (
-    <div className="flex min-w-0 items-start gap-2">
-      {onToggleCollapse ? (
-        <ChevronRight
-          aria-hidden="true"
+  return (
+    <section className="group/section">
+      {/* Header — full-width hover zone. Caption and action button are hidden
+          by default and revealed on group-hover; both stay invisible (not
+          removed) when collapsed so height never shifts. */}
+      <div className="relative mb-2">
+        <button
+          type="button"
+          onClick={onToggleCollapse ?? undefined}
+          aria-expanded={onToggleCollapse ? !collapsed : undefined}
           className={cn(
-            "mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
-            !collapsed && "rotate-90",
+            "flex w-full items-start gap-2 rounded-md px-1 py-3 text-left transition-colors",
+            onToggleCollapse && "hover:bg-secondary/40",
           )}
-        />
-      ) : null}
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <h2 className="truncate text-sm font-semibold uppercase tracking-wide text-foreground">
-            {title}
-          </h2>
-          <span className="text-xs text-muted-foreground">{count}</span>
-        </div>
-        {caption ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">{caption}</p>
+        >
+          {onToggleCollapse ? (
+            <ChevronRight
+              aria-hidden="true"
+              className={cn(
+                "mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
+                !collapsed && "rotate-90",
+              )}
+            />
+          ) : null}
+          <div className="min-w-0 pr-28">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate text-sm font-semibold uppercase tracking-wide text-foreground">
+                {title}
+              </h2>
+              <span className="text-xs text-muted-foreground">{count}</span>
+            </div>
+            {caption ? (
+              <p className={cn(
+                "mt-0.5 text-xs text-muted-foreground transition-opacity duration-200",
+                collapsed ? "opacity-0 group-hover/section:opacity-100" : "opacity-100",
+              )}>
+                {caption}
+              </p>
+            ) : null}
+          </div>
+        </button>
+
+        {actions ? (
+          <div
+            className={cn(
+              "absolute right-1 top-1/2 -translate-y-1/2 transition-opacity duration-150",
+              collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {actions}
+          </div>
         ) : null}
       </div>
-    </div>
-  )
 
-  return (
-    <section>
-      <div className="mb-2 flex items-end justify-between gap-3">
-        {onToggleCollapse ? (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            aria-expanded={!collapsed}
-            className="-mx-1 -my-1 flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-1 text-left transition-colors hover:bg-secondary/40"
-          >
-            {TitleCluster}
-          </button>
-        ) : (
-          TitleCluster
-        )}
-        {actions ? <div className="flex-shrink-0">{actions}</div> : null}
-      </div>
       {collapsed ? null : count === 0 ? (
-        /* Empty state aligns its left edge to where an interest row's title
-         * would begin (px-3 row padding + w-4 leading spacer + gap-3 = 40px,
-         * i.e. ml-10). This way the empty card occupies the same horizontal
-         * column as the actual content would, instead of stretching to the
-         * full section width and visually overstating the absence. Vertical
-         * padding stays at the original py-5 to preserve breathing room. */
         <div className="ml-10 rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
           <p className="text-xs text-muted-foreground">
             {empty ?? "Nothing here yet."}
@@ -596,9 +627,11 @@ function Section({
 function AddExistingPicker({
   available,
   onApply,
+  onAddNew,
 }: {
   available: SavedTradeInterest[]
   onApply: (id: string) => void
+  onAddNew: () => void
 }) {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
@@ -620,9 +653,6 @@ function AddExistingPicker({
     return () => document.removeEventListener("mousedown", handler)
   }, [open])
 
-  React.useEffect(() => {
-    if (open) inputRef.current?.focus()
-  }, [open])
 
   const filtered = available.filter((interest) => {
     if (!query.trim()) return true
@@ -646,7 +676,7 @@ function AddExistingPicker({
         className="h-8"
       >
         <Plus className="mr-1 h-3.5 w-3.5" />
-        Add existing
+        Add Interest
         <ChevronDown
           className={cn(
             "ml-1 h-3.5 w-3.5 transition-transform",
@@ -669,10 +699,15 @@ function AddExistingPicker({
                 className="w-full rounded-md border border-border bg-card py-1.5 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
-            <p className="mt-1.5 px-0.5 text-[11px] text-muted-foreground">
-              Pull an interest you&apos;ve already authored into this item.
-            </p>
           </div>
+          <button
+            type="button"
+            onClick={() => { onAddNew(); setOpen(false) }}
+            className="flex w-full items-center gap-2 border-b border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+            New interest
+          </button>
 
           <div className="max-h-72 overflow-y-auto">
             {filtered.length === 0 ? (
@@ -695,7 +730,7 @@ function AddExistingPicker({
                       setQuery("")
                     }}
                     className={cn(
-                      "flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary",
+                      "group/item flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary",
                       idx > 0 && "border-t border-border",
                     )}
                   >
@@ -719,7 +754,7 @@ function AddExistingPicker({
                           : " · Not applied yet"}
                       </p>
                     </div>
-                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary opacity-0 transition-opacity group-hover/item:opacity-100" />
                   </button>
                 )
               })
@@ -771,6 +806,24 @@ function InterestRow({
   const isDetailOpen = expanded && expandedMode === "detail"
   const isEditOpen = expanded && expandedMode === "edit"
 
+  // Name is edited inline in the row header while the editor is open.
+  // Reset to the saved value whenever the editor closes.
+  const [draftName, setDraftName] = React.useState(interest.name)
+  React.useEffect(() => {
+    if (!expanded) setDraftName(interest.name)
+  }, [expanded, interest.name])
+
+  const nameInput = isEditOpen ? (
+    <input
+      type="text"
+      value={draftName}
+      onChange={(e) => setDraftName(e.target.value)}
+      placeholder="Give this interest a name…"
+      autoFocus={false}
+      className="w-full bg-transparent text-sm font-semibold text-foreground placeholder:font-normal placeholder:italic placeholder:text-muted-foreground/70 focus:outline-none border-b border-dashed border-border/60 focus:border-primary pb-px"
+    />
+  ) : undefined
+
   const actions = !confirming ? (
     <>
       <button
@@ -782,7 +835,7 @@ function InterestRow({
           "inline-flex h-8 w-8 items-center justify-center rounded-md transition-[color,background-color,opacity]",
           isEditOpen
             ? "bg-primary/10 text-primary"
-            : "text-muted-foreground opacity-0 hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
+            : "text-muted-foreground opacity-0 hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover/row:opacity-100",
         )}
       >
         <Pencil className="h-3.5 w-3.5" />
@@ -791,7 +844,7 @@ function InterestRow({
         type="button"
         onClick={onRequestRemove}
         aria-label="Remove interest"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover/row:opacity-100"
       >
         <X className="h-4 w-4" />
       </button>
@@ -812,12 +865,13 @@ function InterestRow({
   return (
     <TradeInterestRow
       name={interest.name}
+      nameInput={nameInput}
       description={description}
       chips={chips}
       count={appliedCount}
       actions={actions}
       inlineEditor={isEditOpen ? (
-        <SavedInterestEditor interest={interest} onSaved={onSaved} onCancel={onCancelEdit} />
+        <SavedInterestEditor interest={interest} name={draftName} onSaved={onSaved} onCancel={onCancelEdit} />
       ) : null}
       dimmed={dimmed}
       expanded={isDetailOpen}

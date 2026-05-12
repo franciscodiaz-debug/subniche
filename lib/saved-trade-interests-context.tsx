@@ -175,6 +175,39 @@ const DEFAULT_SEED: SavedTradeInterest[] = [
     notes: "Discontinued / limited-run only. Open to trades up to $3k.",
     appliedTo: [...ALL_MY_ITEMS],
   },
+  {
+    id: "sti_high_end_acoustics",
+    name: "High-end acoustics",
+    mode: "advanced",
+    simpleText: "",
+    category: "Acoustic Guitars",
+    subcategory: "Dreadnought",
+    brand: "Martin",
+    model: "",
+    condition: "Excellent",
+    valueMin: "2000",
+    valueMax: "5500",
+    specs: { tonewood: "Rosewood", bracing: "Scalloped X" },
+    notes: "Martin D-28, D-45, or similar. Taylor 800 series also considered.",
+    appliedTo: [...ALL_MY_ITEMS],
+  },
+  {
+    id: "sti_vintage_synths",
+    name: "Vintage synthesizers",
+    mode: "simple",
+    simpleText:
+      "Classic analog synths — Minimoog, Roland Juno-106, Oberheim OB-Xa, or Prophet-5. Working condition essential.",
+    category: "Keyboards & Synths",
+    subcategory: "",
+    brand: "",
+    model: "",
+    condition: "Good",
+    valueMin: "800",
+    valueMax: "8000",
+    specs: {},
+    notes: "Must be fully working. Will consider partial trades with cash.",
+    appliedTo: [...ALL_MY_ITEMS],
+  },
 
   /* ---------- Partial reach --------------------------------------------- */
   {
@@ -278,7 +311,7 @@ export function SavedTradeInterestsProvider({
         appliedTo: [],
         ...(data ?? {}),
       }
-      setInterests((prev) => [...prev, next])
+      setInterests((prev) => [next, ...prev])
       return next
     },
     [],

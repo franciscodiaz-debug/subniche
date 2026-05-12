@@ -26,7 +26,7 @@ const NICHES = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step = 'email' | 'confirm-email' | 'niche' | 'profile' | 'onboarding'
+type Step = 'email' | 'confirm-email' | 'password' | 'niche' | 'profile' | 'onboarding'
 
 interface State {
   email: string
@@ -205,6 +205,69 @@ function ConfirmEmailStep({
   )
 }
 
+// ─── Step: Password ───────────────────────────────────────────────────────────
+
+function PasswordStep({
+  password,
+  onChange,
+  onNext,
+}: {
+  password: string
+  onChange: (v: string) => void
+  onNext: () => void
+}) {
+  const passwordValid = PASSWORD_RULES.every((r) => r.test(password))
+
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="mb-6">
+        <StepDots current={0} total={4} />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Create a password</h1>
+      </div>
+
+      <div className="space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Create a password"
+            value={password}
+            onChange={(e) => onChange(e.target.value)}
+            className="bg-card"
+            autoComplete="new-password"
+            autoFocus
+          />
+          {password.length > 0 && (
+            <ul className="space-y-1 pt-1">
+              {PASSWORD_RULES.map((rule) => {
+                const pass = rule.test(password)
+                return (
+                  <li key={rule.label} className="flex items-center gap-2">
+                    <div className={cn(
+                      'flex h-4 w-4 shrink-0 items-center justify-center rounded-full',
+                      pass ? 'bg-primary/20' : 'bg-border',
+                    )}>
+                      {pass && <Check className="h-2.5 w-2.5 text-primary" />}
+                    </div>
+                    <span className={cn('text-xs', pass ? 'text-foreground' : 'text-muted-foreground')}>
+                      {rule.label}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+
+        <Button className="w-full" disabled={!passwordValid} onClick={onNext}>
+          Continue
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Step: Niche selector ─────────────────────────────────────────────────────
 
 function NicheStep({
@@ -219,6 +282,8 @@ function NicheStep({
   const [query, setQuery] = useState('')
   const [showSuggest, setShowSuggest] = useState(false)
   const [suggestValue, setSuggestValue] = useState('')
+  const [suggestNote, setSuggestNote] = useState('')
+  const [suggestContact, setSuggestContact] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   const filtered = NICHES.filter((n) =>
@@ -230,131 +295,206 @@ function NicheStep({
     if (!suggestValue.trim()) return
     setSubmitted(true)
     setSuggestValue('')
+    setSuggestNote('')
+    setSuggestContact(false)
     setTimeout(() => { setSubmitted(false); setShowSuggest(false) }, 3000)
   }
 
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={0} total={3} />
+        <StepDots current={1} total={4} />
         <h1 className="mt-4 text-2xl font-bold text-foreground">Select your home niche</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           This will be your default niche when logging in.
         </p>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search niches…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="bg-card pl-9 pr-8"
-        />
-        {query && (
-          <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
-      {/* Niche list — card catalog rows */}
-      <div className="mb-3 overflow-hidden rounded-xl border border-border bg-card">
-        {filtered.length > 0 ? (
-          filtered.map((niche, i) => {
-            const Icon = niche.icon
-            const isSelected = selected === niche.id
-            return (
-              <button
-                key={niche.id}
-                type="button"
-                disabled={!niche.available}
-                onClick={() => niche.available && onSelect(niche.id)}
-                className={cn(
-                  'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
-                  i > 0 && 'border-t border-border',
-                  niche.available
-                    ? isSelected
-                      ? 'bg-primary/10'
-                      : 'hover:bg-muted/50'
-                    : 'cursor-not-allowed opacity-45',
-                )}
-              >
-                <div className={cn(
-                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                  isSelected ? 'bg-primary/20' : 'bg-muted',
-                )}>
-                  <Icon className={cn('h-4 w-4', isSelected ? 'text-primary' : 'text-muted-foreground')} />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">{niche.label}</p>
-                  <p className="truncate text-xs text-muted-foreground">{niche.description}</p>
-                </div>
-
-                <div className="shrink-0">
-                  {isSelected ? (
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                      <Check className="h-3 w-3 text-primary-foreground" />
-                    </div>
-                  ) : !niche.available ? (
-                    <span className="text-[10px] text-muted-foreground/60">Coming soon</span>
-                  ) : null}
-                </div>
-              </button>
-            )
-          })
-        ) : (
-          <div className="flex flex-col items-center gap-2 p-8 text-center">
-            <Sparkles className="h-6 w-6 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No niches match &ldquo;{query}&rdquo;</p>
-          </div>
-        )}
-      </div>
-
-      {/* Suggest a niche */}
-      <div className="mb-5">
+      <AnimatePresence mode="wait">
         {!showSuggest ? (
-          <button
-            type="button"
-            onClick={() => setShowSuggest(true)}
-            className="group w-full text-center text-xs text-muted-foreground underline-offset-2"
+          <motion.div
+            key="selector"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
           >
-            Don&apos;t see yours?{' '}
-            <span className="text-primary group-hover:underline">Suggest a niche</span>
-          </button>
-        ) : submitted ? (
-          <p className="text-center text-xs font-medium text-primary">
-            Thanks! We&apos;ll review your suggestion.
-          </p>
-        ) : (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Name your niche…"
-              value={suggestValue}
-              onChange={(e) => setSuggestValue(e.target.value)}
-              className="bg-card text-sm"
-              autoFocus
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmitSuggestion()}
-            />
-            <Button variant="outline" size="sm" onClick={handleSubmitSuggestion} disabled={!suggestValue.trim()}>
-              Submit
-            </Button>
-            <button
-              type="button"
-              onClick={() => { setShowSuggest(false); setSuggestValue('') }}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
+            {/* Search */}
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search niches…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="bg-card pl-9 pr-8"
+              />
+              {query && (
+                <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
 
-      <Button className="w-full" disabled={!selected} onClick={onNext}>
-        Continue
-      </Button>
+            {/* Niche list */}
+            <div className="mb-4 overflow-hidden rounded-xl border border-border bg-card">
+              {filtered.length > 0 ? (
+                filtered.map((niche, i) => {
+                  const Icon = niche.icon
+                  const isSelected = selected === niche.id
+                  return (
+                    <button
+                      key={niche.id}
+                      type="button"
+                      disabled={!niche.available}
+                      onClick={() => niche.available && onSelect(niche.id)}
+                      className={cn(
+                        'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
+                        i > 0 && 'border-t border-border',
+                        niche.available
+                          ? isSelected
+                            ? 'bg-primary/10'
+                            : 'hover:bg-muted/50'
+                          : 'cursor-not-allowed opacity-45',
+                      )}
+                    >
+                      <div className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                        isSelected ? 'bg-primary/20' : 'bg-muted',
+                      )}>
+                        <Icon className={cn('h-4 w-4', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground">{niche.label}</p>
+                        <p className="truncate text-xs text-muted-foreground">{niche.description}</p>
+                      </div>
+                      <div className="shrink-0">
+                        {isSelected ? (
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                            <Check className="h-3 w-3 text-primary-foreground" />
+                          </div>
+                        ) : !niche.available ? (
+                          <span className="text-[10px] text-muted-foreground/60">Coming soon</span>
+                        ) : null}
+                      </div>
+                    </button>
+                  )
+                })
+              ) : (
+                <div className="flex flex-col items-center gap-2 p-8 text-center">
+                  <Sparkles className="h-6 w-6 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No niches match &ldquo;{query}&rdquo;</p>
+                </div>
+              )}
+            </div>
+
+            {/* Suggest link */}
+            <div className="mb-5">
+              <button
+                type="button"
+                onClick={() => setShowSuggest(true)}
+                className="group w-full text-center text-xs text-muted-foreground underline-offset-2"
+              >
+                Don&apos;t see yours?{' '}
+                <span className="text-primary group-hover:underline">Suggest a niche</span>
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="suggest"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+            className="mb-5"
+          >
+            {submitted ? (
+              <div className="relative flex flex-col items-center gap-2 py-12 text-center">
+                <button
+                  type="button"
+                  onClick={() => { setSubmitted(false); setShowSuggest(false) }}
+                  aria-label="Back to niche list"
+                  className="absolute right-0 top-0 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+                  <Check className="h-5 w-5 text-primary" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Thanks for the suggestion!</p>
+                <p className="text-xs text-muted-foreground">We&apos;ll review it and be in touch if we need more details.</p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Suggest a niche</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setShowSuggest(false); setSuggestValue(''); setSuggestNote(''); setSuggestContact(false) }}
+                    aria-label="Back to niche list"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">What niche would you like to see?</Label>
+                  <Input
+                    placeholder=""
+                    value={suggestValue}
+                    onChange={(e) => setSuggestValue(e.target.value)}
+                    className="bg-background text-sm"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">
+                    Note <span className="text-muted-foreground/50">(optional)</span>
+                  </Label>
+                  <textarea
+                    placeholder="Tell us about your community and anything else you'd like us to know."
+                    value={suggestNote}
+                    onChange={(e) => setSuggestNote(e.target.value)}
+                    rows={3}
+                    className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  />
+                </div>
+
+                <label className="flex cursor-pointer items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={suggestContact}
+                    onChange={(e) => setSuggestContact(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    I&apos;m open to being contacted by SubNiche for help implementing this niche.
+                  </span>
+                </label>
+
+                <Button
+                  className="w-full"
+                  size="sm"
+                  onClick={handleSubmitSuggestion}
+                  disabled={!suggestValue.trim()}
+                >
+                  Submit suggestion
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!showSuggest && (
+        <Button className="w-full" disabled={!selected} onClick={onNext}>
+          Continue
+        </Button>
+      )}
     </div>
   )
 }
@@ -364,27 +504,22 @@ function NicheStep({
 function ProfileStep({
   displayName,
   username,
-  password,
   onChangeDisplay,
   onChangeUsername,
-  onChangePassword,
   onNext,
 }: {
   displayName: string
   username: string
-  password: string
   onChangeDisplay: (v: string) => void
   onChangeUsername: (v: string) => void
-  onChangePassword: (v: string) => void
   onNext: () => void
 }) {
-  const passwordValid = PASSWORD_RULES.every((r) => r.test(password))
-  const canSubmit = displayName.trim() && username.trim() && passwordValid
+  const canSubmit = displayName.trim() && username.trim()
 
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={1} total={3} />
+        <StepDots current={2} total={4} />
         <h1 className="mt-4 text-2xl font-bold text-foreground">Basic info</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Some logistics to help you get set up.
@@ -441,42 +576,8 @@ function ProfileStep({
           </p>
         </div>
 
-        {/* Password */}
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Create a password"
-            value={password}
-            onChange={(e) => onChangePassword(e.target.value)}
-            className="bg-card"
-            autoComplete="new-password"
-          />
-          {password.length > 0 && (
-            <ul className="space-y-1 pt-1">
-              {PASSWORD_RULES.map((rule) => {
-                const pass = rule.test(password)
-                return (
-                  <li key={rule.label} className="flex items-center gap-2">
-                    <div className={cn(
-                      'flex h-4 w-4 shrink-0 items-center justify-center rounded-full',
-                      pass ? 'bg-primary/20' : 'bg-border',
-                    )}>
-                      {pass && <Check className="h-2.5 w-2.5 text-primary" />}
-                    </div>
-                    <span className={cn('text-xs', pass ? 'text-foreground' : 'text-muted-foreground')}>
-                      {rule.label}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-
         <Button className="w-full" disabled={!canSubmit} onClick={onNext}>
-          Complete registration
+          Continue
         </Button>
       </div>
     </div>
@@ -513,7 +614,7 @@ function OnboardingStep({
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={2} total={3} />
+        <StepDots current={3} total={4} />
         <h1 className="mt-4 text-2xl font-bold text-foreground">You&apos;re in! Introduce yourself.</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Help the community get to know you.
@@ -612,7 +713,7 @@ export function SignupFlow() {
     zipCode: '',
   }))
 
-  const stepOrder: Step[] = ['email', 'confirm-email', 'niche', 'profile', 'onboarding']
+  const stepOrder: Step[] = ['email', 'confirm-email', 'password', 'niche', 'profile', 'onboarding']
 
   function advance(next: Step) {
     const curr    = stepOrder.indexOf(step)
@@ -679,6 +780,13 @@ export function SignupFlow() {
               {step === 'confirm-email' && (
                 <ConfirmEmailStep
                   email={state.email}
+                  onNext={() => advance('password')}
+                />
+              )}
+              {step === 'password' && (
+                <PasswordStep
+                  password={state.password}
+                  onChange={set('password')}
                   onNext={() => advance('niche')}
                 />
               )}
@@ -693,10 +801,8 @@ export function SignupFlow() {
                 <ProfileStep
                   displayName={state.displayName}
                   username={state.username}
-                  password={state.password}
                   onChangeDisplay={set('displayName')}
                   onChangeUsername={set('username')}
-                  onChangePassword={set('password')}
                   onNext={() => advance('onboarding')}
                 />
               )}

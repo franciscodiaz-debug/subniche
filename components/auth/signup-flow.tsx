@@ -5,14 +5,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Mail, Search, Info, Camera,
+  ArrowLeft, Mail, Search, Camera,
   Guitar, Bike, Watch, LayoutGrid, Sparkles, X, Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubnicheLogo } from '@/components/app-shell/subniche-logo'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 // ─── Niche data (4 niches) ────────────────────────────────────────────────────
@@ -26,7 +25,7 @@ const NICHES = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step = 'email' | 'confirm-email' | 'niche' | 'profile' | 'onboarding'
+type Step = 'email' | 'confirm-email' | 'password' | 'niche' | 'profile' | 'onboarding'
 
 interface State {
   email: string
@@ -149,7 +148,7 @@ function EmailStep({
           <div className="flex-1 border-t border-border" />
         </div>
 
-        <Button variant="outline" className="w-full gap-2 bg-card">
+        <Button variant="hollow" className="w-full gap-2 bg-card">
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -205,243 +204,27 @@ function ConfirmEmailStep({
   )
 }
 
-// ─── Step: Niche selector ─────────────────────────────────────────────────────
+// ─── Step: Password ───────────────────────────────────────────────────────────
 
-function NicheStep({
-  selected,
-  onSelect,
-  onNext,
-}: {
-  selected: string
-  onSelect: (id: string) => void
-  onNext: () => void
-}) {
-  const [query, setQuery] = useState('')
-  const [showSuggest, setShowSuggest] = useState(false)
-  const [suggestValue, setSuggestValue] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-
-  const filtered = NICHES.filter((n) =>
-    n.label.toLowerCase().includes(query.toLowerCase()) ||
-    n.description.toLowerCase().includes(query.toLowerCase()),
-  )
-
-  function handleSubmitSuggestion() {
-    if (!suggestValue.trim()) return
-    setSubmitted(true)
-    setSuggestValue('')
-    setTimeout(() => { setSubmitted(false); setShowSuggest(false) }, 3000)
-  }
-
-  return (
-    <div className="mx-auto w-full max-w-sm">
-      <div className="mb-6">
-        <StepDots current={0} total={3} />
-        <h1 className="mt-4 text-2xl font-bold text-foreground">Select your home niche</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          This will be your default niche when logging in.
-        </p>
-      </div>
-
-      {/* Search */}
-      <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search niches…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="bg-card pl-9 pr-8"
-        />
-        {query && (
-          <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
-      {/* Niche list — card catalog rows */}
-      <div className="mb-3 overflow-hidden rounded-xl border border-border bg-card">
-        {filtered.length > 0 ? (
-          filtered.map((niche, i) => {
-            const Icon = niche.icon
-            const isSelected = selected === niche.id
-            return (
-              <button
-                key={niche.id}
-                type="button"
-                disabled={!niche.available}
-                onClick={() => niche.available && onSelect(niche.id)}
-                className={cn(
-                  'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
-                  i > 0 && 'border-t border-border',
-                  niche.available
-                    ? isSelected
-                      ? 'bg-primary/10'
-                      : 'hover:bg-muted/50'
-                    : 'cursor-not-allowed opacity-45',
-                )}
-              >
-                <div className={cn(
-                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                  isSelected ? 'bg-primary/20' : 'bg-muted',
-                )}>
-                  <Icon className={cn('h-4 w-4', isSelected ? 'text-primary' : 'text-muted-foreground')} />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">{niche.label}</p>
-                  <p className="truncate text-xs text-muted-foreground">{niche.description}</p>
-                </div>
-
-                <div className="shrink-0">
-                  {isSelected ? (
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                      <Check className="h-3 w-3 text-primary-foreground" />
-                    </div>
-                  ) : !niche.available ? (
-                    <span className="text-[10px] text-muted-foreground/60">Coming soon</span>
-                  ) : null}
-                </div>
-              </button>
-            )
-          })
-        ) : (
-          <div className="flex flex-col items-center gap-2 p-8 text-center">
-            <Sparkles className="h-6 w-6 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No niches match &ldquo;{query}&rdquo;</p>
-          </div>
-        )}
-      </div>
-
-      {/* Suggest a niche */}
-      <div className="mb-5">
-        {!showSuggest ? (
-          <button
-            type="button"
-            onClick={() => setShowSuggest(true)}
-            className="group w-full text-center text-xs text-muted-foreground underline-offset-2"
-          >
-            Don&apos;t see yours?{' '}
-            <span className="text-primary group-hover:underline">Suggest a niche</span>
-          </button>
-        ) : submitted ? (
-          <p className="text-center text-xs font-medium text-primary">
-            Thanks! We&apos;ll review your suggestion.
-          </p>
-        ) : (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Name your niche…"
-              value={suggestValue}
-              onChange={(e) => setSuggestValue(e.target.value)}
-              className="bg-card text-sm"
-              autoFocus
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmitSuggestion()}
-            />
-            <Button variant="outline" size="sm" onClick={handleSubmitSuggestion} disabled={!suggestValue.trim()}>
-              Submit
-            </Button>
-            <button
-              type="button"
-              onClick={() => { setShowSuggest(false); setSuggestValue('') }}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      <Button className="w-full" disabled={!selected} onClick={onNext}>
-        Continue
-      </Button>
-    </div>
-  )
-}
-
-// ─── Step: Profile ────────────────────────────────────────────────────────────
-
-function ProfileStep({
-  displayName,
-  username,
+function PasswordStep({
   password,
-  onChangeDisplay,
-  onChangeUsername,
-  onChangePassword,
+  onChange,
   onNext,
 }: {
-  displayName: string
-  username: string
   password: string
-  onChangeDisplay: (v: string) => void
-  onChangeUsername: (v: string) => void
-  onChangePassword: (v: string) => void
+  onChange: (v: string) => void
   onNext: () => void
 }) {
   const passwordValid = PASSWORD_RULES.every((r) => r.test(password))
-  const canSubmit = displayName.trim() && username.trim() && passwordValid
 
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={1} total={3} />
-        <h1 className="mt-4 text-2xl font-bold text-foreground">Basic info</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Some logistics to help you get set up.
-        </p>
+        <StepDots current={0} total={4} />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Create a password</h1>
       </div>
 
       <div className="space-y-5">
-        {/* Display name */}
-        <div className="space-y-1.5">
-          <Label htmlFor="displayName">Display name</Label>
-          <Input
-            id="displayName"
-            placeholder="e.g. Kyle's Guitars"
-            value={displayName}
-            onChange={(e) => onChangeDisplay(e.target.value)}
-            className="bg-card"
-            autoComplete="name"
-          />
-          <p className="text-xs text-muted-foreground">
-            This is how you&apos;ll appear in your home niche. You can change it later.
-          </p>
-        </div>
-
-        {/* Username */}
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5">
-            <Label htmlFor="username">Username</Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground">
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-[220px] text-xs">
-                Your username is permanent and identifies your account across every niche on SubNiche — it cannot be changed after signup.
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-              u/
-            </span>
-            <Input
-              id="username"
-              placeholder="yourname"
-              value={username}
-              onChange={(e) => onChangeUsername(sanitizeUsername(e.target.value))}
-              className="bg-card pl-7"
-              autoComplete="username"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            This identifies your account across all niches.
-          </p>
-        </div>
-
-        {/* Password */}
         <div className="space-y-1.5">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -449,9 +232,10 @@ function ProfileStep({
             type="password"
             placeholder="Create a password"
             value={password}
-            onChange={(e) => onChangePassword(e.target.value)}
+            onChange={(e) => onChange(e.target.value)}
             className="bg-card"
             autoComplete="new-password"
+            autoFocus
           />
           {password.length > 0 && (
             <ul className="space-y-1 pt-1">
@@ -475,8 +259,286 @@ function ProfileStep({
           )}
         </div>
 
+        <Button className="w-full" disabled={!passwordValid} onClick={onNext}>
+          Continue
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Step: Niche selector ─────────────────────────────────────────────────────
+
+function NicheStep({
+  selected,
+  onSelect,
+  onNext,
+}: {
+  selected: string
+  onSelect: (id: string) => void
+  onNext: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [showSuggest, setShowSuggest] = useState(false)
+  const [suggestValue, setSuggestValue] = useState('')
+  const [suggestNote, setSuggestNote] = useState('')
+  const [suggestContact, setSuggestContact] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const filtered = NICHES.filter((n) =>
+    n.label.toLowerCase().includes(query.toLowerCase()) ||
+    n.description.toLowerCase().includes(query.toLowerCase()),
+  )
+
+  function handleSubmitSuggestion() {
+    if (!suggestValue.trim()) return
+    setSubmitted(true)
+    setSuggestValue('')
+    setSuggestNote('')
+    setSuggestContact(false)
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="mb-6">
+        <StepDots current={2} total={4} />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Select your home niche</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          This will be your default niche when logging in.
+        </p>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {!showSuggest ? (
+          <motion.div
+            key="selector"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+          >
+            {/* Search */}
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search niches…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="bg-card pl-9 pr-8"
+              />
+              {query && (
+                <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Niche list */}
+            <div className="mb-4 overflow-hidden rounded-xl border border-border bg-card">
+              {filtered.length > 0 ? (
+                filtered.map((niche, i) => {
+                  const Icon = niche.icon
+                  const isSelected = selected === niche.id
+                  return (
+                    <button
+                      key={niche.id}
+                      type="button"
+                      disabled={!niche.available}
+                      onClick={() => niche.available && onSelect(niche.id)}
+                      className={cn(
+                        'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
+                        i > 0 && 'border-t border-border',
+                        niche.available
+                          ? isSelected
+                            ? 'bg-primary/10'
+                            : 'hover:bg-muted/50'
+                          : 'cursor-not-allowed opacity-45',
+                      )}
+                    >
+                      <div className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                        isSelected ? 'bg-primary/20' : 'bg-muted',
+                      )}>
+                        <Icon className={cn('h-4 w-4', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground">{niche.label}</p>
+                        <p className="truncate text-xs text-muted-foreground">{niche.description}</p>
+                      </div>
+                      <div className="shrink-0">
+                        {isSelected ? (
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                            <Check className="h-3 w-3 text-primary-foreground" />
+                          </div>
+                        ) : !niche.available ? (
+                          <span className="text-[10px] text-muted-foreground/60">Coming soon</span>
+                        ) : null}
+                      </div>
+                    </button>
+                  )
+                })
+              ) : (
+                <div className="flex flex-col items-center gap-2 p-8 text-center">
+                  <Sparkles className="h-6 w-6 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No niches match &ldquo;{query}&rdquo;</p>
+                </div>
+              )}
+            </div>
+
+            {/* Suggest link */}
+            <div className="mb-5">
+              <button
+                type="button"
+                onClick={() => setShowSuggest(true)}
+                className="group w-full text-center text-xs text-muted-foreground underline-offset-2"
+              >
+                Don&apos;t see yours?{' '}
+                <span className="text-primary group-hover:underline">Suggest a niche</span>
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="suggest"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+            className="mb-5"
+          >
+            {submitted ? (
+              <div className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-6 text-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+                  <Check className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">Thanks for the suggestion!</p>
+                  <p className="text-xs text-muted-foreground">We read every submission and are always looking for ways to serve niche communities.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSubmitted(false); setShowSuggest(false) }}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to signup
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <Label className="text-xs text-muted-foreground">What niche would you like to see supported?</Label>
+                  <button
+                    type="button"
+                    onClick={() => { setShowSuggest(false); setSuggestValue(''); setSuggestNote(''); setSuggestContact(false) }}
+                    aria-label="Back to niche list"
+                    className="ml-2 shrink-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <Input
+                    placeholder=""
+                    value={suggestValue}
+                    onChange={(e) => setSuggestValue(e.target.value)}
+                    className="bg-background text-sm"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">
+                    Note <span className="text-muted-foreground/50">(optional)</span>
+                  </Label>
+                  <textarea
+                    placeholder="Tell us about your community and anything else you'd like us to know."
+                    value={suggestNote}
+                    onChange={(e) => setSuggestNote(e.target.value)}
+                    rows={3}
+                    className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  />
+                </div>
+
+                <label className="flex cursor-pointer items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={suggestContact}
+                    onChange={(e) => setSuggestContact(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    I&apos;m open to being contacted by SubNiche for help implementing this niche.
+                  </span>
+                </label>
+
+                <Button
+                  className="w-full"
+                  size="sm"
+                  onClick={handleSubmitSuggestion}
+                  disabled={!suggestValue.trim()}
+                >
+                  Submit suggestion
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!showSuggest && (
+        <Button className="w-full" disabled={!selected} onClick={onNext}>
+          Continue
+        </Button>
+      )}
+    </div>
+  )
+}
+
+// ─── Step: Profile ────────────────────────────────────────────────────────────
+
+function ProfileStep({
+  username,
+  onChangeUsername,
+  onNext,
+}: {
+  username: string
+  onChangeUsername: (v: string) => void
+  onNext: () => void
+}) {
+  const canSubmit = username.trim()
+
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="mb-6">
+        <StepDots current={1} total={4} />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Username</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          This identifies your account across all niches. It cannot be changed. You can set a niche-specific display name later.
+        </p>
+      </div>
+
+      <div className="space-y-5">
+        {/* Username */}
+        <div className="space-y-1.5">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              u/
+            </span>
+            <Input
+              id="username"
+              placeholder="yourname"
+              value={username}
+              onChange={(e) => onChangeUsername(sanitizeUsername(e.target.value))}
+              className="bg-card pl-7"
+              autoComplete="username"
+            />
+          </div>
+        </div>
+
         <Button className="w-full" disabled={!canSubmit} onClick={onNext}>
-          Complete registration
+          Continue
         </Button>
       </div>
     </div>
@@ -486,23 +548,30 @@ function ProfileStep({
 // ─── Step: Onboarding ─────────────────────────────────────────────────────────
 
 function OnboardingStep({
+  niche,
+  displayName,
   avatarPreview,
   bio,
   zipCode,
+  onChangeDisplay,
   onAvatarChange,
   onBioChange,
   onZipChange,
   onFinish,
 }: {
+  niche: string
+  displayName: string
   avatarPreview: string | null
   bio: string
   zipCode: string
+  onChangeDisplay: (v: string) => void
   onAvatarChange: (url: string | null) => void
   onBioChange: (v: string) => void
   onZipChange: (v: string) => void
   onFinish: () => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const nicheLabel = NICHES.find((n) => n.id === niche)?.label.toLowerCase() ?? 'community'
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -513,10 +582,10 @@ function OnboardingStep({
   return (
     <div className="mx-auto w-full max-w-sm">
       <div className="mb-6">
-        <StepDots current={2} total={3} />
+        <StepDots current={3} total={4} />
         <h1 className="mt-4 text-2xl font-bold text-foreground">You&apos;re in! Introduce yourself.</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Help the community get to know you.
+          Profiles are niche-specific. Help the {nicheLabel} community get to know you.
         </p>
       </div>
 
@@ -547,6 +616,19 @@ function OnboardingStep({
           >
             {avatarPreview ? 'Change avatar' : 'Upload avatar'}
           </button>
+        </div>
+
+        {/* Display name */}
+        <div className="space-y-1.5">
+          <Label htmlFor="displayName">Display name</Label>
+          <Input
+            id="displayName"
+            placeholder="e.g. Kyle's Guitars"
+            value={displayName}
+            onChange={(e) => onChangeDisplay(e.target.value)}
+            className="bg-card"
+            autoComplete="name"
+          />
         </div>
 
         {/* Bio */}
@@ -612,7 +694,7 @@ export function SignupFlow() {
     zipCode: '',
   }))
 
-  const stepOrder: Step[] = ['email', 'confirm-email', 'niche', 'profile', 'onboarding']
+  const stepOrder: Step[] = ['email', 'confirm-email', 'password', 'profile', 'niche', 'onboarding']
 
   function advance(next: Step) {
     const curr    = stepOrder.indexOf(step)
@@ -639,22 +721,24 @@ export function SignupFlow() {
       {/* Form panel */}
       <div className="flex w-full flex-col lg:w-1/2">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-8 py-6">
-          <button
-            type="button"
-            onClick={goBack}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </button>
+        <div className="flex items-center justify-end px-8 py-6">
           <Link href="/" aria-label="SubNiche home">
             <SubnicheLogo width={117} height={36} light priority />
           </Link>
         </div>
 
         {/* Step content */}
-        <div className="flex flex-1 flex-col justify-center px-8 pb-12 lg:px-16">
+        <div className="flex flex-1 flex-col justify-start px-8 pt-10 pb-12 lg:px-16">
+          <div className="mx-auto w-full max-w-sm">
+            <button
+              type="button"
+              onClick={goBack}
+              className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
               key={step}
@@ -679,6 +763,20 @@ export function SignupFlow() {
               {step === 'confirm-email' && (
                 <ConfirmEmailStep
                   email={state.email}
+                  onNext={() => advance('password')}
+                />
+              )}
+              {step === 'password' && (
+                <PasswordStep
+                  password={state.password}
+                  onChange={set('password')}
+                  onNext={() => advance('profile')}
+                />
+              )}
+              {step === 'profile' && (
+                <ProfileStep
+                  username={state.username}
+                  onChangeUsername={set('username')}
                   onNext={() => advance('niche')}
                 />
               )}
@@ -686,29 +784,24 @@ export function SignupFlow() {
                 <NicheStep
                   selected={state.niche}
                   onSelect={set('niche')}
-                  onNext={() => advance('profile')}
-                />
-              )}
-              {step === 'profile' && (
-                <ProfileStep
-                  displayName={state.displayName}
-                  username={state.username}
-                  password={state.password}
-                  onChangeDisplay={set('displayName')}
-                  onChangeUsername={set('username')}
-                  onChangePassword={set('password')}
                   onNext={() => advance('onboarding')}
                 />
               )}
               {step === 'onboarding' && (
                 <OnboardingStep
+                  niche={state.niche}
+                  displayName={state.displayName}
                   avatarPreview={state.avatarPreview}
                   bio={state.bio}
                   zipCode={state.zipCode}
+                  onChangeDisplay={set('displayName')}
                   onAvatarChange={set('avatarPreview')}
                   onBioChange={set('bio')}
                   onZipChange={set('zipCode')}
-                  onFinish={() => (window.location.href = `/n/${state.niche || 'guitars'}`)}
+                  onFinish={() => {
+                    document.cookie = 'subniche_auth=logged-in; path=/'
+                    window.location.href = `/n/${state.niche || 'guitars'}`
+                  }}
                 />
               )}
             </motion.div>

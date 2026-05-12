@@ -51,8 +51,9 @@ import {
 import { cn } from "@/lib/utils"
 import { StatusSelector } from "@/components/create-item/status-selector"
 import { CollectionFields } from "@/components/create-item/collection-fields"
+import { AcquisitionFields } from "@/components/create-item/acquisition-fields"
 import { WishlistFields } from "@/components/create-item/wishlist-fields"
-import { WishlistEntrySelector } from "@/components/create-item/wishlist-entry-selector"
+import { WishlistUrlImporter } from "@/components/create-item/wishlist-url-importer"
 import {
   emptyTradeInterest,
   summarizeInterest,
@@ -295,23 +296,16 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
       issues.push({ fieldId: "status", message: "Pick a status to continue" })
     }
 
-    // Wishlist-by-URL still needs to pick an entry method before the rest of
-    // the fields are even rendered, so skip category/title/price checks here.
-    const wishlistAwaitingUrl =
-      props.isWishlistActive && props.wishlistEntryMethod === null
+    // 2. Category (+ subcategory when the category has them)
+    if (!props.category) {
+      issues.push({ fieldId: "category", message: "Pick a category" })
+    } else if (categoryHasSubcategories(props.category) && !props.subcategory) {
+      issues.push({ fieldId: "category", message: "Pick a subcategory" })
+    }
 
-    if (!wishlistAwaitingUrl) {
-      // 2. Category (+ subcategory when the category has them)
-      if (!props.category) {
-        issues.push({ fieldId: "category", message: "Pick a category" })
-      } else if (categoryHasSubcategories(props.category) && !props.subcategory) {
-        issues.push({ fieldId: "category", message: "Pick a subcategory" })
-      }
-
-      // 3. Title — non-empty after trim
-      if (!props.title.trim()) {
-        issues.push({ fieldId: "title", message: "Title is required" })
-      }
+    // 3. Title — non-empty after trim
+    if (!props.title.trim()) {
+      issues.push({ fieldId: "title", message: "Title is required" })
     }
   }
 
@@ -349,8 +343,11 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
         })
       }
     }
+    // Owned items (For Sale, For Trade, Keeping) all need a collection.
+    const isOwnedItem =
+      props.forSaleActive || props.forTradeActive || props.inCollectionActive
     if (
-      props.inCollectionActive &&
+      isOwnedItem &&
       !props.isWishlistActive &&
       !props.collectionData.collectionId
     ) {
@@ -742,105 +739,98 @@ function StepBasics(
         </p>
       </FieldBlock>
 
-      {/* Wishlist URL/manual gate — matches desktop behaviour */}
-      {props.isWishlistActive && props.wishlistEntryMethod === null ? (
+      {/* Wishlist URL importer banner — optional shortcut to fill the
+          fields via AI. Shown above the regular form, never as a gate. */}
+      {props.isWishlistActive && (
         <section>
-          <SectionLabel>Entry</SectionLabel>
-          <WishlistEntrySelector
-            onMethodSelected={(m) => {
-              props.setWishlistEntryMethod(m)
-            }}
-            onUrlProcessed={props.onWishlistUrlProcessed}
-          />
+          <WishlistUrlImporter onUrlProcessed={props.onWishlistUrlProcessed} />
         </section>
-      ) : (
-        <>
-          <FieldBlock
-            id="category"
-            label="Category"
-            error={categoryError}
-            registerField={registerField}
-          >
-            <div
-              className={cn(
-                // Soft wrap so the error state visibly applies to the whole
-                // compound selector, not just a single pill.
-                categoryError && "rounded-lg ring-1 ring-destructive/60 -m-0.5 p-0.5",
-              )}
-            >
-              <CategorySelector
-                category={props.category}
-                subcategory={props.subcategory}
-                onCategoryChange={props.setCategory}
-                onSubcategoryChange={props.setSubcategory}
-                showLabel={false}
-              />
-            </div>
-          </FieldBlock>
+      )}
 
-          <FieldBlock
-            id="title"
-            label="Title"
-            error={titleError}
-            registerField={registerField}
-          >
-            <div className="space-y-3">
-              <Input
-                value={props.title}
-                onChange={(e) => props.setTitle(e.target.value)}
-                placeholder="e.g. 1962 Fender Stratocaster"
-                aria-invalid={!!titleError}
-                className={cn(
-                  "h-12 text-base",
-                  titleError &&
-                    "border-destructive focus-visible:ring-destructive/40",
-                )}
-              />
-              {/* Subtitle is optional — visually separated from Title. */}
-              <Input
-                value={props.subtitle}
-                onChange={(e) => props.setSubtitle(e.target.value)}
-                placeholder="Subtitle (color, year, variant)"
-                className="h-12 text-base text-muted-foreground"
-              />
-            </div>
-          </FieldBlock>
-
-          {props.forSaleActive && (
-            <FieldBlock
-              id="price"
-              label="Price"
-              error={priceError}
-              registerField={registerField}
-            >
-              <div
-                className={cn(
-                  "bg-card border rounded-xl px-4 py-3 flex items-baseline gap-2",
-                  priceError
-                    ? "border-destructive ring-1 ring-destructive/40"
-                    : "border-border",
-                )}
-              >
-                <span className="text-3xl font-bold text-primary">$</span>
-                <input
-                  inputMode="decimal"
-                  type="text"
-                  value={props.saleData.price ?? ""}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9.]/g, "")
-                    props.setSaleData((p) => ({
-                      ...p,
-                      price: val ? Number(val) : null,
-                    }))
-                  }}
-                  placeholder="0"
-                  aria-invalid={!!priceError}
-                  className="bg-transparent outline-none text-3xl font-bold text-primary placeholder:text-primary/30 w-full"
-                />
-              </div>
-            </FieldBlock>
+      <FieldBlock
+        id="category"
+        label="Category"
+        error={categoryError}
+        registerField={registerField}
+      >
+        <div
+          className={cn(
+            // Soft wrap so the error state visibly applies to the whole
+            // compound selector, not just a single pill.
+            categoryError && "rounded-lg ring-1 ring-destructive/60 -m-0.5 p-0.5",
           )}
-        </>
+        >
+          <CategorySelector
+            category={props.category}
+            subcategory={props.subcategory}
+            onCategoryChange={props.setCategory}
+            onSubcategoryChange={props.setSubcategory}
+            showLabel={false}
+          />
+        </div>
+      </FieldBlock>
+
+      <FieldBlock
+        id="title"
+        label="Title"
+        error={titleError}
+        registerField={registerField}
+      >
+        <div className="space-y-3">
+          <Input
+            value={props.title}
+            onChange={(e) => props.setTitle(e.target.value)}
+            placeholder="e.g. 1962 Fender Stratocaster"
+            aria-invalid={!!titleError}
+            className={cn(
+              "h-12 text-base",
+              titleError &&
+                "border-destructive focus-visible:ring-destructive/40",
+            )}
+          />
+          {/* Subtitle is optional — visually separated from Title. */}
+          <Input
+            value={props.subtitle}
+            onChange={(e) => props.setSubtitle(e.target.value)}
+            placeholder="Subtitle (color, year, variant)"
+            className="h-12 text-base text-muted-foreground"
+          />
+        </div>
+      </FieldBlock>
+
+      {props.forSaleActive && (
+        <FieldBlock
+          id="price"
+          label="Price"
+          error={priceError}
+          registerField={registerField}
+        >
+          <div
+            className={cn(
+              "bg-card border rounded-xl px-4 py-3 flex items-baseline gap-2",
+              priceError
+                ? "border-destructive ring-1 ring-destructive/40"
+                : "border-border",
+            )}
+          >
+            <span className="text-3xl font-bold text-primary">$</span>
+            <input
+              inputMode="decimal"
+              type="text"
+              value={props.saleData.price ?? ""}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "")
+                props.setSaleData((p) => ({
+                  ...p,
+                  price: val ? Number(val) : null,
+                }))
+              }}
+              placeholder="0"
+              aria-invalid={!!priceError}
+              className="bg-transparent outline-none text-3xl font-bold text-primary placeholder:text-primary/30 w-full"
+            />
+          </div>
+        </FieldBlock>
       )}
     </div>
   )
@@ -1192,6 +1182,18 @@ function StepTerms(
     }
   })()
 
+  const acquisitionSummary = (() => {
+    const data = props.collectionData
+    const bits: string[] = []
+    if (data.dateAcquired) bits.push(data.dateAcquired)
+    if (data.acquisitionPrice) bits.push(`$${data.acquisitionPrice}`)
+    if (data.receiptUrl) bits.push("Receipt")
+    if (bits.length === 0) {
+      return { state: "empty" as const, text: "Optional details" }
+    }
+    return { state: "done" as const, text: bits.join(" · ") }
+  })()
+
   const wishlistSummary = (() => {
     const data = props.wishlistData
     const bits: string[] = []
@@ -1406,7 +1408,9 @@ function StepTerms(
           </>
         )}
 
-        {inCollectionActive && !isWishlistActive && (
+        {/* Collection — required for every owned item (For Sale, For
+            Trade, Keeping). Wishlist has its own selector elsewhere. */}
+        {!isWishlistActive && (forSaleActive || forTradeActive || inCollectionActive) && (
           <TermsCard
             value="collection"
             icon={FolderOpen}
@@ -1420,6 +1424,22 @@ function StepTerms(
               onChange={props.setCollectionData}
               isActive
               collections={props.userCollections}
+            />
+          </TermsCard>
+        )}
+
+        {/* Acquisition — optional provenance for any owned item. */}
+        {!isWishlistActive && (forSaleActive || forTradeActive || inCollectionActive) && (
+          <TermsCard
+            value="acquisition"
+            icon={Tag}
+            title="Acquisition"
+            summary={acquisitionSummary.text}
+            state={acquisitionSummary.state}
+          >
+            <AcquisitionFields
+              data={props.collectionData}
+              onChange={props.setCollectionData}
             />
           </TermsCard>
         )}
@@ -1604,7 +1624,7 @@ function StepReview(
   if (inCollectionActive) {
     statusChips.push({
       key: "collection",
-      label: "In Collection",
+      label: "Keeping",
       tone: "bg-primary/10 border-primary/40 text-primary",
       Icon: FolderOpen,
     })
@@ -1971,8 +1991,30 @@ function MobileIntentScreen({
     wishlist: boolean
   }>({ sale: false, trade: false, collection: false, wishlist: false })
 
+  // Exclusion rules applied at toggle time:
+  // - sale + trade combine freely
+  // - collection (Keeping) and wishlist are each exclusive with everything
+  // Picking an exclusive option clears the others; picking sale/trade while
+  // an exclusive is on clears that exclusive first.
   const toggle = (key: "sale" | "trade" | "collection" | "wishlist") => {
-    setPicked((prev) => ({ ...prev, [key]: !prev[key] }))
+    setPicked((prev) => {
+      const next = { ...prev, [key]: !prev[key] }
+      if (!next[key]) return next
+      if (key === "collection") {
+        next.sale = false
+        next.trade = false
+        next.wishlist = false
+      } else if (key === "wishlist") {
+        next.sale = false
+        next.trade = false
+        next.collection = false
+      } else {
+        // sale or trade was just turned on — clear the exclusives.
+        next.collection = false
+        next.wishlist = false
+      }
+      return next
+    })
   }
 
   const hasAnyPicked = picked.sale || picked.trade || picked.collection || picked.wishlist
@@ -2012,8 +2054,8 @@ function MobileIntentScreen({
     },
     {
       key: "collection",
-      title: "Collection",
-      description: "Add to your private catalog",
+      title: "Keeping",
+      description: "Something you own and want to track",
       icon: FolderOpen,
       iconBg: "bg-primary/10",
       iconColor: "text-primary",

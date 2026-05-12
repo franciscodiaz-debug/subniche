@@ -41,8 +41,9 @@ import { cn } from "@/lib/utils"
 import { currentUser } from "@/lib/current-user"
 import { StatusSelector } from "@/components/create-item/status-selector"
 import { CollectionFields } from "@/components/create-item/collection-fields"
+import { AcquisitionFields } from "@/components/create-item/acquisition-fields"
 import { WishlistFields } from "@/components/create-item/wishlist-fields"
-import { WishlistEntrySelector } from "@/components/create-item/wishlist-entry-selector"
+import { WishlistUrlImporter } from "@/components/create-item/wishlist-url-importer"
 import { SellerProfilePreview } from "@/components/create-item/seller-profile-preview"
 import { MobileCreateListingWizard } from "@/components/create-item/mobile-wizard"
 import {
@@ -807,12 +808,18 @@ export function CreateListingInline({
     setIsWishlistActive(checked)
     setHasSelectedStatus(true)
     if (checked) {
+      // Wishlist is exclusive: items in the wishlist are things the user
+      // doesn't own, so they can't be For Sale, For Trade, or Keeping.
       setForSaleActive(false)
       setForTradeActive(false)
+      setInCollectionActive(false)
       setSaleData((p) => ({ ...p, active: false }))
       setTradeData((p) => ({ ...p, active: false }))
-      setShowNormalFields(false)
-      setWishlistEntryMethod(null)
+      setCollectionData((p) => ({ ...p, active: false }))
+      // Form is always available in wishlist mode now — the URL importer is
+      // shown as a banner above the form, not as a gating step.
+      setShowNormalFields(true)
+      setWishlistEntryMethod("manual")
       handleFieldsVisible("Wishlist")
     } else {
       setShowNormalFields(true)
@@ -857,6 +864,13 @@ export function CreateListingInline({
       if (saleData.shippingAvailable && saleData.shippingCost === null) {
         missing.push("Shipping cost")
       }
+    }
+    // Every owned item (For Sale, For Trade, Keeping) must belong to a
+    // collection. Wishlist items have their own selector (also a collection,
+    // but of a different kind) and are validated separately.
+    const isOwnedItem = forSaleActive || forTradeActive || inCollectionActive
+    if (isOwnedItem && !collectionData.collectionId) {
+      missing.push("Collection")
     }
     if (isWishlistActive && !wishlistData.sourceUrl && !wishlistData.targetPrice) {
       missing.push("Wishlist source URL or target price")
@@ -904,7 +918,7 @@ export function CreateListingInline({
     if (forSaleActive) statusChips.push({ key: "sale", label: "For Sale", tone: "sale" })
     if (forTradeActive) statusChips.push({ key: "trade", label: "For Trade", tone: "trade" })
     if (inCollectionActive)
-      statusChips.push({ key: "collection", label: "In Collection", tone: "collection" })
+      statusChips.push({ key: "collection", label: "Keeping", tone: "collection" })
     if (isWishlistActive)
       statusChips.push({
         key: "wishlist",
@@ -1277,19 +1291,40 @@ export function CreateListingInline({
     setForSaleActive(a)
     setSaleData((p) => ({ ...p, active: a }))
     setHasSelectedStatus(true)
-    if (a) handleFieldsVisible("For Sale")
+    if (a) {
+      // For Sale is incompatible with Keeping and Wishlist.
+      setInCollectionActive(false)
+      setIsWishlistActive(false)
+      setCollectionData((p) => ({ ...p, active: false }))
+      handleFieldsVisible("For Sale")
+    }
   }
   const handleForTradeChange = (a: boolean) => {
     setForTradeActive(a)
     setTradeData((p) => ({ ...p, active: a }))
     setHasSelectedStatus(true)
-    if (a) handleFieldsVisible("For Trade")
+    if (a) {
+      // For Trade is incompatible with Keeping and Wishlist.
+      setInCollectionActive(false)
+      setIsWishlistActive(false)
+      setCollectionData((p) => ({ ...p, active: false }))
+      handleFieldsVisible("For Trade")
+    }
   }
   const handleInCollectionChange = (a: boolean) => {
     setInCollectionActive(a)
     setCollectionData((p) => ({ ...p, active: a }))
     setHasSelectedStatus(true)
-    if (a) handleFieldsVisible("Collection")
+    if (a) {
+      // Keeping is exclusive: an item the user is just keeping is not
+      // For Sale, not For Trade, and not on the Wishlist.
+      setForSaleActive(false)
+      setForTradeActive(false)
+      setIsWishlistActive(false)
+      setSaleData((p) => ({ ...p, active: false }))
+      setTradeData((p) => ({ ...p, active: false }))
+      handleFieldsVisible("Keeping")
+    }
   }
 
   return (
@@ -1506,7 +1541,7 @@ export function CreateListingInline({
         )}
 
         {/* Category */}
-        {(!isWishlistActive || (wishlistEntryMethod !== null && showNormalFields)) && (
+        {showNormalFields && (
           <div className="mb-4" data-onboarding="category">
             <div className={cn("rounded-lg", currentStep === "category" && "ring-2 ring-primary")}>
               <CategorySelector
@@ -1519,34 +1554,16 @@ export function CreateListingInline({
           </div>
         )}
 
-        {/* Wishlist entry selector (before normal fields) */}
-        {isWishlistActive && wishlistEntryMethod === null && (
-          <div className="grid lg:grid-cols-2 gap-4 mb-4">
-            <div>
-              <WishlistEntrySelector
-                onMethodSelected={(method) => {
-                  setWishlistEntryMethod(method)
-                  if (method === "manual") setShowNormalFields(true)
-                }}
-                onUrlProcessed={handleWishlistUrlProcessed}
-              />
-            </div>
-            {inCollectionActive && (
-              <div>
-                <CollectionFields
-                  data={collectionData}
-                  onChange={setCollectionData}
-                  isActive={inCollectionActive}
-                  collections={userCollections}
-                  isWishlistMode
-                />
-              </div>
-            )}
+        {/* Wishlist banner — permanent context + optional URL importer.
+            The form below is always editable; the importer is a shortcut. */}
+        {isWishlistActive && (
+          <div className="mb-4">
+            <WishlistUrlImporter onUrlProcessed={handleWishlistUrlProcessed} />
           </div>
         )}
 
         {/* Main columns */}
-        {(!isWishlistActive || (wishlistEntryMethod !== null && showNormalFields)) && (
+        {showNormalFields && (
           <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 items-start">
             {/* Left column */}
             <div className="space-y-4 order-2 lg:order-1 w-full">
@@ -1978,15 +1995,22 @@ export function CreateListingInline({
                 </div>
               )}
 
-              {/* Collection (non-wishlist flow) */}
-              {!isWishlistActive && (
+              {/* Collection — required for every owned item (For Sale,
+                  For Trade, Keeping). Wishlist has its own selector above. */}
+              {!isWishlistActive && (forSaleActive || forTradeActive || inCollectionActive) && (
                 <CollectionFields
                   data={collectionData}
                   onChange={setCollectionData}
-                  isActive={inCollectionActive}
+                  isActive
                   collections={userCollections}
                   onFieldsVisible={() => handleFieldsVisible("Collection")}
                 />
+              )}
+
+              {/* Acquisition — optional history (when/how acquired, receipt).
+                  Available for every owned item, never for wishlist. */}
+              {!isWishlistActive && (forSaleActive || forTradeActive || inCollectionActive) && (
+                <AcquisitionFields data={collectionData} onChange={setCollectionData} />
               )}
 
               {/* Wishlist details */}
@@ -1998,7 +2022,7 @@ export function CreateListingInline({
         {/* Bottom "scroll up to publish" nudge — minimal, desktop only. The actual
             publish actions live in the top-right header so the status selector pills
             right beneath them act as the visual reference for what's about to happen. */}
-        {(!isWishlistActive || (wishlistEntryMethod !== null && showNormalFields)) && (
+        {showNormalFields && (
           <div className="mt-8 hidden lg:flex justify-center">
             <button
               type="button"

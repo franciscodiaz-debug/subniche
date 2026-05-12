@@ -71,8 +71,13 @@ export function StatusSelector({
   onWishlistChange,
   size = "md",
 }: StatusSelectorProps) {
-  const ownershipLocked = isWishlist
-  const wishlistLocked = forSale || forTrade
+  // Exclusion rules:
+  // - For Sale + For Trade can be combined freely.
+  // - Wishlist (items the user doesn't own) excludes everything else.
+  // - Keeping (items the user just owns) excludes everything else.
+  const ownershipLocked = isWishlist || inCollection
+  const wishlistLocked = forSale || forTrade || inCollection
+  const keepingLocked = forSale || forTrade || isWishlist
   const s = sizeStyles[size]
 
   return (
@@ -107,14 +112,16 @@ export function StatusSelector({
 
       <button
         type="button"
-        onClick={() => onInCollectionChange(!inCollection)}
+        onClick={() => !keepingLocked && onInCollectionChange(!inCollection)}
+        disabled={keepingLocked}
         className={cn(
           s.chip,
-          inCollection ? activeStyles.collection : inactiveStyles.collection,
+          keepingLocked && "opacity-40 cursor-not-allowed",
+          inCollection && !keepingLocked ? activeStyles.collection : inactiveStyles.collection,
         )}
       >
         <FolderOpen className={s.icon} />
-        <span>In Collection</span>
+        <span>Keeping</span>
       </button>
 
       <div className={cn(s.divider, "bg-border")} />

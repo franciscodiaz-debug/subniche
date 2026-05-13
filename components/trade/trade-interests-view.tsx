@@ -10,29 +10,17 @@
  * Two display modes, driven entirely by the parent's `selectedItemId`:
  *
  *   1. ALL ITEMS  (selectedItemId === "all")
- *      Interests are grouped by REACH:
- *        a. "Applied to every listing"   — global. These are the things you'd
- *           accept on any of your items, full stop. Lifted to the top so the
- *           shared-by-default templates aren't buried.
- *        b. "Applied to some listings"   — partial. The "applied to 4 of 6"
- *           middle ground that already existed; we just give it its own
- *           heading so users can scan reach at a glance.
- *        c. "Templates — not applied"    — orphans. Reusable shells that
- *           haven't been bound to a listing yet.
+ *      Desktop shows a persistent listing rail and groups interests by reach:
+ *      "Global" vs. "Listing Specific" (including unapplied
+ *      reusable templates).
  *
  *   2. INDIVIDUAL ITEM  (selectedItemId === "my-1" etc.)
  *      The whole surface is reframed around that single item, since the user
  *      arrived here from "For <item>" upstream.
- *        a. "Global — applies to every listing"
- *           Read-context first: these auto-apply to the current item too.
- *        b. "Applied to this item"
- *           Interests where `appliedTo` includes the current item but doesn't
- *           cover everything. Caption shows "Just this item" or
- *           "Shared with N other listings" so reach stays visible.
- *      And a NEW affordance — "Add from existing" — lets the user pull an
- *      already-authored interest into the current item without retyping. It
- *      complements the inline new-interest buttons: New = author from scratch,
- *      Add existing = reuse a template from another item.
+ *      Listing Specific interests come first, followed by Global interests
+ *      that also apply to this listing.
+ *      Add Interest lets the user either author from scratch or reuse an
+ *      existing saved interest without retyping.
  *
  * Surface contract:
  *   Header:  ←  Trade Interests
@@ -59,6 +47,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  Layers3,
   Pencil,
   Plus,
   Search,
@@ -76,7 +65,11 @@ import {
 import type { TradeableItemSummary } from "@/lib/market-data"
 import { SavedInterestEditor } from "./saved-interest-editor"
 import { TradeItemSelector } from "./trade-item-selector"
-import { TradeInterestRow, savedInterestToChips, savedInterestDescription } from "./trade-interest-row"
+import {
+  TradeInterestRow,
+  savedInterestDescription,
+  savedInterestToChips,
+} from "./trade-interest-row"
 
 interface TradeInterestsViewProps {
   /** Return to the grid. Rendered as the back-arrow target in the header. */
@@ -161,11 +154,11 @@ export function TradeInterestsView({
    *   - "individual"        — Individual section (only in individual-item mode)
    *
    * Default collapsed:
-   *   - In all-items mode: Individual section is pre-collapsed so Global is the focus
+   *   - In all-items mode: Global and Individual sections are pre-collapsed
    *   - In individual-item mode: Global section is pre-collapsed so Individual is the focus */
   const [collapsedSections, setCollapsedSections] = React.useState<
     Set<string>
-  >(() => new Set(["global-individual", "individual"]))
+  >(() => new Set(["global-all", "global-individual", "individual"]))
 
   const toggleSection = (key: string) => {
     setCollapsedSections((prev) => {
@@ -180,12 +173,12 @@ export function TradeInterestsView({
    * ensures the user always sees the contextually-relevant section first
    * when navigating to a different mode or item:
    *   - Individual item mode: Global collapsed, Individual expanded
-   *   - All items mode: Global expanded, Individual collapsed */
+   *   - All items mode: Global collapsed, Individual collapsed */
   React.useEffect(() => {
     if (isIndividual && selectedItem) {
       setCollapsedSections(new Set(["global-individual"]))
     } else {
-      setCollapsedSections(new Set(["individual"]))
+      setCollapsedSections(new Set(["global-all", "individual"]))
     }
   }, [isIndividual, selectedItem?.id])
 
@@ -299,7 +292,7 @@ export function TradeInterestsView({
         <InterestRow
           interest={interest}
           items={items}
-expanded={isExpanded}
+          expanded={isExpanded}
           expandedMode={isExpanded ? expandedMode : null}
           dimmed={dimmed}
           confirming={confirmingRemovalId === interest.id}
@@ -315,10 +308,15 @@ expanded={isExpanded}
     )
   }
 
+  const allItemModeInterests = [...buckets.partial, ...buckets.templates]
+  const currentContextCount =
+    isIndividual && selectedItem
+      ? buckets.itemSpecific.length + buckets.global.length
+      : interests.length
+
   return (
-    <div className="px-4 pb-6 pt-3 md:px-8">
-      {/* Header ---------------------------------------------------------- */}
-      <div className="mb-1 flex items-center gap-3">
+    <div className="mx-auto max-w-7xl px-4 pb-8 pt-3 md:px-8">
+      <div className="mb-4 flex items-start gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -328,25 +326,24 @@ expanded={isExpanded}
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="truncate text-2xl font-bold text-foreground">
-            Trade Interests
-          </h1>
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-bold text-foreground">
+              Trade Interests
+            </h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {isIndividual && selectedItem
+                ? `${currentContextCount} ${
+                    currentContextCount === 1 ? "interest" : "interests"
+                  } for this listing`
+                : `${currentContextCount} saved ${
+                    currentContextCount === 1 ? "interest" : "interests"
+                  } across your trade listings`}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* "For" row ----------------------------------------------------------
-          Sits flush beneath the H1 (mb-1 above, no header card) so the title
-          and selector read as a single header cluster: "Trade Interests / For
-          [All items ▾]". Subtle selector variant drops the card-button chrome
-          and uses larger text to match the title's visual weight. Indented by
-          ml-10 to align with the H1's text start (back arrow width + gap).
-
-          The selector is controlled by TradeContent; switching here also
-          changes the upstream grid filter, so backing out preserves the user's
-          focus context. When "All items" is selected → Global / Individual
-          buckets render across the whole portfolio. When a specific item is
-          selected → the page reframes around that item. */}
-      <div className="mb-3 ml-10 flex w-full flex-wrap items-center gap-2">
+      <div className="mb-5 flex w-full flex-wrap items-center gap-2 lg:hidden">
         <span className="text-sm text-muted-foreground">For</span>
         <TradeItemSelector
           items={items}
@@ -356,133 +353,96 @@ expanded={isExpanded}
         />
       </div>
 
-      {/* Selected-item preview ---------------------------------------------
-          When the user has narrowed to a specific listing, render a compact
-          visual card so they aren't relying on the selector text alone to
-          confirm which item they're managing. Three signals at a glance:
-          thumbnail (recognizes shape/finish faster than reading), title +
-          subtitle (model + condition), and asking price (anchors the trade
-          value the interests will be evaluated against). Not shown for the
-          "All items" mode since there's no single subject to preview.
+      <div className="grid gap-6 lg:grid-cols-[288px_minmax(0,1fr)]">
+        <TradeInterestScopeRail
+          items={items}
+          interests={interests}
+          selectedItemId={selectedItemId}
+          onSelectItem={onSelectItem}
+        />
 
-          Indented to ml-10 to align with the H1 text and the For-selector
-          row above it, keeping the header cluster visually unified. */}
-      {isIndividual && selectedItem ? (
-        <div className="mb-5 ml-10 flex w-fit max-w-lg items-center gap-3 rounded-lg border border-border bg-card/50 p-2.5">
-          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-            <Image
-              src={selectedItem.image || "/placeholder.svg"}
-              alt={selectedItem.title}
-              width={48}
-              height={48}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {selectedItem.title}
-            </p>
-            {selectedItem.subtitle ? (
-              <p className="truncate text-xs text-muted-foreground">
-                {selectedItem.subtitle}
-              </p>
-            ) : null}
-          </div>
-          {typeof selectedItem.price === "number" ? (
-            <p className="ml-6 flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
-              ${selectedItem.price.toLocaleString('en-US')}
-            </p>
+        {/* Body ------------------------------------------------------------- */}
+        <div className="min-w-0">
+          {isIndividual && selectedItem ? (
+            <SelectedItemSummary item={selectedItem} />
           ) : null}
-        </div>
-      ) : (
-        <div className="mb-5" />
-      )}
 
-      {/* Body ------------------------------------------------------------- */}
-      <div className="ml-10">
-      {interests.length === 0 ? (
-        <EmptyState onCreate={handleNew} />
-      ) : isIndividual && selectedItem ? (
-        <div className="space-y-1.5">
-          <Section
-            title="Global"
-            caption="Applied to every listing — including this one. Edits here update everywhere."
-            count={buckets.global.length}
-            empty="No interests here yet."
-            collapsed={collapsedSections.has("global-individual")}
-            onToggleCollapse={() => toggleSection("global-individual")}
-            actions={
-              <AddExistingPicker
-                available={[...buckets.partial, ...buckets.templates]}
-                onApply={handleApplyAsGlobal}
-                onAddNew={handleNewGlobal}
-              />
-            }
-          >
-            {buckets.global.length > 0 ? (
-              <ul className="ml-6 space-y-2">
-                {buckets.global.map(renderRow)}
-              </ul>
-            ) : null}
-          </Section>
-
-          <Section
-            title="Individual"
-            caption="Applied to this listing. May also be shared with other listings."
-            count={buckets.itemSpecific.length}
-            empty="No interests here yet."
-            collapsed={collapsedSections.has("individual")}
-            onToggleCollapse={() => toggleSection("individual")}
-            actions={
-              <AddExistingPicker
-                available={buckets.availableForItem}
-                onApply={handleApplyExisting}
-                onAddNew={handleNew}
-              />
-            }
-          >
-            {buckets.itemSpecific.length > 0 ? (
-              <ul className="ml-6 space-y-2">
-                {buckets.itemSpecific.map(renderRow)}
-              </ul>
-            ) : null}
-          </Section>
-        </div>
-      ) : (
-        <div className="space-y-1.5">
-          <Section
-            title="Global"
-            caption="Applied to every listing"
-            count={buckets.global.length}
-            empty="No interests here yet."
-            collapsed={collapsedSections.has("global-all")}
-            onToggleCollapse={() => toggleSection("global-all")}
-            actions={
-              <AddExistingPicker
-                available={[...buckets.partial, ...buckets.templates]}
-                onApply={handleApplyAsGlobal}
-                onAddNew={handleNewGlobal}
-              />
-            }
-          >
-            {buckets.global.length > 0 ? (
-              <ul className="ml-6 space-y-2">
-                {buckets.global.map(renderRow)}
-              </ul>
-            ) : null}
-          </Section>
-
-          {/* Templates (interests with empty appliedTo) live alongside partial
-              ones in this view so a brand-new draft created from "+ New" in
-              this section doesn't disappear before the user finishes editing
-              its scope. */}
-          {(() => {
-            const otherInterests = [...buckets.partial, ...buckets.templates]
-            return (
+          {interests.length === 0 ? (
+            <EmptyState onCreate={handleNew} />
+          ) : isIndividual && selectedItem ? (
+            <div className="space-y-5">
               <Section
-                title="Individual"
-                caption="Applied to individual listings"
-                count={otherInterests.length}
+                title="Listing Specific"
+                caption="Interests applied to this listing"
+                count={buckets.itemSpecific.length}
+                empty="No interests here yet."
+                collapsed={collapsedSections.has("individual")}
+                onToggleCollapse={() => toggleSection("individual")}
+                actions={
+                  <AddExistingPicker
+                    available={buckets.availableForItem}
+                    onApply={handleApplyExisting}
+                    onAddNew={handleNew}
+                  />
+                }
+              >
+                {buckets.itemSpecific.length > 0 ? (
+                  <ul className="ml-6 space-y-2">
+                    {buckets.itemSpecific.map(renderRow)}
+                  </ul>
+                ) : null}
+              </Section>
+
+              <Section
+                title="Global"
+                caption="Edits here update every listing"
+                count={buckets.global.length}
+                empty="No interests here yet."
+                collapsed={collapsedSections.has("global-individual")}
+                onToggleCollapse={() => toggleSection("global-individual")}
+                actions={
+                  <AddExistingPicker
+                    available={[...buckets.partial, ...buckets.templates]}
+                    onApply={handleApplyAsGlobal}
+                    onAddNew={handleNewGlobal}
+                  />
+                }
+              >
+                {buckets.global.length > 0 ? (
+                  <ul className="ml-6 space-y-2">
+                    {buckets.global.map(renderRow)}
+                  </ul>
+                ) : null}
+              </Section>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <Section
+                title="Global"
+                caption="Used by every trade listing"
+                count={buckets.global.length}
+                empty="No interests here yet."
+                collapsed={collapsedSections.has("global-all")}
+                onToggleCollapse={() => toggleSection("global-all")}
+                actions={
+                  <AddExistingPicker
+                    available={[...buckets.partial, ...buckets.templates]}
+                    onApply={handleApplyAsGlobal}
+                    onAddNew={handleNewGlobal}
+                  />
+                }
+              >
+                {buckets.global.length > 0 ? (
+                  <ul className="ml-6 space-y-2">
+                    {buckets.global.map(renderRow)}
+                  </ul>
+                ) : null}
+              </Section>
+
+              <Section
+                title="Listing Specific"
+                caption="Used by one or more selected listings"
+                count={allItemModeInterests.length}
                 empty="No interests here yet."
                 collapsed={collapsedSections.has("individual")}
                 onToggleCollapse={() => toggleSection("individual")}
@@ -494,18 +454,153 @@ expanded={isExpanded}
                   />
                 }
               >
-                {otherInterests.length > 0 ? (
+                {allItemModeInterests.length > 0 ? (
                   <ul className="ml-6 space-y-2">
-                    {otherInterests.map(renderRow)}
+                    {allItemModeInterests.map(renderRow)}
                   </ul>
                 ) : null}
               </Section>
-            )
-          })()}
+            </div>
+          )}
         </div>
-      )}
       </div>
+    </div>
+  )
+}
 
+/* -------------------------------------------------------------------------- */
+/* Desktop scope rail + selected item summary                                 */
+/* -------------------------------------------------------------------------- */
+
+function TradeInterestScopeRail({
+  items,
+  interests,
+  selectedItemId,
+  onSelectItem,
+}: {
+  items: TradeableItemSummary[]
+  interests: SavedTradeInterest[]
+  selectedItemId: string
+  onSelectItem: (id: string) => void
+}) {
+  const countFor = (itemId: string) =>
+    interests.reduce(
+      (count, interest) =>
+        count + (interest.appliedTo.includes(itemId) ? 1 : 0),
+      0,
+    )
+  const globalCount = interests.filter((interest) =>
+    isGlobalInterest(interest, items),
+  ).length
+  const listingSpecificCount = interests.length - globalCount
+
+  return (
+    <aside className="hidden lg:block">
+      <div className="sticky top-20 space-y-2">
+        <div>
+          <button
+            type="button"
+            onClick={() => onSelectItem("all")}
+            className={cn(
+              "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+              selectedItemId === "all"
+                ? "border-primary/50 bg-primary/10"
+                : "border-transparent bg-transparent hover:border-border hover:bg-card",
+            )}
+          >
+            <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+              <Layers3 className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-foreground">
+                All
+              </span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {globalCount} global · {listingSpecificCount} listing specific
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <div className="pt-4">
+          <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            Listing Specific
+          </p>
+          <div className="space-y-1.5">
+            {items.map((item) => {
+              const selected = selectedItemId === item.id
+              const count = countFor(item.id)
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onSelectItem(item.id)}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                    selected
+                      ? "border-primary/50 bg-primary/10"
+                      : "border-transparent bg-transparent hover:border-border hover:bg-card",
+                  )}
+                >
+                  <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
+                    <Image
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.title}
+                      width={40}
+                      height={40}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-foreground">
+                      {item.title}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {count} {count === 1 ? "interest" : "interests"}
+                      {item.matchCount > 0
+                        ? ` · ${item.matchCount} ${
+                            item.matchCount === 1 ? "match" : "matches"
+                          }`
+                        : ""}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+function SelectedItemSummary({ item }: { item: TradeableItemSummary }) {
+  return (
+    <div className="mb-5 flex items-center gap-3 rounded-lg border border-border bg-card/50 p-2.5 lg:hidden">
+      <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
+        <Image
+          src={item.image || "/placeholder.svg"}
+          alt={item.title}
+          width={48}
+          height={48}
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {item.title}
+        </p>
+        {item.subtitle ? (
+          <p className="truncate text-xs text-muted-foreground">
+            {item.subtitle}
+          </p>
+        ) : null}
+      </div>
+      {typeof item.price === "number" ? (
+        <p className="ml-3 flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
+          ${item.price.toLocaleString("en-US")}
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -534,17 +629,14 @@ function Section({
   onToggleCollapse?: () => void
 }) {
   return (
-    <section className="group/section">
-      {/* Header — full-width hover zone. Caption and action button are hidden
-          by default and revealed on group-hover; both stay invisible (not
-          removed) when collapsed so height never shifts. */}
-      <div className="relative mb-2">
+    <section>
+      <div className="mb-2 flex items-center justify-between gap-3 border-b border-border/70 pb-2">
         <button
           type="button"
           onClick={onToggleCollapse ?? undefined}
           aria-expanded={onToggleCollapse ? !collapsed : undefined}
           className={cn(
-            "flex w-full items-start gap-2 rounded-md px-1 py-3 text-left transition-colors",
+            "flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-2 text-left transition-colors",
             onToggleCollapse && "hover:bg-secondary/40",
           )}
         >
@@ -557,18 +649,17 @@ function Section({
               )}
             />
           ) : null}
-          <div className="min-w-0 pr-28">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="truncate text-sm font-semibold uppercase tracking-wide text-foreground">
+              <h2 className="truncate text-sm font-semibold text-foreground">
                 {title}
               </h2>
-              <span className="text-xs text-muted-foreground">{count}</span>
+              <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+                {count}
+              </span>
             </div>
             {caption ? (
-              <p className={cn(
-                "mt-0.5 text-xs text-muted-foreground transition-opacity duration-200",
-                collapsed ? "opacity-0 group-hover/section:opacity-100" : "opacity-100",
-              )}>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {caption}
               </p>
             ) : null}
@@ -577,10 +668,7 @@ function Section({
 
         {actions ? (
           <div
-            className={cn(
-              "absolute right-1 top-1/2 -translate-y-1/2 transition-opacity duration-150",
-              collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
-            )}
+            className={cn(collapsed && "hidden")}
             onClick={(e) => e.stopPropagation()}
           >
             {actions}
@@ -589,7 +677,7 @@ function Section({
       </div>
 
       {collapsed ? null : count === 0 ? (
-        <div className="ml-10 rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
+        <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
           <p className="text-xs text-muted-foreground">
             {empty ?? "Nothing here yet."}
           </p>
@@ -641,7 +729,6 @@ function AddExistingPicker({
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
   }, [open])
-
 
   const filtered = available.filter((interest) => {
     if (!query.trim()) return true
@@ -792,6 +879,13 @@ function InterestRow({
   const appliedCount = isGlobal ? items.length : interest.appliedTo.length
   const chips = savedInterestToChips(interest)
   const description = savedInterestDescription(interest)
+  const reach =
+    isGlobal
+      ? "Every listing"
+      : appliedCount === 0
+        ? "Not applied"
+        : `${appliedCount} ${appliedCount === 1 ? "listing" : "listings"}`
+  const rowDescription = [description, reach].filter(Boolean).join(" · ")
   const isDetailOpen = expanded && expandedMode === "detail"
   const isEditOpen = expanded && expandedMode === "edit"
 
@@ -813,51 +907,66 @@ function InterestRow({
     />
   ) : undefined
 
-  const actions = !confirming ? (
-    <>
-      <button
-        type="button"
-        onClick={onToggleEdit}
-        aria-label={isEditOpen ? "Close editor" : "Edit interest"}
-        aria-expanded={isEditOpen}
-        className={cn(
-          "inline-flex h-8 w-8 items-center justify-center rounded-md transition-[color,background-color,opacity]",
-          isEditOpen
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground opacity-0 hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover/row:opacity-100",
-        )}
-      >
-        <Pencil className="h-3.5 w-3.5" />
-      </button>
-      <button
-        type="button"
-        onClick={onRequestRemove}
-        aria-label="Remove interest"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover/row:opacity-100"
-      >
-        <X className="h-4 w-4" />
-      </button>
-    </>
-  ) : (
-    <div className="flex flex-shrink-0 items-center gap-1.5">
-      <span className="text-xs text-muted-foreground">Remove this interest?</span>
-      <Button type="button" variant="destructive" size="sm" onClick={onConfirmRemove} className="h-7 px-2.5">
-        <Trash2 className="mr-1 h-3 w-3" />
-        Remove
-      </Button>
-      <Button type="button" variant="ghost" size="sm" onClick={onCancelRemove} className="h-7 px-2">
-        Cancel
-      </Button>
-    </div>
-  )
+  const actions = expanded ? (
+    !confirming ? (
+      <>
+        <button
+          type="button"
+          onClick={onToggleEdit}
+          aria-label={isEditOpen ? "Close editor" : "Edit interest"}
+          aria-expanded={isEditOpen}
+          className={cn(
+            "inline-flex h-8 w-8 items-center justify-center rounded-md transition-[color,background-color,opacity]",
+            isEditOpen
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+          )}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onRequestRemove}
+          aria-label="Remove interest"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </>
+    ) : (
+      <div className="flex flex-shrink-0 items-center gap-1.5">
+        <span className="text-xs text-muted-foreground">
+          Remove this interest?
+        </span>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          onClick={onConfirmRemove}
+          className="h-7 px-2.5"
+        >
+          <Trash2 className="mr-1 h-3 w-3" />
+          Remove
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onCancelRemove}
+          className="h-7 px-2"
+        >
+          Cancel
+        </Button>
+      </div>
+    )
+  ) : null
 
   return (
     <TradeInterestRow
       name={interest.name}
       nameInput={nameInput}
-      description={description}
+      description={rowDescription}
       chips={chips}
-      count={appliedCount}
       actions={actions}
       inlineEditor={isEditOpen ? (
         <SavedInterestEditor interest={interest} name={draftName} onSaved={onSaved} onCancel={onCancelEdit} />
@@ -866,6 +975,8 @@ function InterestRow({
       expanded={isDetailOpen}
       onToggle={onToggleDetail}
       emptyChipsLabel="No criteria yet — click the pencil to add some."
+      showChipsPreview
+      collapseOnBodyClick={isDetailOpen}
       className={isEditOpen ? "bg-secondary/30" : undefined}
     />
   )

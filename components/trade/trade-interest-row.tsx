@@ -89,6 +89,10 @@ interface TradeInterestRowProps {
   onToggle?: () => void
   /** No-criteria fallback text for the management screen's empty state. */
   emptyChipsLabel?: string
+  /** Show a short criteria preview directly in the collapsed row. */
+  showChipsPreview?: boolean
+  /** Let the expanded detail body collapse when clicked. */
+  collapseOnBodyClick?: boolean
   /** Extra classes applied to the outer wrapper (e.g. bg-secondary/30 when editing). */
   className?: string
   /** When provided, replaces the name text with an inline editable element.
@@ -107,6 +111,8 @@ export function TradeInterestRow({
   expanded: controlledExpanded,
   onToggle,
   emptyChipsLabel = "No criteria saved yet.",
+  showChipsPreview = false,
+  collapseOnBodyClick = false,
   className,
   nameInput,
 }: TradeInterestRowProps) {
@@ -157,14 +163,37 @@ export function TradeInterestRow({
               )}
             </div>
             {description ? (
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {description}
+              </p>
+            ) : null}
+            {showChipsPreview && !expanded && chips.length > 0 ? (
+              <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
+                {chips.slice(0, 4).map((chip, i) => (
+                  <span
+                    key={`${chip.label}-${i}`}
+                    className="inline-flex max-w-[180px] items-center gap-1 rounded-md bg-secondary/60 px-2 py-0.5 text-[11px]"
+                  >
+                    <span className="shrink-0 text-muted-foreground">
+                      {chip.label}
+                    </span>
+                    <span className="truncate font-medium text-foreground/80">
+                      {chip.value}
+                    </span>
+                  </span>
+                ))}
+                {chips.length > 4 ? (
+                  <span className="inline-flex items-center rounded-md bg-secondary/40 px-2 py-0.5 text-[11px] text-muted-foreground">
+                    +{chips.length - 4}
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </button>
         )}
 
         {/* Right-side controls */}
         <div className="flex shrink-0 items-center gap-1.5">
-          {actions}
           {!nameInput ? (
             <button
               type="button"
@@ -182,7 +211,13 @@ export function TradeInterestRow({
 
       {/* Expanded criteria chips */}
       {expanded ? (
-        <div className="px-3 pb-3">
+        <div
+          className={cn(
+            "px-3 pb-3",
+            collapseOnBodyClick && "cursor-pointer",
+          )}
+          onClick={collapseOnBodyClick ? toggle : undefined}
+        >
           {chips.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
               {chips.map((chip, i) => (
@@ -191,13 +226,23 @@ export function TradeInterestRow({
                   className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2.5 py-1 text-xs"
                 >
                   <span className="text-muted-foreground">{chip.label}</span>
-                  <span className="font-medium text-foreground">{chip.value}</span>
+                  <span className="font-medium text-foreground/80">
+                    {chip.value}
+                  </span>
                 </span>
               ))}
             </div>
           ) : (
             <p className="text-xs italic text-muted-foreground">{emptyChipsLabel}</p>
           )}
+          {actions ? (
+            <div
+              className="mt-3 flex justify-end"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-1.5">{actions}</div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

@@ -99,11 +99,11 @@ export function CollectionCard({
 
       <div className="flex-shrink-0 text-right">
         <p className="text-sm font-medium text-foreground">
-          ${(collection.total_user_value || 0).toLocaleString()}
+          ${(collection.total_user_value || 0).toLocaleString('en-US')}
         </p>
         {(collection.total_ai_value || 0) > 0 ? (
           <p className="text-xs text-muted-foreground">
-            AI: ${(collection.total_ai_value || 0).toLocaleString()}
+            AI: ${(collection.total_ai_value || 0).toLocaleString('en-US')}
           </p>
         ) : null}
       </div>
@@ -186,14 +186,14 @@ export function CollectionCard({
             <div>
               <p className="text-[11px] text-muted-foreground">Your Estimate</p>
               <p className="text-base font-bold text-foreground">
-                ${(collection.total_user_value || 0).toLocaleString()}
+                ${(collection.total_user_value || 0).toLocaleString('en-US')}
               </p>
             </div>
             {(collection.total_ai_value || 0) > 0 ? (
               <div className="text-right">
                 <p className="text-[11px] text-muted-foreground">AI Estimate</p>
                 <p className="text-base font-bold text-chart-2">
-                  ${(collection.total_ai_value || 0).toLocaleString()}
+                  ${(collection.total_ai_value || 0).toLocaleString('en-US')}
                 </p>
               </div>
             ) : null}
@@ -203,11 +203,11 @@ export function CollectionCard({
         {/* Mobile: compact inline value */}
         {(collection.total_user_value || 0) > 0 ? (
           <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
-            <span>${(collection.total_user_value || 0).toLocaleString()}</span>
+            <span>${(collection.total_user_value || 0).toLocaleString('en-US')}</span>
             {(collection.total_ai_value || 0) > 0 ? (
               <>
                 <span aria-hidden>·</span>
-                <span>AI: ${(collection.total_ai_value || 0).toLocaleString()}</span>
+                <span>AI: ${(collection.total_ai_value || 0).toLocaleString('en-US')}</span>
               </>
             ) : null}
           </div>

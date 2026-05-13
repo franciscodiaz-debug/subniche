@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -59,11 +59,11 @@ export function Sidebar({
     pathname === `/profile/${currentUser.username}` ||
     pathname.startsWith(`/profile/${currentUser.username}/`);
 
+  const onMobileCloseRef = useRef(onMobileClose)
+  useEffect(() => { onMobileCloseRef.current = onMobileClose })
   useEffect(() => {
-    if (mobileOpen && onMobileClose) {
-      onMobileClose();
-    }
-  }, [mobileOpen, onMobileClose, pathname]);
+    onMobileCloseRef.current?.()
+  }, [pathname]);
 
   const nicheHomeHref = currentNicheSlug ? `/n/${currentNicheSlug}` : "/"
 
@@ -175,32 +175,18 @@ export function Sidebar({
           )}
         </div>
 
-        <div className={cn("mb-6", collapsed ? "px-2" : "px-4")}>
-          {isAuthenticated ? (
-            <Link
-              href={createHref}
-              className={cn(
-                "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
-                collapsed ? "px-0" : "px-4",
-              )}
-              title={collapsed ? "Add Item" : undefined}
-            >
-              <Plus className="h-5 w-5 text-primary" />
-              {!collapsed ? <span>Add Item</span> : null}
-            </Link>
-          ) : (
-            <Link
-              href="/create-listing"
-              className={cn(
-                "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
-                collapsed ? "px-0" : "px-4",
-              )}
-              title={collapsed ? "Add Item" : undefined}
-            >
-              <Plus className="h-5 w-5 text-primary" />
-              {!collapsed ? <span>Add Item</span> : null}
-            </Link>
-          )}
+        <div className={cn("mb-6 hidden lg:block", collapsed ? "px-2" : "px-4")}>
+          <Link
+            href={createHref}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-card py-3 text-foreground transition-colors hover:bg-card/80",
+              collapsed ? "px-0" : "px-4",
+            )}
+            title={collapsed ? "Add Item" : undefined}
+          >
+            <Plus className="h-5 w-5 text-primary" />
+            {!collapsed ? <span>Add Item</span> : null}
+          </Link>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2">

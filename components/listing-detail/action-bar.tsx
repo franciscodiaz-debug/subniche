@@ -221,10 +221,10 @@ function OwnerStatsGrid({
   stats: NonNullable<MockListing["ownerStats"]>
 }) {
   const items: Array<{ label: string; value: string }> = [
-    { label: "Views", value: stats.views.toLocaleString() },
-    { label: "Wishlist adds", value: stats.wishlistAdds.toLocaleString() },
-    { label: "Messages", value: stats.messages.toLocaleString() },
-    { label: "Days listed", value: stats.daysListed.toLocaleString() },
+    { label: "Views", value: stats.views.toLocaleString('en-US') },
+    { label: "Wishlist adds", value: stats.wishlistAdds.toLocaleString('en-US') },
+    { label: "Messages", value: stats.messages.toLocaleString('en-US') },
+    { label: "Days listed", value: stats.daysListed.toLocaleString('en-US') },
   ]
   return (
     <div className="rounded-card border border-border bg-card p-4">

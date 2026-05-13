@@ -31,11 +31,11 @@
  *           "Shared with N other listings" so reach stays visible.
  *      And a NEW affordance — "Add from existing" — lets the user pull an
  *      already-authored interest into the current item without retyping. It
- *      complements the "+ New" button: + New = author from scratch,
+ *      complements the inline new-interest buttons: New = author from scratch,
  *      Add existing = reuse a template from another item.
  *
  * Surface contract:
- *   Header:  ←  Trade Interests                              + New
+ *   Header:  ←  Trade Interests
  *            (subtitle — current item context if individual mode)
  *   Section: Title + count
  *            Row: Name + subcategory pill
@@ -45,10 +45,11 @@
  *            once — focusing one collapses the others so the viewer never
  *            has dueling long forms fighting for vertical space.
  *
- * New interests: `+ New` creates a fresh shell in the store and auto-expands
- * its row so the name field is the next obvious thing to fill out. When the
- * user is in individual mode, the new interest is also auto-applied to the
- * current item so it lands in the right section without an extra click.
+ * New interests: the inline creation buttons create a fresh shell in the
+ * store and auto-expand its row so the name field is the next obvious thing
+ * to fill out. When the user is in individual mode, the new interest is also
+ * auto-applied to the current item so it lands in the right section without
+ * an extra click.
  */
 
 import * as React from "react"
@@ -316,12 +317,8 @@ expanded={isExpanded}
 
   return (
     <div className="px-4 pb-6 pt-3 md:px-8">
-      {/* Header ----------------------------------------------------------
-          Single creation entry point lives in the top-right, matching the
-          rectangular primary-button styling used elsewhere on the platform
-          (saved-interest editor, listing screens, etc.). The label adapts
-          to context so the user knows what scope the click implies. */}
-      <div className="mb-1 flex items-center justify-between gap-3">
+      {/* Header ---------------------------------------------------------- */}
+      <div className="mb-1 flex items-center gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -335,14 +332,6 @@ expanded={isExpanded}
             Trade Interests
           </h1>
         </div>
-        <Button
-          type="button"
-          onClick={handleNew}
-          className="h-11 flex-shrink-0 px-4 text-sm"
-        >
-          <Plus className="mr-1.5 h-4 w-4" />
-          New Interest
-        </Button>
       </div>
 
       {/* "For" row ----------------------------------------------------------
@@ -401,7 +390,7 @@ expanded={isExpanded}
           </div>
           {typeof selectedItem.price === "number" ? (
             <p className="ml-6 flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
-              ${selectedItem.price.toLocaleString()}
+              ${selectedItem.price.toLocaleString('en-US')}
             </p>
           ) : null}
         </div>

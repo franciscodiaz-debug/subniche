@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { exploreItems } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 
-export function SearchBar() {
+export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
@@ -83,11 +83,13 @@ export function SearchBar() {
 
   return (
     <div ref={containerRef} className="relative mx-auto w-full max-w-xl flex-1">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} suppressHydrationWarning>
         <div className="relative">
           <input
             ref={inputRef}
             type="search"
+            suppressHydrationWarning
+            autoFocus={autoFocus}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -174,7 +176,7 @@ export function SearchBar() {
                       {c.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {c.memberCount.toLocaleString()} members
+                      {c.memberCount.toLocaleString('en-US')} members
                     </p>
                   </div>
                 </Link>

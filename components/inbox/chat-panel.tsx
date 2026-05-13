@@ -6,6 +6,7 @@ import Link from "next/link"
 import {
   ArrowLeft,
   ArrowLeftRight,
+  Info,
   CalendarDays,
   ChevronRight,
   FolderOpen,
@@ -122,7 +123,7 @@ export function ChatPanel({
                   <span className="font-medium text-foreground">{participant.username}</span>
                   {" offered "}
                   <span className="font-bold text-green-600">
-                    ${offer.cash_adjustment.toLocaleString()}
+                    ${offer.cash_adjustment.toLocaleString('en-US')}
                   </span>
                   {" for your"}
                 </span>
@@ -140,7 +141,7 @@ export function ChatPanel({
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{item.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      ${item.price?.toLocaleString()}
+                      ${item.price?.toLocaleString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -165,7 +166,7 @@ export function ChatPanel({
                         <p className="text-sm font-medium">{item.title}</p>
                         {item.price && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString()}
+                            ${item.price.toLocaleString('en-US')}
                           </p>
                         )}
                       </div>
@@ -175,8 +176,8 @@ export function ChatPanel({
                     <div className="flex items-center gap-2 text-sm @[400px]:pl-[88px]">
                       <span className="font-medium text-primary">
                         {offer.cash_adjustment > 0
-                          ? `plus $${offer.cash_adjustment.toLocaleString()} cash`
-                          : `minus $${Math.abs(offer.cash_adjustment).toLocaleString()} cash`}
+                          ? `plus $${offer.cash_adjustment.toLocaleString('en-US')} cash`
+                          : `minus $${Math.abs(offer.cash_adjustment).toLocaleString('en-US')} cash`}
                       </span>
                     </div>
                   )}
@@ -204,7 +205,7 @@ export function ChatPanel({
                         <p className="text-sm font-medium">{item.title}</p>
                         {item.price && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString()}
+                            ${item.price.toLocaleString('en-US')}
                           </p>
                         )}
                       </div>
@@ -293,7 +294,7 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Sticky header */}
       <div className="flex-shrink-0 border-b border-border">
         <div className="flex items-center gap-3 p-4 py-2">
@@ -324,6 +325,13 @@ export function ChatPanel({
               {participant.username}
             </Link>
           </div>
+          <button
+            onClick={onViewProfile}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-card hover:text-foreground lg:hidden"
+            aria-label="View profile info"
+          >
+            <Info className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -345,7 +353,7 @@ export function ChatPanel({
             <span className="truncate font-medium text-foreground">{subject.title}</span>
             {subject.price && (
               <span className="flex-shrink-0 text-muted-foreground">
-                · ${subject.price.toLocaleString()}
+                · ${subject.price.toLocaleString('en-US')}
               </span>
             )}
           </Link>
@@ -380,7 +388,7 @@ export function ChatPanel({
                 {(() => {
                   const yourSide = `your ${active_offer.your_items[0]?.title ?? "item"}`
                   if (active_offer.their_items.length === 0) {
-                    return `$${active_offer.cash_adjustment.toLocaleString()} → ${yourSide}`
+                    return `$${active_offer.cash_adjustment.toLocaleString('en-US')} → ${yourSide}`
                   }
                   const extraCount = active_offer.their_items.length - 1
                   const itemPart =
@@ -389,7 +397,7 @@ export function ChatPanel({
                       : active_offer.their_items[0].title
                   const cashPart =
                     active_offer.cash_adjustment > 0
-                      ? ` · +$${active_offer.cash_adjustment.toLocaleString()} cash`
+                      ? ` · +$${active_offer.cash_adjustment.toLocaleString('en-US')} cash`
                       : ""
                   return `${itemPart}${cashPart} → ${yourSide}`
                 })()}
@@ -405,7 +413,7 @@ export function ChatPanel({
       )}
 
       {/* Scrolling body */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         {/* Participant info header */}
         <div className="flex items-start gap-4 pb-2">
           <Avatar className="h-16 w-16 flex-shrink-0">
@@ -465,7 +473,7 @@ export function ChatPanel({
                 <p className="truncate text-sm font-medium text-foreground">{subject.title}</p>
                 {subject.price && (
                   <p className="text-xs text-muted-foreground">
-                    ${subject.price.toLocaleString()}
+                    ${subject.price.toLocaleString('en-US')}
                   </p>
                 )}
               </div>
@@ -540,7 +548,7 @@ export function ChatPanel({
                 >
                   {isOwn ? "You" : participant.username}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span suppressHydrationWarning className="text-xs text-muted-foreground">
                   {formatTime(message.created_at)}
                 </span>
               </div>

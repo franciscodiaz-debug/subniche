@@ -44,9 +44,9 @@ export function GridDensitySelector({ id }: GridDensitySelectorProps) {
           id={id}
           data-onboarding-id={id}
           aria-label={`Grid density: ${gridDensityConfig[gridDensity].label}`}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-secondary"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-secondary sm:h-9 sm:w-9"
         >
-          <ActiveIcon className="h-4 w-4" />
+          <ActiveIcon className="h-5 w-5 sm:h-4 sm:w-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">

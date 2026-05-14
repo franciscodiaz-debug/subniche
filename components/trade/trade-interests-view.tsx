@@ -10,15 +10,13 @@
  * Two display modes, driven entirely by the parent's `selectedItemId`:
  *
  *   1. ALL ITEMS  (selectedItemId === "all")
- *      Desktop shows a persistent listing rail and groups interests by reach:
- *      "Global" vs. "Listing Specific" (including unapplied
- *      reusable templates).
+ *      Shows only global interests that apply to every trade listing.
  *
  *   2. INDIVIDUAL ITEM  (selectedItemId === "my-1" etc.)
  *      The whole surface is reframed around that single item, since the user
  *      arrived here from "For <item>" upstream.
- *      Listing Specific interests come first, followed by Global interests
- *      that also apply to this listing.
+ *      Only listing-specific interests for that item are shown; global
+ *      interests stay in the All-items view so this mode stays focused.
  *      Add Interest lets the user either author from scratch or reuse an
  *      existing saved interest without retyping.
  *
@@ -108,6 +106,37 @@ function isGlobalInterest(
   return items.every((item) => applied.has(item.id))
 }
 
+function allocateListingInterestMatches(
+  interests: SavedTradeInterest[],
+  totalMatches: number,
+): Map<string, number> {
+  const counts = new Map<string, number>()
+  if (interests.length === 0 || totalMatches <= 0) return counts
+
+  const weights = interests.map((interest) =>
+    Math.max(1, interest.appliedTo.length),
+  )
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0)
+  let assigned = 0
+
+  const allocations = interests.map((interest, index) => {
+    const exact = (totalMatches * weights[index]) / totalWeight
+    const base = Math.floor(exact)
+    assigned += base
+    counts.set(interest.id, base)
+    return { id: interest.id, remainder: exact - base }
+  })
+
+  allocations
+    .sort((a, b) => b.remainder - a.remainder)
+    .slice(0, totalMatches - assigned)
+    .forEach(({ id }) => {
+      counts.set(id, (counts.get(id) ?? 0) + 1)
+    })
+
+  return counts
+}
+
 /* -------------------------------------------------------------------------- */
 /* Component                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -143,49 +172,9 @@ export function TradeInterestsView({
     string | null
   >(null)
 
-  /* Collapse state — opt-in by section key. We store the COLLAPSED set (not
-   * the expanded set) so the default behavior (everything expanded) requires
-   * no initialization beyond explicit defaults, and so a section appearing
-   * for the first time is automatically open.
-   *
-   * Section keys are scoped by mode:
-   *   - "global-all"        — Global section in All-items mode
-   *   - "global-individual" — Global section in individual-item mode
-   *   - "individual"        — Individual section (only in individual-item mode)
-   *
-   * Default collapsed:
-   *   - In all-items mode: Global and Individual sections are pre-collapsed
-   *   - In individual-item mode: Global section is pre-collapsed so Individual is the focus */
-  const [collapsedSections, setCollapsedSections] = React.useState<
-    Set<string>
-  >(() => new Set(["global-all", "global-individual", "individual"]))
-
-  const toggleSection = (key: string) => {
-    setCollapsedSections((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
-
-  /* Reset collapse state whenever the mode or focused item changes. This
-   * ensures the user always sees the contextually-relevant section first
-   * when navigating to a different mode or item:
-   *   - Individual item mode: Global collapsed, Individual expanded
-   *   - All items mode: Global collapsed, Individual collapsed */
-  React.useEffect(() => {
-    if (isIndividual && selectedItem) {
-      setCollapsedSections(new Set(["global-individual"]))
-    } else {
-      setCollapsedSections(new Set(["global-all", "individual"]))
-    }
-  }, [isIndividual, selectedItem?.id])
-
-  /* Single creation entry point. In individual mode the new interest is
-   * pre-bound to the focused item so it lands in "Applied to this item"
-   * immediately. In All-items mode it starts unbound — the user chooses
-   * scope (global vs. specific listings) inside the inline editor. */
+  /* Listing-specific creation entry point. In individual mode the new
+   * interest is pre-bound to the focused item so it lands in the right
+   * listing without an extra apply step. */
   const handleNew = () => {
     const seed: Partial<Omit<SavedTradeInterest, "id">> | undefined =
       isIndividual && selectedItem ? { appliedTo: [selectedItem.id] } : undefined
@@ -268,6 +257,15 @@ export function TradeInterestsView({
     return { global, partial, templates, itemSpecific, availableForItem }
   }, [interests, items, isIndividual, selectedItem])
 
+  const itemSpecificMatchCounts = React.useMemo(
+    () =>
+      allocateListingInterestMatches(
+        buckets.itemSpecific,
+        selectedItem?.matchCount ?? 0,
+      ),
+    [buckets.itemSpecific, selectedItem?.matchCount],
+  )
+
   const handleApplyExisting = (interestId: string) => {
     if (!selectedItem) return
     applyToListing(interestId, selectedItem.id)
@@ -282,19 +280,14 @@ export function TradeInterestsView({
 
   const renderRow = (interest: SavedTradeInterest) => {
     const isExpanded = expandedId === interest.id
-    /* Focus mode — when *any* row is open, all others dim down so the eye
-     * lands on the expanded one. Computed once per render from `expandedId`
-     * and passed in so the row itself doesn't need to know the parent's
-     * full state shape. */
-    const dimmed = expandedId !== null && !isExpanded
     return (
       <li key={interest.id}>
         <InterestRow
           interest={interest}
           items={items}
+          matchCount={itemSpecificMatchCounts.get(interest.id)}
           expanded={isExpanded}
           expandedMode={isExpanded ? expandedMode : null}
-          dimmed={dimmed}
           confirming={confirmingRemovalId === interest.id}
           onToggleDetail={() => handleToggleDetail(interest.id)}
           onToggleEdit={() => handleToggleEdit(interest.id)}
@@ -307,12 +300,6 @@ export function TradeInterestsView({
       </li>
     )
   }
-
-  const allItemModeInterests = [...buckets.partial, ...buckets.templates]
-  const currentContextCount =
-    isIndividual && selectedItem
-      ? buckets.itemSpecific.length + buckets.global.length
-      : interests.length
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-8 pt-3 md:px-8">
@@ -330,15 +317,6 @@ export function TradeInterestsView({
             <h1 className="truncate text-2xl font-bold text-foreground">
               Trade Interests
             </h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {isIndividual && selectedItem
-                ? `${currentContextCount} ${
-                    currentContextCount === 1 ? "interest" : "interests"
-                  } for this listing`
-                : `${currentContextCount} saved ${
-                    currentContextCount === 1 ? "interest" : "interests"
-                  } across your trade listings`}
-            </p>
           </div>
         </div>
       </div>
@@ -368,16 +346,12 @@ export function TradeInterestsView({
           ) : null}
 
           {interests.length === 0 ? (
-            <EmptyState onCreate={handleNew} />
+            <EmptyState onCreate={isIndividual ? handleNew : handleNewGlobal} />
           ) : isIndividual && selectedItem ? (
             <div className="space-y-5">
               <Section
-                title="Listing Specific"
-                caption="Interests applied to this listing"
                 count={buckets.itemSpecific.length}
                 empty="No interests here yet."
-                collapsed={collapsedSections.has("individual")}
-                onToggleCollapse={() => toggleSection("individual")}
                 actions={
                   <AddExistingPicker
                     available={buckets.availableForItem}
@@ -386,44 +360,33 @@ export function TradeInterestsView({
                   />
                 }
               >
-                {buckets.itemSpecific.length > 0 ? (
-                  <ul className="ml-6 space-y-2">
-                    {buckets.itemSpecific.map(renderRow)}
-                  </ul>
-                ) : null}
-              </Section>
-
-              <Section
-                title="Global"
-                caption="Edits here update every listing"
-                count={buckets.global.length}
-                empty="No interests here yet."
-                collapsed={collapsedSections.has("global-individual")}
-                onToggleCollapse={() => toggleSection("global-individual")}
-                actions={
-                  <AddExistingPicker
-                    available={[...buckets.partial, ...buckets.templates]}
-                    onApply={handleApplyAsGlobal}
-                    onAddNew={handleNewGlobal}
-                  />
-                }
-              >
-                {buckets.global.length > 0 ? (
-                  <ul className="ml-6 space-y-2">
-                    {buckets.global.map(renderRow)}
-                  </ul>
+                {buckets.itemSpecific.length > 0 || buckets.global.length > 0 ? (
+                  <>
+                    <div className="mb-2 ml-6">
+                      <p className="truncate text-sm text-muted-foreground">
+                        Trade interests for your{" "}
+                        <span className="font-medium text-foreground">
+                          {selectedItem.title}
+                        </span>
+                      </p>
+                    </div>
+                    <ul className="ml-6 space-y-2">
+                      {buckets.itemSpecific.map(renderRow)}
+                      {buckets.global.length > 0 ? (
+                        <li>
+                          <GlobalInterestNotice count={buckets.global.length} />
+                        </li>
+                      ) : null}
+                    </ul>
+                  </>
                 ) : null}
               </Section>
             </div>
           ) : (
             <div className="space-y-5">
               <Section
-                title="Global"
-                caption="Used by every trade listing"
                 count={buckets.global.length}
-                empty="No interests here yet."
-                collapsed={collapsedSections.has("global-all")}
-                onToggleCollapse={() => toggleSection("global-all")}
+                empty="No global interests yet."
                 actions={
                   <AddExistingPicker
                     available={[...buckets.partial, ...buckets.templates]}
@@ -433,31 +396,19 @@ export function TradeInterestsView({
                 }
               >
                 {buckets.global.length > 0 ? (
-                  <ul className="ml-6 space-y-2">
-                    {buckets.global.map(renderRow)}
-                  </ul>
-                ) : null}
-              </Section>
-
-              <Section
-                title="Listing Specific"
-                caption="Used by one or more selected listings"
-                count={allItemModeInterests.length}
-                empty="No interests here yet."
-                collapsed={collapsedSections.has("individual")}
-                onToggleCollapse={() => toggleSection("individual")}
-                actions={
-                  <AddExistingPicker
-                    available={[]}
-                    onApply={() => {}}
-                    onAddNew={handleNew}
-                  />
-                }
-              >
-                {allItemModeInterests.length > 0 ? (
-                  <ul className="ml-6 space-y-2">
-                    {allItemModeInterests.map(renderRow)}
-                  </ul>
+                  <>
+                    <div className="mb-2 ml-6">
+                      <p className="text-sm font-medium text-foreground">
+                        Global trade interests
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Applied to every listing
+                      </p>
+                    </div>
+                    <ul className="ml-6 space-y-2">
+                      {buckets.global.map(renderRow)}
+                    </ul>
+                  </>
                 ) : null}
               </Section>
             </div>
@@ -485,14 +436,15 @@ function TradeInterestScopeRail({
 }) {
   const countFor = (itemId: string) =>
     interests.reduce(
-      (count, interest) =>
-        count + (interest.appliedTo.includes(itemId) ? 1 : 0),
+      (count, interest) => {
+        if (isGlobalInterest(interest, items)) return count
+        return count + (interest.appliedTo.includes(itemId) ? 1 : 0)
+      },
       0,
     )
   const globalCount = interests.filter((interest) =>
     isGlobalInterest(interest, items),
   ).length
-  const listingSpecificCount = interests.length - globalCount
 
   return (
     <aside className="hidden lg:block">
@@ -513,10 +465,10 @@ function TradeInterestScopeRail({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-foreground">
-                All
+                Global
               </span>
               <span className="block truncate text-xs text-muted-foreground">
-                {globalCount} global · {listingSpecificCount} listing specific
+                {globalCount} {globalCount === 1 ? "interest" : "interests"}
               </span>
             </span>
           </button>
@@ -619,7 +571,7 @@ function Section({
   collapsed = false,
   onToggleCollapse,
 }: {
-  title: string
+  title?: string
   caption?: string
   count: number
   children?: React.ReactNode
@@ -628,47 +580,63 @@ function Section({
   collapsed?: boolean
   onToggleCollapse?: () => void
 }) {
+  const hasHeaderText = Boolean(title || caption)
+
   return (
     <section>
-      <div className="mb-2 flex items-center justify-between gap-3 border-b border-border/70 pb-2">
-        <button
-          type="button"
-          onClick={onToggleCollapse ?? undefined}
-          aria-expanded={onToggleCollapse ? !collapsed : undefined}
-          className={cn(
-            "flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-2 text-left transition-colors",
-            onToggleCollapse && "hover:bg-secondary/40",
-          )}
-        >
-          {onToggleCollapse ? (
-            <ChevronRight
-              aria-hidden="true"
-              className={cn(
-                "mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
-                !collapsed && "rotate-90",
-              )}
-            />
-          ) : null}
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate text-sm font-semibold text-foreground">
-                {title}
-              </h2>
-              <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
-                {count}
-              </span>
-            </div>
-            {caption ? (
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {caption}
-              </p>
+      <div
+        className={cn(
+          "mb-2 flex items-center justify-between gap-3",
+          hasHeaderText && "border-b border-border/70 pb-2",
+        )}
+      >
+        {hasHeaderText ? (
+          <button
+            type="button"
+            onClick={onToggleCollapse ?? undefined}
+            aria-expanded={onToggleCollapse ? !collapsed : undefined}
+            className={cn(
+              "flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-2 text-left transition-colors",
+              onToggleCollapse && "hover:bg-secondary/40",
+            )}
+          >
+            {onToggleCollapse ? (
+              <ChevronRight
+                aria-hidden="true"
+                className={cn(
+                  "mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
+                  !collapsed && "rotate-90",
+                )}
+              />
             ) : null}
-          </div>
-        </button>
+            <div className="min-w-0">
+              {title ? (
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate text-sm font-semibold text-foreground">
+                    {title}
+                  </h2>
+                  <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+                    {count}
+                  </span>
+                </div>
+              ) : null}
+              {caption ? (
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {caption}
+                </p>
+              ) : null}
+            </div>
+          </button>
+        ) : (
+          <div className="min-w-0 flex-1" />
+        )}
 
         {actions ? (
           <div
-            className={cn(collapsed && "hidden")}
+            className={cn(
+              collapsed && "hidden",
+              !hasHeaderText && "ml-auto",
+            )}
             onClick={(e) => e.stopPropagation()}
           >
             {actions}
@@ -676,16 +644,37 @@ function Section({
         ) : null}
       </div>
 
-      {collapsed ? null : count === 0 ? (
+      {collapsed ? null : children ? (
+        children
+      ) : count === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
           <p className="text-xs text-muted-foreground">
             {empty ?? "Nothing here yet."}
           </p>
         </div>
-      ) : (
-        children
-      )}
+      ) : null}
     </section>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Read-only global context row                                               */
+/* -------------------------------------------------------------------------- */
+
+function GlobalInterestNotice({ count }: { count: number }) {
+  return (
+    <div className="rounded-xl border border-dashed border-border/80 bg-card/35 px-3 py-3 text-muted-foreground">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-secondary/50 text-muted-foreground">
+          <Layers3 className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-muted-foreground">
+            + {count} global trade {count === 1 ? "interest" : "interests"}
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -849,6 +838,7 @@ function AddExistingPicker({
 function InterestRow({
   interest,
   items,
+  matchCount,
   expanded,
   expandedMode,
   dimmed = false,
@@ -863,6 +853,7 @@ function InterestRow({
 }: {
   interest: SavedTradeInterest
   items: TradeableItemSummary[]
+  matchCount?: number
   expanded: boolean
   expandedMode: "detail" | "edit" | null
   dimmed?: boolean
@@ -879,13 +870,17 @@ function InterestRow({
   const appliedCount = isGlobal ? items.length : interest.appliedTo.length
   const chips = savedInterestToChips(interest)
   const description = savedInterestDescription(interest)
-  const reach =
-    isGlobal
-      ? "Every listing"
-      : appliedCount === 0
-        ? "Not applied"
-        : `${appliedCount} ${appliedCount === 1 ? "listing" : "listings"}`
-  const rowDescription = [description, reach].filter(Boolean).join(" · ")
+  const sharedReach =
+    !isGlobal && appliedCount >= 2
+      ? `Shared with ${appliedCount} listings`
+      : ""
+  const matchSummary =
+    matchCount && matchCount > 0
+      ? `${matchCount} ${matchCount === 1 ? "match" : "matches"}`
+      : ""
+  const rowDescription = [description, sharedReach, matchSummary]
+    .filter(Boolean)
+    .join(" · ")
   const isDetailOpen = expanded && expandedMode === "detail"
   const isEditOpen = expanded && expandedMode === "edit"
 
@@ -975,7 +970,6 @@ function InterestRow({
       expanded={isDetailOpen}
       onToggle={onToggleDetail}
       emptyChipsLabel="No criteria yet — click the pencil to add some."
-      showChipsPreview
       collapseOnBodyClick={isDetailOpen}
       className={isEditOpen ? "bg-secondary/30" : undefined}
     />

@@ -6,7 +6,6 @@ import { ChevronDown, ChevronRight, SlidersHorizontal, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PriceHistogramSlider } from "@/components/shared/price-histogram-slider"
-import { useIsNavCollapseRequested } from "@/hooks/use-nav-collapse-request"
 import {
   marketBrands,
   marketCategories,
@@ -60,8 +59,6 @@ export function MarketFilterSidebar({
     type: true,
   })
 
-  const navCollapsed = useIsNavCollapseRequested()
-
   const toggleSection = (section: string) => {
     setExpanded((prev) => ({ ...prev, [section]: !prev[section] }))
   }
@@ -83,10 +80,8 @@ export function MarketFilterSidebar({
 
       <aside
         className={cn(
-          "fixed top-0 z-50 flex h-screen w-[280px] flex-col overflow-hidden border-r border-border bg-background shadow-xl will-change-[translate] motion-reduce:transition-none lg:shadow-none",
-          "left-0",
-          navCollapsed ? "lg:left-[72px]" : "lg:left-[220px]",
-          "transition-[translate,left] duration-300 ease-out",
+          "fixed left-0 top-0 z-50 flex h-screen w-[280px] flex-col overflow-hidden border-r border-border bg-background shadow-xl will-change-transform motion-reduce:transition-none lg:left-[72px] lg:z-40 lg:shadow-none",
+          "transition-transform duration-300 ease-out",
           isOpen
             ? "translate-x-0"
             : "pointer-events-none -translate-x-[calc(100%+1px)]",

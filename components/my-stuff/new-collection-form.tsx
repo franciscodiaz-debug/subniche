@@ -7,6 +7,7 @@ import { ArrowLeft, Globe, Heart, Link2, Lock, Plus, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { Collection, CollectionVisibility } from "@/lib/types"
+import { useCollections } from "@/lib/collections-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -75,6 +76,7 @@ interface NewCollectionFormProps {
 export function NewCollectionForm({ initialData }: NewCollectionFormProps = {}) {
   const isEditing = !!initialData
   const router = useRouter()
+  const { createCollection, updateCollection } = useCollections()
   const nameId = useId()
   const descriptionId = useId()
   const tagsId = useId()
@@ -152,31 +154,24 @@ export function NewCollectionForm({ initialData }: NewCollectionFormProps = {}) 
         : form.tags
 
     if (isEditing) {
-      // In production: call API to update collection
-      console.log("[todo] save collection edits", initialData!.id, { ...form, tags: finalTags })
+      updateCollection(initialData!.id, {
+        name: trimmedName,
+        description: form.description.trim() || null,
+        visibility: form.visibility,
+        is_wishlist: form.is_wishlist,
+        tags: finalTags,
+      })
       router.push(`/collection/${initialData!.id}`)
       return
     }
 
-    const created: Collection = {
-      id: `col-new-${Date.now()}`,
+    createCollection({
       name: trimmedName,
       description: form.description.trim() || null,
       visibility: form.visibility,
       is_wishlist: form.is_wishlist,
       tags: finalTags,
-      item_count: 0,
-      total_user_value: 0,
-      total_ai_value: 0,
-    }
-
-    try {
-      const existing = sessionStorage.getItem(NEW_COLLECTION_DRAFT_KEY)
-      const drafts: Collection[] = existing ? JSON.parse(existing) : []
-      sessionStorage.setItem(NEW_COLLECTION_DRAFT_KEY, JSON.stringify([created, ...drafts]))
-    } catch {
-      // sessionStorage may be unavailable
-    }
+    })
 
     router.push("/my-stuff?tab=collections")
   }

@@ -24,7 +24,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { CollectionCard } from "@/components/collection-card"
-import { NEW_COLLECTION_DRAFT_KEY } from "@/components/my-stuff/new-collection-form"
+import { useCollections } from "@/lib/collections-context"
+import { currentUser } from "@/lib/current-user"
 import type { Collection } from "@/lib/types"
 
 type SortKey = "recent" | "name" | "items" | "value"
@@ -155,32 +156,31 @@ function ViewToggleSegment({ view, setView }: { view: View; setView: (v: View) =
 }
 
 interface CollectionsTabProps {
-  collections: Collection[]
+  /** Optional preview images keyed by collection id. The page-level mock
+   *  supplies these so cards have artwork before items are wired in. */
   previewImages?: Record<string, string[]>
 }
 
-export function CollectionsTab({ collections, previewImages = {} }: CollectionsTabProps) {
+export function CollectionsTab({ previewImages = {} }: CollectionsTabProps) {
   const isMobile = useIsMobile()
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<SortKey>("recent")
   const [userView, setUserView] = useState<View | null>(null)
   const view: View = userView ?? (isMobile ? "list" : "grid")
   const setView = (v: View) => setUserView(v)
-  const [drafts, setDrafts] = useState<Collection[]>([])
+  // Read directly from the local store so newly-created collections appear
+  // here immediately (no page reload required). The store also holds other
+  // users' collections (used by the visitor view); we filter to just the
+  // current user's so My Stuff stays scoped to "mine".
+  const { collections } = useCollections()
 
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(NEW_COLLECTION_DRAFT_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw) as Collection[]
-        if (Array.isArray(parsed) && parsed.length) setDrafts(parsed)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  const allCollections = useMemo(() => [...drafts, ...collections], [drafts, collections])
+  const allCollections = useMemo(
+    () =>
+      collections.filter(
+        (c) => !c.owner_id || c.owner_id === currentUser.username,
+      ),
+    [collections],
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()

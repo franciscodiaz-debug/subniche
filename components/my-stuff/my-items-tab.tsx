@@ -42,7 +42,8 @@ import {
   MyItemRow,
   type MyItem,
 } from "./my-item-card"
-import { myItemCollections } from "@/lib/mock/my-stuff"
+import { useCollections } from "@/lib/collections-context"
+import { currentUser } from "@/lib/current-user"
 
 type SortKey = "recent" | "price_desc" | "price_asc" | "views" | "value"
 type CollectionFilter =
@@ -161,6 +162,7 @@ function FiltersButton({
   setSaleFilter,
   tradeFilter,
   setTradeFilter,
+  myCollections,
 }: {
   collectionFilter: CollectionFilter
   setCollectionFilter: (v: CollectionFilter) => void
@@ -168,6 +170,7 @@ function FiltersButton({
   setSaleFilter: (v: FilterState) => void
   tradeFilter: FilterState
   setTradeFilter: (v: FilterState) => void
+  myCollections: Array<{ id: string; name: string }>
 }) {
   const activeCount =
     (collectionFilter !== "all" ? 1 : 0) +
@@ -212,7 +215,7 @@ function FiltersButton({
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Collection</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={collectionFilter} onValueChange={(v) => setCollectionFilter(v as CollectionFilter)}>
           <DropdownMenuRadioItem value="all">All Items</DropdownMenuRadioItem>
-          {myItemCollections.map((c) => (
+          {myCollections.map((c) => (
             <DropdownMenuRadioItem key={c.id} value={c.id}>{c.name}</DropdownMenuRadioItem>
           ))}
           <DropdownMenuRadioItem value="uncategorized">Uncategorized</DropdownMenuRadioItem>
@@ -305,6 +308,32 @@ function ViewToggleSegment({
 export function MyItemsTab({ items }: { items: MyItem[] }) {
   const isMobile = useIsMobile()
 
+  // Pull collections from the local store, scoped to the current user.
+  // Used for the collection filter dropdown and to scope items by owner
+  // (an item belongs to the current user when its collection does).
+  const { collections } = useCollections()
+  const myCollections = useMemo(
+    () =>
+      collections.filter(
+        (c) => !c.owner_id || c.owner_id === currentUser.username,
+      ),
+    [collections],
+  )
+  const myCollectionIds = useMemo(
+    () => new Set(myCollections.map((c) => c.id)),
+    [myCollections],
+  )
+  // Only show items that belong to one of the current user's collections.
+  // Items belonging to another user (e.g. seeded fixtures for the visitor
+  // view demo) shouldn't surface inside My Stuff.
+  const myItems = useMemo(
+    () =>
+      items.filter(
+        (item) => !item.collection_id || myCollectionIds.has(item.collection_id),
+      ),
+    [items, myCollectionIds],
+  )
+
   const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>("all")
   const [saleFilter, setSaleFilter] = useState<FilterState>("neutral")
   const [tradeFilter, setTradeFilter] = useState<FilterState>("neutral")
@@ -322,7 +351,7 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
   }[gridDensity]
 
   const filtered = useMemo(() => {
-    let result = items
+    let result = myItems
 
     if (collectionFilter === "uncategorized") result = result.filter((i) => !i.collection_id)
     else if (collectionFilter === "unlisted") result = result.filter((i) => !i.for_sale && !i.for_trade && !i.sold)
@@ -350,8 +379,8 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
 
   return (
     <div className="@container/mystuff flex flex-col gap-3 @3xl/mystuff:gap-5">
-      <CompactStatsRow items={items} />
-      <DesktopStatsGrid items={items} />
+      <CompactStatsRow items={myItems} />
+      <DesktopStatsGrid items={myItems} />
 
       {/* Mobile toolbar */}
       <div className="flex flex-col gap-2 @3xl/mystuff:hidden">
@@ -363,6 +392,7 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
             setSaleFilter={setSaleFilter}
             tradeFilter={tradeFilter}
             setTradeFilter={setTradeFilter}
+            myCollections={myCollections}
           />
           <div className="ml-auto flex items-center gap-2">
             <SortDropdown value={sort} onChange={setSort} />
@@ -399,6 +429,7 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
           setSaleFilter={setSaleFilter}
           tradeFilter={tradeFilter}
           setTradeFilter={setTradeFilter}
+          myCollections={myCollections}
         />
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

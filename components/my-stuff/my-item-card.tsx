@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -8,12 +9,11 @@ import {
   ChevronDown,
   DollarSign,
   Folder,
+  Heart,
   MoreHorizontal,
   Pencil,
   Repeat2,
   Share2,
-  Tag,
-  Trash2,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -26,9 +26,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { myItemCollections, type MyItem } from "@/lib/mock/my-stuff"
+import { type MyItem } from "@/lib/mock/my-stuff"
+import { useCollections } from "@/lib/collections-context"
+import { currentUser } from "@/lib/current-user"
 
 export type { MyItem } from "@/lib/mock/my-stuff"
+
+/**
+ * Card display modes:
+ *  - `owner`   → three-dots actions menu (edit, mark sold, list/unlist,
+ *                move-to-collection). The viewer is the listing owner.
+ *  - `visitor` → watchlist heart toggle. The viewer is browsing someone
+ *                else's listing.
+ *
+ * `insideCollectionPage` hides the inline collection chip — when the card
+ * already lives inside a collection page, the chip would be redundant.
+ */
+export type CardOwnership = "owner" | "visitor"
 
 function DollarSignOffIcon({ className }: { className?: string }) {
   return (
@@ -84,10 +98,21 @@ export function TradePill({ active, iconOnly = false }: { active: boolean; iconO
   )
 }
 
+/**
+ * Inline chip that shows the collection an item belongs to and lets the
+ * owner move it to a different one. Sourced from the local collections
+ * store so the list of options stays in sync with create/edit/delete.
+ *
+ * Per product spec, every owned item must belong to a collection — there's
+ * no "Uncategorized" option. Items always show a real collection here.
+ */
 function CollectionChip({ item, muted = false }: { item: MyItem; muted?: boolean }) {
-  const collection = myItemCollections.find((c) => c.id === item.collection_id)
+  const { collections, moveItemsToCollection } = useCollections()
+  const myCollections = collections.filter(
+    (c) => !c.owner_id || c.owner_id === currentUser.username,
+  )
+  const collection = myCollections.find((c) => c.id === item.collection_id)
   const label = collection?.name ?? "Uncategorized"
-  const uncategorized = !collection
 
   return (
     <DropdownMenu>
@@ -112,29 +137,32 @@ function CollectionChip({ item, muted = false }: { item: MyItem; muted?: boolean
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
           Move to collection
         </DropdownMenuLabel>
-        {myItemCollections.map((c) => (
+        {myCollections.map((c) => (
           <DropdownMenuCheckboxItem
             key={c.id}
             checked={c.id === item.collection_id}
-            onCheckedChange={() => console.log("[stub] move", item.id, "->", c.id)}
+            onCheckedChange={() => moveItemsToCollection(c.id, [item.id])}
           >
             {c.name}
           </DropdownMenuCheckboxItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuCheckboxItem
-          checked={!item.collection_id}
-          onCheckedChange={() => console.log("[stub] move", item.id, "-> uncategorized")}
-        >
-          Uncategorized
-        </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
 
+/**
+ * Owner-only actions menu. Per product decision, deleting an item from
+ * inventory isn't allowed — items always belong to a collection, so the
+ * "destructive" action surface is moving rather than removing.
+ */
 function ActionsMenu({ item, variant = "default" }: { item: MyItem; variant?: "default" | "overlay" }) {
   const log = (action: string) => console.log("[stub] my-stuff action:", action, item.id)
+  const { collections, moveItemsToCollection } = useCollections()
+  const myCollections = collections.filter(
+    (c) => !c.owner_id || c.owner_id === currentUser.username,
+  )
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -188,20 +216,67 @@ function ActionsMenu({ item, variant = "default" }: { item: MyItem; variant?: "d
           {item.for_trade ? "Remove from trade" : "Open to trades"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          Move to collection
+        </DropdownMenuLabel>
+        {myCollections.map((c) => (
+          <DropdownMenuCheckboxItem
+            key={c.id}
+            checked={c.id === item.collection_id}
+            onCheckedChange={() => moveItemsToCollection(c.id, [item.id])}
+          >
+            {c.name}
+          </DropdownMenuCheckboxItem>
+        ))}
+        <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => log("share")}>
           <Share2 className="mr-2 h-4 w-4" />
           Share link
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => log("delete")}
-          className="text-destructive focus:text-destructive"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Watchlist heart — visitor-mode replacement for ActionsMenu                 */
+/*                                                                            */
+/* Toggles a local state and provides visual feedback. The back team will    */
+/* swap this for a real watchlist API; the UI surface stays the same.        */
+/* -------------------------------------------------------------------------- */
+function WatchlistHeart({
+  itemId,
+  variant = "overlay",
+}: {
+  itemId: string
+  variant?: "default" | "overlay"
+}) {
+  const [watched, setWatched] = useState(false)
+  void itemId
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        setWatched((w) => !w)
+      }}
+      className={cn(
+        "inline-flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        variant === "overlay"
+          ? "h-7 w-7 rounded-md border border-border/60 bg-background/70 backdrop-blur-sm hover:bg-background/90"
+          : "h-9 w-full rounded-md border border-border/60 bg-secondary/40 hover:bg-muted",
+        watched ? "text-rose-500" : "text-muted-foreground hover:text-foreground",
+      )}
+      aria-label={watched ? "Remove from watchlist" : "Add to watchlist"}
+      aria-pressed={watched}
+    >
+      <Heart
+        className="h-3.5 w-3.5"
+        strokeWidth={1.75}
+        fill={watched ? "currentColor" : "none"}
+      />
+    </button>
   )
 }
 
@@ -217,11 +292,22 @@ export function MyItemListHeader() {
   )
 }
 
-export function MyItemRow({ item }: { item: MyItem }) {
+interface MyItemRowProps {
+  item: MyItem
+  ownership?: CardOwnership
+  insideCollectionPage?: boolean
+}
+
+export function MyItemRow({
+  item,
+  ownership = "owner",
+  insideCollectionPage = false,
+}: MyItemRowProps) {
   const href = `/listings/${item.id}`
   const imageSrc = item.images[0] || "/placeholder.svg"
   const priceLabel = item.price != null ? `$${item.price.toLocaleString('en-US')}` : "—"
   const hasStatus = item.for_sale || item.for_trade
+  const showCollectionChip = ownership === "owner" && !insideCollectionPage
 
   return (
     <div className={cn("group rounded-lg border border-border bg-card transition-colors hover:border-primary/40", item.sold && "opacity-70")}>
@@ -256,12 +342,18 @@ export function MyItemRow({ item }: { item: MyItem }) {
               </span>
             )}
           </div>
-          <div className="mt-1 flex">
-            <CollectionChip item={item} muted />
-          </div>
+          {showCollectionChip && (
+            <div className="mt-1 flex">
+              <CollectionChip item={item} muted />
+            </div>
+          )}
         </div>
         <div className="self-center opacity-100 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-          <ActionsMenu item={item} variant="overlay" />
+          {ownership === "owner" ? (
+            <ActionsMenu item={item} variant="overlay" />
+          ) : (
+            <WatchlistHeart itemId={item.id} variant="overlay" />
+          )}
         </div>
       </div>
 
@@ -290,11 +382,15 @@ export function MyItemRow({ item }: { item: MyItem }) {
           )}
         </div>
         <div className="col-span-3 flex items-center">
-          <CollectionChip item={item} />
+          {showCollectionChip && <CollectionChip item={item} />}
         </div>
         <div className="col-span-1 flex items-center justify-center">
           <div className="w-full max-w-[2.75rem] opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-            <ActionsMenu item={item} />
+            {ownership === "owner" ? (
+              <ActionsMenu item={item} />
+            ) : (
+              <WatchlistHeart itemId={item.id} />
+            )}
           </div>
         </div>
       </div>
@@ -302,7 +398,21 @@ export function MyItemRow({ item }: { item: MyItem }) {
   )
 }
 
-export function MyItemGridCard({ item }: { item: MyItem }) {
+interface MyItemGridCardProps {
+  item: MyItem
+  /** `owner` shows the actions menu; `visitor` shows the watchlist heart.
+   *  Defaults to `owner` for backwards compatibility with existing callers. */
+  ownership?: CardOwnership
+  /** Hide the inline collection chip — used when the card already lives
+   *  inside a collection page and showing the chip would be redundant. */
+  insideCollectionPage?: boolean
+}
+
+export function MyItemGridCard({
+  item,
+  ownership = "owner",
+  insideCollectionPage = false,
+}: MyItemGridCardProps) {
   const href = `/listings/${item.id}`
   const imageSrc = item.images[0] || "/placeholder.svg"
   const hasStatus = item.for_sale || item.for_trade
@@ -314,7 +424,11 @@ export function MyItemGridCard({ item }: { item: MyItem }) {
           <Image src={imageSrc} alt={item.title} fill className="object-cover transition-transform group-hover:scale-105" />
         </Link>
         <div className="absolute right-2 top-2 z-20 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
-          <ActionsMenu item={item} variant="overlay" />
+          {ownership === "owner" ? (
+            <ActionsMenu item={item} variant="overlay" />
+          ) : (
+            <WatchlistHeart itemId={item.id} variant="overlay" />
+          )}
         </div>
       </div>
 
@@ -328,9 +442,13 @@ export function MyItemGridCard({ item }: { item: MyItem }) {
           ) : null}
         </Link>
 
-        <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-          <CollectionChip item={item} />
-        </div>
+        {/* Collection chip is for owners only — visitors don't move items —
+            and only when the card isn't already inside a collection page. */}
+        {ownership === "owner" && !insideCollectionPage && (
+          <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+            <CollectionChip item={item} />
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2">
           {item.price != null ? (

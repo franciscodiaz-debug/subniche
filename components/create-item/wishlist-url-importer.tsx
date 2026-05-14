@@ -1,11 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, Link2, Loader2 } from "lucide-react"
+import { ChevronDown, Link2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 interface WishlistUrlImporterProps {
+  /**
+   * Tracks how the user is filling the wishlist item:
+   * - `null` → no decision yet; show the full URL importer + "fill manually" CTA
+   * - `"url"` or `"manual"` → the user has committed to a path; importer collapses
+   */
+  entryMethod: "url" | "manual" | null
+  onFillManually: () => void
   onUrlProcessed: (data: {
     title: string
     description?: string
@@ -17,15 +24,25 @@ interface WishlistUrlImporterProps {
 }
 
 /**
- * Header banner shown when the user is creating a wishlist item. Frames the
- * task ("you're adding something you want") and offers an optional URL
- * importer that fills the form via AI. The form below is always editable —
- * URL import is a shortcut, not a gate.
+ * Progressive disclosure for wishlist creation. Before the user picks a
+ * method, this is the only thing visible under the status hint. Once they
+ * either process a URL or choose to fill manually, it collapses to a small
+ * "try with a URL instead" affordance so they can re-expand if they change
+ * their mind.
  */
-export function WishlistUrlImporter({ onUrlProcessed }: WishlistUrlImporterProps) {
+export function WishlistUrlImporter({
+  entryMethod,
+  onFillManually,
+  onUrlProcessed,
+}: WishlistUrlImporterProps) {
   const [url, setUrl] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Allows the user to re-expand the importer after collapsing it (e.g. they
+  // chose "fill manually" but later realized they had a link).
+  const [forceExpanded, setForceExpanded] = useState(false)
+
+  const isCollapsed = entryMethod !== null && !forceExpanded
 
   // Frontend-only mock: simulate AI extraction from a URL.
   const handleSubmit = async () => {
@@ -55,6 +72,7 @@ export function WishlistUrlImporter({ onUrlProcessed }: WishlistUrlImporterProps
         specifications: {},
       })
       setUrl("")
+      setForceExpanded(false)
     } catch (err) {
       console.error("[wishlist] URL processing error:", err)
       setError("Unable to process this URL. Try entering the information manually below.")
@@ -63,28 +81,23 @@ export function WishlistUrlImporter({ onUrlProcessed }: WishlistUrlImporterProps
     }
   }
 
-  return (
-    <div className="space-y-3">
-      {/* Context header — always visible while authoring a wishlist item. */}
-      <div className="flex items-start gap-3 bg-card border border-border rounded-lg p-4 md:p-5">
-        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-          <Heart className="h-5 w-5 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-foreground leading-tight">
-            Add to your wishlist
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 leading-snug">
-            Wishlist items are things you want but don&apos;t own yet — track
-            what you&apos;re after and let other collectors know.
-          </p>
-        </div>
-      </div>
+  if (isCollapsed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setForceExpanded(true)}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <Link2 className="h-3.5 w-3.5" />
+        <span>Try with a URL instead</span>
+        <ChevronDown className="h-3.5 w-3.5" />
+      </button>
+    )
+  }
 
-      {/* Optional URL importer — shortcut for users who already have a link.
-          The form below is always available regardless of whether this is
-          used. */}
-      <div className="bg-card border border-border rounded-lg p-4 md:p-5">
+  return (
+    <div className="bg-card border border-border rounded-lg p-4 md:p-5 space-y-4">
+      <div>
         <label className="text-xs text-muted-foreground mb-2 block">
           Have a link? Paste it and AI will fill in the details
           <span className="text-muted-foreground/70"> — optional</span>
@@ -120,6 +133,25 @@ export function WishlistUrlImporter({ onUrlProcessed }: WishlistUrlImporterProps
         </div>
         {error && <p className="text-sm text-destructive mt-2">{error}</p>}
       </div>
+
+      {/* Manual escape hatch — for users who don't have a link or prefer to
+          fill the form themselves. */}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="flex-1 h-px bg-border" />
+        <span>or</span>
+        <span className="flex-1 h-px bg-border" />
+      </div>
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => {
+          setForceExpanded(false)
+          onFillManually()
+        }}
+        className="w-full"
+      >
+        Fill in manually
+      </Button>
     </div>
   )
 }

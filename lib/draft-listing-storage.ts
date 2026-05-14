@@ -28,8 +28,11 @@ export interface PublishedListingDraft {
   description: string
   condition: string
   conditionGrade: "" | "new" | "used-as-new" | "used" | "used-as-is"
-  /** Arbitrary key/value specs captured from the dynamic spec schema. */
-  specs: Array<{ label: string; value: string }>
+  /** Specs captured from the dynamic spec catalog. The `key` matches the
+   *  catalog entry id (or `custom.{slug}` for user-added specs) and is what
+   *  consumers should use to reconcile back to the catalog. `label` is kept
+   *  alongside so the detail view can render without re-resolving. */
+  specs: Array<{ key: string; label: string; value: string }>
   forSaleActive: boolean
   forTradeActive: boolean
   inCollectionActive: boolean

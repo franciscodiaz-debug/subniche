@@ -42,6 +42,8 @@ import { currentUser } from "@/lib/current-user"
 import { StatusSelector } from "@/components/create-item/status-selector"
 import { CollectionFields } from "@/components/create-item/collection-fields"
 import { AcquisitionFields } from "@/components/create-item/acquisition-fields"
+import { SpecsEditor } from "@/components/create-item/specs-editor"
+import { getSpecsFor } from "@/lib/specs/catalog"
 import { WishlistFields } from "@/components/create-item/wishlist-fields"
 import { WishlistUrlImporter } from "@/components/create-item/wishlist-url-importer"
 import { SellerProfilePreview } from "@/components/create-item/seller-profile-preview"
@@ -83,87 +85,6 @@ const CONDITION_GRADES = [
   { value: "used-as-is", label: "Used – As Is" },
 ] as const
 
-export type SpecField = { key: string; label: string }
-
-export const DEFAULT_SPEC_SCHEMA: { required: SpecField[]; optional: SpecField[] } = {
-  required: [
-    { key: "brand", label: "Brand" },
-    { key: "year", label: "Year" },
-  ],
-  optional: [
-    { key: "color", label: "Color" },
-    { key: "material", label: "Material" },
-    { key: "weight", label: "Weight" },
-    { key: "dimensions", label: "Dimensions" },
-  ],
-}
-
-export const SPEC_SCHEMA: Record<string, { required: SpecField[]; optional: SpecField[] }> = {
-  Guitars: {
-    required: [
-      { key: "brand", label: "Brand" },
-      { key: "year", label: "Year" },
-      { key: "bodyType", label: "Body Type" },
-    ],
-    optional: [
-      { key: "handedness", label: "Handedness" },
-      { key: "color", label: "Color" },
-      { key: "pickups", label: "Pickups" },
-      { key: "strings", label: "Strings" },
-      { key: "finish", label: "Finish" },
-      { key: "fretboard", label: "Fretboard" },
-      { key: "weight", label: "Weight" },
-    ],
-  },
-  Drums: {
-    required: [
-      { key: "brand", label: "Brand" },
-      { key: "type", label: "Type" },
-    ],
-    optional: [
-      { key: "year", label: "Year" },
-      { key: "color", label: "Color" },
-      { key: "size", label: "Size" },
-      { key: "shellMaterial", label: "Shell Material" },
-    ],
-  },
-  Keyboards: {
-    required: [
-      { key: "brand", label: "Brand" },
-      { key: "keyCount", label: "Key Count" },
-    ],
-    optional: [
-      { key: "year", label: "Year" },
-      { key: "color", label: "Color" },
-      { key: "actionType", label: "Action" },
-      { key: "polyphony", label: "Polyphony" },
-      { key: "weight", label: "Weight" },
-    ],
-  },
-  "Audio Equipment": {
-    required: [
-      { key: "brand", label: "Brand" },
-      { key: "type", label: "Type" },
-    ],
-    optional: [
-      { key: "year", label: "Year" },
-      { key: "color", label: "Color" },
-      { key: "connectivity", label: "Connectivity" },
-      { key: "power", label: "Power" },
-    ],
-  },
-  Accessories: {
-    required: [
-      { key: "brand", label: "Brand" },
-      { key: "type", label: "Type" },
-    ],
-    optional: [
-      { key: "color", label: "Color" },
-      { key: "material", label: "Material" },
-      { key: "size", label: "Size" },
-    ],
-  },
-}
 
 const onboardingSteps: OnboardingStep[] = [
   {
@@ -340,68 +261,6 @@ export function InlineInput({
             "focus:bg-primary/5 px-2 -mx-2 rounded-md",
             as === "textarea" && "resize-none min-h-[100px] py-2",
             inputClassName,
-          )}
-        />
-      )}
-    </div>
-  )
-}
-
-export function InlineSpecInput({
-  label,
-  value,
-  onChange,
-  placeholder = "-",
-  suggestion,
-  onAcceptSuggestion,
-  inputRef,
-  onEnterNext,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-  suggestion?: Suggestion
-  onAcceptSuggestion?: () => void
-  inputRef?: React.RefObject<HTMLInputElement>
-  onEnterNext?: () => void
-}) {
-  const showSuggestion = suggestion && !suggestion.accepted && !value
-
-  return (
-    <div className="space-y-1">
-      <label className="text-xs text-muted-foreground">{label}</label>
-      {showSuggestion ? (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-primary/5 rounded-md border border-primary/20 px-3 py-2 text-foreground/80 italic text-sm">
-            {suggestion.value}
-          </div>
-          <button
-            type="button"
-            onClick={onAcceptSuggestion}
-            className="shrink-0 p-1.5 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors"
-            title="Accept suggestion"
-          >
-            <Check className="h-3 w-3" />
-          </button>
-        </div>
-      ) : (
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && onEnterNext) {
-              e.preventDefault()
-              onEnterNext()
-            }
-          }}
-          className={cn(
-            "w-full bg-card rounded-md border border-border px-3 py-2 text-sm",
-            "text-foreground placeholder:text-muted-foreground/50",
-            "focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all",
           )}
         />
       )}
@@ -691,12 +550,10 @@ export function CreateListingInline({
     if (key === "handedness") return setHandedness(v)
     setExtraSpecs((s) => ({ ...s, [key]: v }))
   }
-  const specSchema = (category && SPEC_SCHEMA[category]) || DEFAULT_SPEC_SCHEMA
-  // All specs in one flat, tab-ordered list: required first, then optional.
-  const allSpecs: (SpecField & { required: boolean })[] = [
-    ...specSchema.required.map((s) => ({ ...s, required: true })),
-    ...specSchema.optional.map((s) => ({ ...s, required: false })),
-  ]
+  // Single source of truth: catalog-resolved specs for the current
+  // category + subcategory. Used by the editor render and by the publish
+  // summary to flatten user-filled values back into label/value pairs.
+  const allSpecs = getSpecsFor(category, subcategory)
 
   const [activeSection, setActiveSection] = useState<string | null>(null)
 
@@ -707,18 +564,31 @@ export function CreateListingInline({
   )
   const [isWishlistActive, setIsWishlistActive] = useState(initialStatus === "wishlist")
   const [hasSelectedStatus, setHasSelectedStatus] = useState(!!initialStatus || !!initialCollectionId)
-  const [statusFieldsAdded, setStatusFieldsAdded] = useState<string | null>(null)
+  // Derived hint that explains what each active status means. Replaces the
+  // old temporal "fields added" feedback with a persistent educational copy
+  // so the user always knows what their current selection represents.
+  const statusHint = (() => {
+    if (isWishlistActive) {
+      return "Something you want but don't own yet — track what you're after and let other collectors know."
+    }
+    if (inCollectionActive) {
+      return "Something you own and want to track — not for sale or trade."
+    }
+    if (forSaleActive && forTradeActive) {
+      return "You're selling this item and also open to trade offers."
+    }
+    if (forSaleActive) {
+      return "You're selling this item to other collectors."
+    }
+    if (forTradeActive) {
+      return "You're open to swapping this item for something else."
+    }
+    return "Pick at least one status to continue."
+  })()
   const [tradeNoticeVisible, setTradeNoticeVisible] = useState(false)
   // Only surface the "still needed" requirement list after a user attempts to publish
   // while something is still unfilled. It stays dismissed on the happy path.
   const [showMissingError, setShowMissingError] = useState(false)
-
-  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const handleFieldsVisible = (label: string) => {
-    if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
-    setStatusFieldsAdded(label)
-    statusTimerRef.current = setTimeout(() => setStatusFieldsAdded(null), 2500)
-  }
 
   const [saleData, setSaleData] = useState<ItemSaleStatus>({
     active: initialStatus === "sale",
@@ -816,11 +686,10 @@ export function CreateListingInline({
       setSaleData((p) => ({ ...p, active: false }))
       setTradeData((p) => ({ ...p, active: false }))
       setCollectionData((p) => ({ ...p, active: false }))
-      // Form is always available in wishlist mode now — the URL importer is
-      // shown as a banner above the form, not as a gating step.
-      setShowNormalFields(true)
-      setWishlistEntryMethod("manual")
-      handleFieldsVisible("Wishlist")
+      // Progressive disclosure: the full form stays hidden until the user
+      // either processes a URL or explicitly chooses to fill manually.
+      setShowNormalFields(false)
+      setWishlistEntryMethod(null)
     } else {
       setShowNormalFields(true)
       setWishlistEntryMethod(null)
@@ -904,7 +773,7 @@ export function CreateListingInline({
    * preview column reflects the exact state of the form at this moment. */
   const buildPublishSummary = (): PublishConfirmListingSummary => {
     const resolvedSpecs = allSpecs
-      .map((s) => ({ label: s.label, value: getSpec(s.key) }))
+      .map((s) => ({ key: s.key, label: s.label, value: getSpec(s.key) }))
       .filter((s) => s.value.trim().length > 0)
 
     const conditionGradeLabels: Record<string, string> = {
@@ -1032,7 +901,7 @@ export function CreateListingInline({
     /* Snapshot the resolved spec entries. We only persist specs with a
      * value so the published preview stays clean. */
     const resolvedSpecs = allSpecs
-      .map((s) => ({ label: s.label, value: getSpec(s.key) }))
+      .map((s) => ({ key: s.key, label: s.label, value: getSpec(s.key) }))
       .filter((s) => s.value.trim().length > 0)
 
     const paymentMethods = forTradeActive
@@ -1284,6 +1153,7 @@ export function CreateListingInline({
     if (data.specifications?.year) setYear(data.specifications.year)
     if (data.imageUrl) setImages([data.imageUrl])
     setWishlistData((prev) => ({ ...prev, sourceUrl: data.sourceUrl || null }))
+    setWishlistEntryMethod("url")
     setShowNormalFields(true)
   }
 
@@ -1296,7 +1166,6 @@ export function CreateListingInline({
       setInCollectionActive(false)
       setIsWishlistActive(false)
       setCollectionData((p) => ({ ...p, active: false }))
-      handleFieldsVisible("For Sale")
     }
   }
   const handleForTradeChange = (a: boolean) => {
@@ -1308,7 +1177,6 @@ export function CreateListingInline({
       setInCollectionActive(false)
       setIsWishlistActive(false)
       setCollectionData((p) => ({ ...p, active: false }))
-      handleFieldsVisible("For Trade")
     }
   }
   const handleInCollectionChange = (a: boolean) => {
@@ -1323,7 +1191,6 @@ export function CreateListingInline({
       setIsWishlistActive(false)
       setSaleData((p) => ({ ...p, active: false }))
       setTradeData((p) => ({ ...p, active: false }))
-      handleFieldsVisible("Keeping")
     }
   }
 
@@ -1464,27 +1331,11 @@ export function CreateListingInline({
             <div className="flex items-center gap-1.5 text-sm">
               <span className="text-muted-foreground">Status</span>
               <Info className="h-3.5 w-3.5 text-muted-foreground" />
-              {statusFieldsAdded && (
-                <>
-                  <span
-                    className={cn(
-                      "flex items-center gap-1 font-medium",
-                      statusFieldsAdded === "For Sale" && "text-emerald-400",
-                      statusFieldsAdded === "For Trade" && "text-sky-400",
-                      statusFieldsAdded === "Collection" && "text-primary",
-                      statusFieldsAdded === "Wishlist" && "text-rose-400",
-                    )}
-                  >
-                    <span>•</span>
-                    <span>{statusFieldsAdded}</span>
-                  </span>
-                  <span className="text-foreground">
-                    fields added
-                    {statusFieldsAdded === "For Trade" && " – you'll set interests in the next step"}
-                  </span>
-                </>
-              )}
             </div>
+            {/* Persistent educational copy that describes what the current
+                selection means. Replaces the temporal "fields added" hint
+                so the user always sees an explanation for their choice. */}
+            <p className="text-sm text-muted-foreground">{statusHint}</p>
             <div className="flex items-center gap-2 flex-wrap">
               <StatusSelector
                 size="md"
@@ -1554,11 +1405,20 @@ export function CreateListingInline({
           </div>
         )}
 
-        {/* Wishlist banner — permanent context + optional URL importer.
-            The form below is always editable; the importer is a shortcut. */}
+        {/* Wishlist progressive disclosure — gates the rest of the form
+            behind a method choice (process a URL, or fill in manually) so
+            the user isn't shown the whole form cold. Collapses to a small
+            "try with a URL instead" affordance once a method is chosen. */}
         {isWishlistActive && (
           <div className="mb-4">
-            <WishlistUrlImporter onUrlProcessed={handleWishlistUrlProcessed} />
+            <WishlistUrlImporter
+              entryMethod={wishlistEntryMethod}
+              onFillManually={() => {
+                setWishlistEntryMethod("manual")
+                setShowNormalFields(true)
+              }}
+              onUrlProcessed={handleWishlistUrlProcessed}
+            />
           </div>
         )}
 
@@ -1696,31 +1556,21 @@ export function CreateListingInline({
                 </div>
               )}
 
-              {/* Specs — auto-opens when focused; all category/sub-category fields rendered and tab-able in order */}
+              {/* Specs — chips-first editor backed by the unified catalog.
+                  Required specs are always visible; optional specs surface
+                  as `+ Label` pills the user can tap to promote. */}
               <div onFocusCapture={() => setSpecsOpen(true)}>
                 <CollapsibleSection title="Specifications" isOpen={specsOpen} onToggle={setSpecsOpen}>
-                  <div className="grid grid-cols-2 gap-3 pt-3">
-                    {allSpecs.map((spec) => (
-                      <InlineSpecInput
-                        key={spec.key}
-                        label={spec.label}
-                        value={getSpec(spec.key)}
-                        onChange={(v) => setSpec(spec.key, v)}
-                        suggestion={suggestions[spec.key]}
-                        onAcceptSuggestion={() => acceptSuggestion(spec.key)}
-                        inputRef={
-                          spec.key === "brand"
-                            ? brandInputRef
-                            : spec.key === "year"
-                              ? yearInputRef
-                              : spec.key === "color"
-                                ? colorInputRef
-                                : spec.key === "handedness"
-                                  ? handednessInputRef
-                                  : undefined
-                        }
-                      />
-                    ))}
+                  <div className="pt-3">
+                    <SpecsEditor
+                      category={category}
+                      subcategory={subcategory}
+                      getSpec={getSpec}
+                      setSpec={setSpec}
+                      suggestions={suggestions}
+                      onAcceptSuggestion={acceptSuggestion}
+                      compact
+                    />
                   </div>
                 </CollapsibleSection>
               </div>
@@ -2003,7 +1853,6 @@ export function CreateListingInline({
                   onChange={setCollectionData}
                   isActive
                   collections={userCollections}
-                  onFieldsVisible={() => handleFieldsVisible("Collection")}
                 />
               )}
 

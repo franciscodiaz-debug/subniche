@@ -81,6 +81,9 @@ export interface MockMutualMatch {
 export interface MockSpec {
   label: string
   value: string
+  /** Stable identifier from the spec catalog. Optional for backward compat
+   *  with mock fixtures that pre-date the catalog migration. */
+  key?: string
 }
 
 export interface MockListing {

@@ -54,8 +54,10 @@ export interface PublishConfirmListingSummary {
   subcategory: string
   conditionGradeLabel: string | null
   conditionNote: string
-  /** Resolved spec rows — only entries with a value are passed in. */
-  specs: Array<{ label: string; value: string }>
+  /** Resolved spec rows — only entries with a value are passed in.
+   *  `key` is the stable catalog id (or `custom.{slug}` for user-added);
+   *  optional for backward compat with older callers. */
+  specs: Array<{ key?: string; label: string; value: string }>
   /** Intent flags the flow persists. Availability for the preview is
    *  derived from these so the preview's top strip and action bar match
    *  exactly what will publish. */

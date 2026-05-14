@@ -304,8 +304,7 @@ export const myTradeableItems: TradeableItemSummary[] = [
   {
     id: "my-4",
     title: "Strymon BigSky Reverb",
-    image:
-      "https://images.unsplash.com/photo-1535225939926-e62b7c8f1b39?w=200&h=200&fit=crop",
+    image: "/listings/strymon-bigsky-placeholder.svg",
     type: "collection_item",
     matchCount: 1,
     perfectCount: 0,

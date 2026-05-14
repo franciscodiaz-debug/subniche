@@ -7,16 +7,17 @@
  * "For" dropdown. No modal, no overlay — this is plain section navigation
  * inside the Trade hub, per the spec.
  *
- * Two display modes, driven entirely by the parent's `selectedItemId`:
+ * Two display modes, driven by the parent's `selectedItemId`:
  *
- *   1. ALL ITEMS  (selectedItemId === "all")
- *      Shows only global interests that apply to every trade listing.
+ *   1. ALL  (selectedItemId === "all")
+ *      Shows every saved trade interest. Row chips explain whether each
+ *      interest is global, listing-specific, shared, or not applied yet.
  *
  *   2. INDIVIDUAL ITEM  (selectedItemId === "my-1" etc.)
  *      The whole surface is reframed around that single item, since the user
  *      arrived here from "For <item>" upstream.
- *      Only listing-specific interests for that item are shown; global
- *      interests stay in the All-items view so this mode stays focused.
+ *      Listing-specific, shared, and global interests that apply to that item
+ *      are shown together, with global interests using a softer treatment.
  *      Add Interest lets the user either author from scratch or reuse an
  *      existing saved interest without retyping.
  *
@@ -45,7 +46,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Layers3,
   Pencil,
   Plus,
   Search,
@@ -74,7 +74,7 @@ interface TradeInterestsViewProps {
   onBack: () => void
   /** The viewer's tradeable items. Used to determine globality (an interest
    *  is "global" iff its appliedTo set covers every item) and to drive the
-   *  in-page "For" selector that controls All-items vs. individual-item mode. */
+   *  in-page "For" selector that controls All vs. individual-item mode. */
   items: TradeableItemSummary[]
   /** Either "all" or a specific my_item id. Controlled by the parent so the
    *  user's "I'm focused on this item" context is shared between this view
@@ -90,6 +90,8 @@ interface TradeInterestsViewProps {
 /* Grouping helpers                                                           */
 /* -------------------------------------------------------------------------- */
 
+const INTERESTS_SCOPE_ID = "__interests__"
+
 /**
  * Interest is "global" when its `appliedTo` covers every tradeable item.
  * We express it via Set membership so an interest with stale ids (e.g. one
@@ -104,6 +106,44 @@ function isGlobalInterest(
   if (items.length === 0) return false
   const applied = new Set(interest.appliedTo)
   return items.every((item) => applied.has(item.id))
+}
+
+function getInterestApplicationStatus(
+  interest: SavedTradeInterest,
+  items: TradeableItemSummary[],
+) {
+  if (isGlobalInterest(interest, items)) {
+    return "Global - Applied to all listings"
+  }
+
+  const appliedItems = interest.appliedTo
+    .map((id) => items.find((item) => item.id === id))
+    .filter((item): item is TradeableItemSummary => Boolean(item))
+
+  if (appliedItems.length === 1) {
+    return `Applied to ${appliedItems[0].title}`
+  }
+
+  if (appliedItems.length > 1) {
+    return `Shared - Applied to ${appliedItems.length} listings`
+  }
+
+  return "Not applied yet"
+}
+
+function getListingInterestStatus(
+  interest: SavedTradeInterest,
+  items: TradeableItemSummary[],
+) {
+  if (isGlobalInterest(interest, items)) {
+    return "Global - Applied to all listings"
+  }
+
+  if (interest.appliedTo.length > 1) {
+    return `Shared - Applied to ${interest.appliedTo.length} listings`
+  }
+
+  return "Applied to this listing"
 }
 
 function allocateListingInterestMatches(
@@ -150,9 +190,12 @@ export function TradeInterestsView({
   const { interests, create, remove, applyToListing } =
     useSavedTradeInterests()
 
-  const isIndividual = selectedItemId !== "all"
+  const activeScopeId =
+    selectedItemId === "all" ? INTERESTS_SCOPE_ID : selectedItemId
+  const isInterestLibrary = activeScopeId === INTERESTS_SCOPE_ID
+  const isIndividual = activeScopeId !== "all" && !isInterestLibrary
   const selectedItem = isIndividual
-    ? items.find((item) => item.id === selectedItemId) ?? null
+    ? items.find((item) => item.id === activeScopeId) ?? null
     : null
 
   /* Expansion model — at most one row is open at a time, in one of two modes:
@@ -184,17 +227,22 @@ export function TradeInterestsView({
     setConfirmingRemovalId(null)
   }
 
-  const handleNewGlobal = () => {
-    const created = create({ appliedTo: items.map((i) => i.id) })
+  const handleNewTemplate = () => {
+    const created = create({ appliedTo: [] })
     setExpandedId(created.id)
     setExpandedMode("edit")
     setConfirmingRemovalId(null)
   }
 
-  const handleApplyAsGlobal = (interestId: string) => {
-    items.forEach((item) => applyToListing(interestId, item.id))
-    setExpandedId(interestId)
-    setExpandedMode("edit")
+  const handleSelectInterestLibrary = () => {
+    onSelectItem("all")
+    setExpandedId(null)
+    setConfirmingRemovalId(null)
+  }
+
+  const handleSelectItem = (id: string) => {
+    onSelectItem(id)
+    setExpandedId(null)
     setConfirmingRemovalId(null)
   }
 
@@ -257,13 +305,18 @@ export function TradeInterestsView({
     return { global, partial, templates, itemSpecific, availableForItem }
   }, [interests, items, isIndividual, selectedItem])
 
-  const itemSpecificMatchCounts = React.useMemo(
+  const visibleListingInterests = React.useMemo(
+    () => [...buckets.itemSpecific, ...buckets.global],
+    [buckets.itemSpecific, buckets.global],
+  )
+
+  const listingInterestMatchCounts = React.useMemo(
     () =>
       allocateListingInterestMatches(
-        buckets.itemSpecific,
+        visibleListingInterests,
         selectedItem?.matchCount ?? 0,
       ),
-    [buckets.itemSpecific, selectedItem?.matchCount],
+    [visibleListingInterests, selectedItem?.matchCount],
   )
 
   const handleApplyExisting = (interestId: string) => {
@@ -278,14 +331,21 @@ export function TradeInterestsView({
 
   /* ------------------------------------------------------------------------ */
 
-  const renderRow = (interest: SavedTradeInterest) => {
+  const renderRow = (
+    interest: SavedTradeInterest,
+    options?: { statusChip?: string; rowClassName?: string },
+  ) => {
     const isExpanded = expandedId === interest.id
+    const isEditOpen = isExpanded && expandedMode === "edit"
     return (
       <li key={interest.id}>
         <InterestRow
+          key={isEditOpen ? "edit" : "view"}
           interest={interest}
           items={items}
-          matchCount={itemSpecificMatchCounts.get(interest.id)}
+          matchCount={listingInterestMatchCounts.get(interest.id)}
+          statusChip={options?.statusChip}
+          rowClassName={options?.rowClassName}
           expanded={isExpanded}
           expandedMode={isExpanded ? expandedMode : null}
           confirming={confirmingRemovalId === interest.id}
@@ -325,8 +385,10 @@ export function TradeInterestsView({
         <span className="text-sm text-muted-foreground">For</span>
         <TradeItemSelector
           items={items}
-          selectedItemId={selectedItemId}
-          onSelect={onSelectItem}
+          selectedItemId={isInterestLibrary ? "all" : activeScopeId}
+          onSelect={(id) =>
+            id === "all" ? handleSelectInterestLibrary() : handleSelectItem(id)
+          }
           totalMatches={0}
         />
       </div>
@@ -335,81 +397,132 @@ export function TradeInterestsView({
         <TradeInterestScopeRail
           items={items}
           interests={interests}
-          selectedItemId={selectedItemId}
-          onSelectItem={onSelectItem}
+          activeScopeId={activeScopeId}
+          onSelectInterests={handleSelectInterestLibrary}
+          onSelectItem={handleSelectItem}
         />
 
         {/* Body ------------------------------------------------------------- */}
         <div className="min-w-0">
-          {isIndividual && selectedItem ? (
-            <SelectedItemSummary item={selectedItem} />
-          ) : null}
-
           {interests.length === 0 ? (
-            <EmptyState onCreate={isIndividual ? handleNew : handleNewGlobal} />
+            <EmptyState
+              onCreate={
+                isIndividual
+                  ? handleNew
+                  : handleNewTemplate
+              }
+            />
           ) : isIndividual && selectedItem ? (
             <div className="space-y-5">
               <Section
-                count={buckets.itemSpecific.length}
+                count={visibleListingInterests.length}
                 empty="No interests here yet."
-                actions={
-                  <AddExistingPicker
-                    available={buckets.availableForItem}
-                    onApply={handleApplyExisting}
-                    onAddNew={handleNew}
-                  />
-                }
               >
-                {buckets.itemSpecific.length > 0 || buckets.global.length > 0 ? (
-                  <>
-                    <div className="mb-2 ml-6">
-                      <p className="truncate text-sm text-muted-foreground">
-                        Trade interests for your{" "}
-                        <span className="font-medium text-foreground">
-                          {selectedItem.title}
-                        </span>
+                <div className="sm:ml-6">
+                  <p className="mb-1.5 truncate px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Trade interests for your
+                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <SelectedTradeItemCard
+                      item={selectedItem}
+                      interestCount={buckets.itemSpecific.length}
+                      globalCount={buckets.global.length}
+                    />
+                    <div className="flex-shrink-0">
+                      <AddExistingPicker
+                        available={buckets.availableForItem}
+                        onApply={handleApplyExisting}
+                        onAddNew={handleNew}
+                      />
+                    </div>
+                  </div>
+                  <div className="my-4 h-px max-w-md bg-border/70" />
+                  {visibleListingInterests.length > 0 ? (
+                    <ul className="space-y-2">
+                      {buckets.itemSpecific.map((interest) =>
+                        renderRow(interest, {
+                          statusChip: getListingInterestStatus(
+                            interest,
+                            items,
+                          ),
+                        }),
+                      )}
+                      {buckets.global.map((interest) =>
+                        renderRow(interest, {
+                          statusChip: getListingInterestStatus(
+                            interest,
+                            items,
+                          ),
+                          rowClassName:
+                            "border-border/70 bg-card/45 hover:border-border",
+                        }),
+                      )}
+                    </ul>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
+                      <p className="text-xs text-muted-foreground">
+                        No interests here yet.
                       </p>
                     </div>
-                    <ul className="ml-6 space-y-2">
-                      {buckets.itemSpecific.map(renderRow)}
-                      {buckets.global.length > 0 ? (
-                        <li>
-                          <GlobalInterestNotice count={buckets.global.length} />
-                        </li>
-                      ) : null}
-                    </ul>
-                  </>
-                ) : null}
+                  )}
+                </div>
               </Section>
             </div>
           ) : (
             <div className="space-y-5">
               <Section
-                count={buckets.global.length}
-                empty="No global interests yet."
-                actions={
-                  <AddExistingPicker
-                    available={[...buckets.partial, ...buckets.templates]}
-                    onApply={handleApplyAsGlobal}
-                    onAddNew={handleNewGlobal}
-                  />
-                }
+                count={interests.length}
+                empty="No saved interests yet."
               >
-                {buckets.global.length > 0 ? (
-                  <>
-                    <div className="mb-2 ml-6">
-                      <p className="text-sm font-medium text-foreground">
-                        Global trade interests
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Applied to every listing
+                <div className="sm:ml-6">
+                  <span className="mb-1.5 block h-4 px-1" aria-hidden="true" />
+                  <div className="flex items-start justify-between gap-3">
+                    <InterestLibraryCard
+                      interestCount={interests.length}
+                      globalCount={buckets.global.length}
+                      listingSpecificCount={buckets.partial.length}
+                    />
+                    <Button
+                      type="button"
+                      variant="quiet_outline"
+                      size="sm"
+                      onClick={handleNewTemplate}
+                      className="h-8 min-w-[9.75rem] flex-shrink-0"
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      Add Interest
+                    </Button>
+                  </div>
+                  <div className="my-4 h-px max-w-md bg-border/70" />
+                  {interests.length > 0 ? (
+                    <ul className="space-y-2">
+                      {buckets.global.map((interest) =>
+                        renderRow(interest, {
+                          statusChip: getInterestApplicationStatus(
+                            interest,
+                            items,
+                          ),
+                          rowClassName:
+                            "border-border/70 bg-card/45 hover:border-border",
+                        }),
+                      )}
+                      {[...buckets.partial, ...buckets.templates].map((interest) =>
+                        renderRow(interest, {
+                          statusChip: getInterestApplicationStatus(
+                            interest,
+                            items,
+                          ),
+                        }),
+                      )}
+                    </ul>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
+                      <p className="text-xs text-muted-foreground">
+                        No saved interests yet.
                       </p>
                     </div>
-                    <ul className="ml-6 space-y-2">
-                      {buckets.global.map(renderRow)}
-                    </ul>
-                  </>
-                ) : null}
+                  )}
+                </div>
               </Section>
             </div>
           )}
@@ -426,12 +539,14 @@ export function TradeInterestsView({
 function TradeInterestScopeRail({
   items,
   interests,
-  selectedItemId,
+  activeScopeId,
+  onSelectInterests,
   onSelectItem,
 }: {
   items: TradeableItemSummary[]
   interests: SavedTradeInterest[]
-  selectedItemId: string
+  activeScopeId: string
+  onSelectInterests: () => void
   onSelectItem: (id: string) => void
 }) {
   const countFor = (itemId: string) =>
@@ -450,25 +565,29 @@ function TradeInterestScopeRail({
     <aside className="hidden lg:block">
       <div className="sticky top-20 space-y-2">
         <div>
+          <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            Trade Interests
+          </p>
           <button
             type="button"
-            onClick={() => onSelectItem("all")}
+            onClick={onSelectInterests}
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
-              selectedItemId === "all"
+              activeScopeId === INTERESTS_SCOPE_ID
                 ? "border-primary/50 bg-primary/10"
                 : "border-transparent bg-transparent hover:border-border hover:bg-card",
             )}
           >
             <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
-              <Layers3 className="h-4 w-4" />
+              <Pencil className="h-4 w-4" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-foreground">
-                Global
+                All
               </span>
               <span className="block truncate text-xs text-muted-foreground">
-                {globalCount} {globalCount === 1 ? "interest" : "interests"}
+                {interests.length} total · {globalCount} global{" "}
+                {globalCount === 1 ? "interest" : "interests"}
               </span>
             </span>
           </button>
@@ -476,11 +595,11 @@ function TradeInterestScopeRail({
 
         <div className="pt-4">
           <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            Listing Specific
+            Listings
           </p>
           <div className="space-y-1.5">
             {items.map((item) => {
-              const selected = selectedItemId === item.id
+              const selected = activeScopeId === item.id
               const count = countFor(item.id)
               return (
                 <button
@@ -507,13 +626,20 @@ function TradeInterestScopeRail({
                     <span className="block truncate text-sm font-medium text-foreground">
                       {item.title}
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {count} {count === 1 ? "interest" : "interests"}
-                      {item.matchCount > 0
-                        ? ` · ${item.matchCount} ${
-                            item.matchCount === 1 ? "match" : "matches"
-                          }`
-                        : ""}
+                    <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="truncate">
+                        {count} {count === 1 ? "interest" : "interests"}
+                      </span>
+                      {globalCount > 0 ? (
+                        <span
+                          className="inline-flex flex-shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                          title={`${globalCount} global ${
+                            globalCount === 1 ? "interest" : "interests"
+                          } also apply`}
+                        >
+                          + {globalCount}
+                        </span>
+                      ) : null}
                     </span>
                   </span>
                 </button>
@@ -526,33 +652,103 @@ function TradeInterestScopeRail({
   )
 }
 
-function SelectedItemSummary({ item }: { item: TradeableItemSummary }) {
+function SelectedTradeItemCard({
+  item,
+  interestCount,
+  globalCount,
+}: {
+  item: TradeableItemSummary
+  interestCount: number
+  globalCount: number
+}) {
+  const formattedPrice =
+    typeof item.price === "number"
+      ? `$${item.price.toLocaleString("en-US")}`
+      : null
+
   return (
-    <div className="mb-5 flex items-center gap-3 rounded-lg border border-border bg-card/50 p-2.5 lg:hidden">
-      <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-        <Image
-          src={item.image || "/placeholder.svg"}
-          alt={item.title}
-          width={48}
-          height={48}
-          className="h-full w-full object-cover"
-        />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-foreground">
-          {item.title}
-        </p>
-        {item.subtitle ? (
-          <p className="truncate text-xs text-muted-foreground">
-            {item.subtitle}
+    <div className="w-full max-w-md">
+      <div className="flex items-center gap-3 px-1 py-1">
+        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-border/50 bg-secondary">
+          <Image
+            src={item.image || "/placeholder.svg"}
+            alt={item.title}
+            width={64}
+            height={64}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+            {item.title}
           </p>
-        ) : null}
+          {item.subtitle || formattedPrice ? (
+            <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+              {item.subtitle ? (
+                <span className="truncate">{item.subtitle}</span>
+              ) : null}
+              {formattedPrice ? (
+                <span className="flex-shrink-0 tabular-nums text-muted-foreground/70">
+                  {item.subtitle ? "· " : ""}
+                  {formattedPrice}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
+              {interestCount} specific{" "}
+              {interestCount === 1 ? "interest" : "interests"}
+            </span>
+            {globalCount > 0 ? (
+              <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                + {globalCount} global{" "}
+                {globalCount === 1 ? "interest" : "interests"}
+              </span>
+            ) : null}
+          </div>
+        </div>
       </div>
-      {typeof item.price === "number" ? (
-        <p className="ml-3 flex-shrink-0 text-sm font-semibold tabular-nums text-foreground">
-          ${item.price.toLocaleString("en-US")}
-        </p>
-      ) : null}
+    </div>
+  )
+}
+
+function InterestLibraryCard({
+  interestCount,
+  globalCount,
+  listingSpecificCount,
+}: {
+  interestCount: number
+  globalCount: number
+  listingSpecificCount: number
+}) {
+  return (
+    <div className="w-full max-w-md">
+      <div className="flex items-center gap-3 px-1 py-1">
+        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md border border-border/50 bg-secondary text-muted-foreground">
+          <Pencil className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+            All
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            Manage all of your saved trade interests
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
+              {interestCount} saved{" "}
+              {interestCount === 1 ? "interest" : "interests"}
+            </span>
+            <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
+              {globalCount} global
+            </span>
+            <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
+              {listingSpecificCount} listing-specific
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -581,68 +777,71 @@ function Section({
   onToggleCollapse?: () => void
 }) {
   const hasHeaderText = Boolean(title || caption)
+  const showHeader = hasHeaderText || Boolean(actions)
 
   return (
     <section>
-      <div
-        className={cn(
-          "mb-2 flex items-center justify-between gap-3",
-          hasHeaderText && "border-b border-border/70 pb-2",
-        )}
-      >
-        {hasHeaderText ? (
-          <button
-            type="button"
-            onClick={onToggleCollapse ?? undefined}
-            aria-expanded={onToggleCollapse ? !collapsed : undefined}
-            className={cn(
-              "flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-2 text-left transition-colors",
-              onToggleCollapse && "hover:bg-secondary/40",
-            )}
-          >
-            {onToggleCollapse ? (
-              <ChevronRight
-                aria-hidden="true"
-                className={cn(
-                  "mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
-                  !collapsed && "rotate-90",
-                )}
-              />
-            ) : null}
-            <div className="min-w-0">
-              {title ? (
-                <div className="flex items-center gap-2">
-                  <h2 className="truncate text-sm font-semibold text-foreground">
-                    {title}
-                  </h2>
-                  <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
-                    {count}
-                  </span>
-                </div>
+      {showHeader ? (
+        <div
+          className={cn(
+            "mb-2 flex items-center justify-between gap-3",
+            hasHeaderText && "border-b border-border/70 pb-2",
+          )}
+        >
+          {hasHeaderText ? (
+            <button
+              type="button"
+              onClick={onToggleCollapse ?? undefined}
+              aria-expanded={onToggleCollapse ? !collapsed : undefined}
+              className={cn(
+                "flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-2 text-left transition-colors",
+                onToggleCollapse && "hover:bg-secondary/40",
+              )}
+            >
+              {onToggleCollapse ? (
+                <ChevronRight
+                  aria-hidden="true"
+                  className={cn(
+                    "mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
+                    !collapsed && "rotate-90",
+                  )}
+                />
               ) : null}
-              {caption ? (
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {caption}
-                </p>
-              ) : null}
-            </div>
-          </button>
-        ) : (
-          <div className="min-w-0 flex-1" />
-        )}
+              <div className="min-w-0">
+                {title ? (
+                  <div className="flex items-center gap-2">
+                    <h2 className="truncate text-sm font-semibold text-foreground">
+                      {title}
+                    </h2>
+                    <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+                      {count}
+                    </span>
+                  </div>
+                ) : null}
+                {caption ? (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {caption}
+                  </p>
+                ) : null}
+              </div>
+            </button>
+          ) : (
+            <div className="min-w-0 flex-1" />
+          )}
 
-        {actions ? (
-          <div
-            className={cn(
-              collapsed && "hidden",
-              !hasHeaderText && "ml-auto",
-            )}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {actions}
-          </div>
-        ) : null}
-      </div>
+          {actions ? (
+            <div
+              className={cn(
+                collapsed && "hidden",
+                !hasHeaderText && "ml-auto",
+              )}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {actions}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {collapsed ? null : children ? (
         children
@@ -654,27 +853,6 @@ function Section({
         </div>
       ) : null}
     </section>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* Read-only global context row                                               */
-/* -------------------------------------------------------------------------- */
-
-function GlobalInterestNotice({ count }: { count: number }) {
-  return (
-    <div className="rounded-xl border border-dashed border-border/80 bg-card/35 px-3 py-3 text-muted-foreground">
-      <div className="flex items-center gap-3">
-        <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-secondary/50 text-muted-foreground">
-          <Layers3 className="h-4 w-4" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            + {count} global trade {count === 1 ? "interest" : "interests"}
-          </p>
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -839,6 +1017,8 @@ function InterestRow({
   interest,
   items,
   matchCount,
+  statusChip,
+  rowClassName,
   expanded,
   expandedMode,
   dimmed = false,
@@ -854,6 +1034,8 @@ function InterestRow({
   interest: SavedTradeInterest
   items: TradeableItemSummary[]
   matchCount?: number
+  statusChip?: string
+  rowClassName?: string
   expanded: boolean
   expandedMode: "detail" | "edit" | null
   dimmed?: boolean
@@ -871,7 +1053,7 @@ function InterestRow({
   const chips = savedInterestToChips(interest)
   const description = savedInterestDescription(interest)
   const sharedReach =
-    !isGlobal && appliedCount >= 2
+    !statusChip && !isGlobal && appliedCount >= 2
       ? `Shared with ${appliedCount} listings`
       : ""
   const matchSummary =
@@ -885,11 +1067,8 @@ function InterestRow({
   const isEditOpen = expanded && expandedMode === "edit"
 
   // Name is edited inline in the row header while the editor is open.
-  // Reset to the saved value whenever the editor closes.
+  // The parent remounts this row when edit mode opens so canceled drafts reset.
   const [draftName, setDraftName] = React.useState(interest.name)
-  React.useEffect(() => {
-    if (!expanded) setDraftName(interest.name)
-  }, [expanded, interest.name])
 
   const nameInput = isEditOpen ? (
     <input
@@ -962,6 +1141,7 @@ function InterestRow({
       nameInput={nameInput}
       description={rowDescription}
       chips={chips}
+      statusChip={statusChip}
       actions={actions}
       inlineEditor={isEditOpen ? (
         <SavedInterestEditor interest={interest} name={draftName} onSaved={onSaved} onCancel={onCancelEdit} />
@@ -971,7 +1151,7 @@ function InterestRow({
       onToggle={onToggleDetail}
       emptyChipsLabel="No criteria yet — click the pencil to add some."
       collapseOnBodyClick={isDetailOpen}
-      className={isEditOpen ? "bg-secondary/30" : undefined}
+      className={cn(rowClassName, isEditOpen && "bg-secondary/30")}
     />
   )
 }

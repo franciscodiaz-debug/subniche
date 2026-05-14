@@ -75,6 +75,8 @@ interface TradeInterestRowProps {
   chips: TradeInterestChip[]
   /** Optional count shown in parens next to the name, e.g. number of matches. */
   count?: number
+  /** Optional status chip shown next to the title, e.g. where this interest is applied. */
+  statusChip?: string
   /** Management-screen action buttons (pencil, delete, etc.) rendered before
    *  the expand chevron. Omit for read-only profile view. */
   actions?: ReactNode
@@ -105,6 +107,7 @@ export function TradeInterestRow({
   description,
   chips,
   count,
+  statusChip,
   actions,
   inlineEditor,
   dimmed,
@@ -161,6 +164,11 @@ export function TradeInterestRow({
                   ({count})
                 </span>
               )}
+              {statusChip ? (
+                <span className="inline-flex max-w-[260px] shrink truncate rounded-full bg-secondary/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  {statusChip}
+                </span>
+              ) : null}
             </div>
             {description ? (
               <p className="mt-0.5 truncate text-xs text-muted-foreground">

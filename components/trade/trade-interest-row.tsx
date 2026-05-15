@@ -144,7 +144,8 @@ export function TradeInterestRow({
       {/* Compact row */}
       <div
         className={cn(
-          "group/header flex items-center gap-3 px-3 py-3 transition-colors",
+          "group/header flex items-center gap-3 px-3 transition-colors",
+          nameInput ? "pb-1 pt-3" : "py-3",
           !nameInput && "cursor-pointer hover:bg-secondary/20",
         )}
         onClick={!nameInput ? toggle : undefined}

@@ -7,7 +7,7 @@
  * "For" dropdown. No modal, no overlay — this is plain section navigation
  * inside the Trade hub, per the spec.
  *
- * Two display modes, driven by the parent's `selectedItemId`:
+ * Two display modes, chosen inside this management view:
  *
  *   1. ALL  (selectedItemId === "all")
  *      Shows every saved trade interest. Row chips explain whether each
@@ -63,6 +63,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
   summarizeSavedInterest,
   useSavedTradeInterests,
   type SavedTradeInterest,
@@ -98,6 +103,7 @@ interface TradeInterestsViewProps {
 /* -------------------------------------------------------------------------- */
 
 const INTERESTS_SCOPE_ID = "__interests__"
+const NO_SCOPE_ID = "__no_scope__"
 type ListingInterestFilter = "listing" | "global"
 type InterestSortMode = "newest" | "oldest" | "broad" | "narrow"
 
@@ -259,10 +265,12 @@ export function TradeInterestsView({
   const { interests, create, remove, applyToListing, unapplyFromListing } =
     useSavedTradeInterests()
 
-  const activeScopeId =
-    selectedItemId === "all" ? INTERESTS_SCOPE_ID : selectedItemId
+  const [activeScopeId, setActiveScopeId] = React.useState<string | null>(() =>
+    selectedItemId === "all" ? null : selectedItemId,
+  )
+  const hasActiveScope = activeScopeId !== null
   const isInterestLibrary = activeScopeId === INTERESTS_SCOPE_ID
-  const isIndividual = activeScopeId !== "all" && !isInterestLibrary
+  const isIndividual = hasActiveScope && !isInterestLibrary
   const selectedItem = isIndividual
     ? items.find((item) => item.id === activeScopeId) ?? null
     : null
@@ -286,7 +294,9 @@ export function TradeInterestsView({
     string | null
   >(null)
   const [listingInterestFilter, setListingInterestFilter] =
-    React.useState<ListingInterestFilter | null>(null)
+    React.useState<ListingInterestFilter | null>(() =>
+      selectedItemId === "all" ? null : "listing",
+    )
   const [allInterestFilter, setAllInterestFilter] =
     React.useState<ListingInterestFilter | null>(null)
   const [interestSortMode, setInterestSortMode] =
@@ -316,6 +326,7 @@ export function TradeInterestsView({
   }
 
   const handleSelectInterestLibrary = () => {
+    setActiveScopeId(INTERESTS_SCOPE_ID)
     onSelectItem("all")
     setExpandedId(null)
     setListingInterestFilter(null)
@@ -324,9 +335,10 @@ export function TradeInterestsView({
   }
 
   const handleSelectItem = (id: string) => {
+    setActiveScopeId(id)
     onSelectItem(id)
     setExpandedId(null)
-    setListingInterestFilter(null)
+    setListingInterestFilter("listing")
     setAllInterestFilter(null)
     setConfirmingRemovalId(null)
   }
@@ -408,16 +420,31 @@ export function TradeInterestsView({
   )
 
   const filteredListingInterests = React.useMemo(() => {
-    const list = listingInterestFilter
-      ? listingInterestGroups[listingInterestFilter]
-      : visibleListingInterests
-    return sortTradeInterests(list, interestSortMode, interests)
+    if (listingInterestFilter) {
+      return sortTradeInterests(
+        listingInterestGroups[listingInterestFilter],
+        interestSortMode,
+        interests,
+      )
+    }
+
+    return [
+      ...sortTradeInterests(
+        listingInterestGroups.listing,
+        interestSortMode,
+        interests,
+      ),
+      ...sortTradeInterests(
+        listingInterestGroups.global,
+        interestSortMode,
+        interests,
+      ),
+    ]
   }, [
     interestSortMode,
     interests,
     listingInterestFilter,
     listingInterestGroups,
-    visibleListingInterests,
   ])
 
   const visibleAllInterests = React.useMemo(() => {
@@ -547,7 +574,13 @@ export function TradeInterestsView({
         <span className="text-sm text-muted-foreground">For</span>
         <TradeItemSelector
           items={items}
-          selectedItemId={isInterestLibrary ? "all" : activeScopeId}
+          selectedItemId={
+            !hasActiveScope
+              ? NO_SCOPE_ID
+              : isInterestLibrary
+                ? "all"
+                : activeScopeId
+          }
           onSelect={(id) =>
             id === "all" ? handleSelectInterestLibrary() : handleSelectItem(id)
           }
@@ -573,7 +606,9 @@ export function TradeInterestsView({
 
         {/* Body ------------------------------------------------------------- */}
         <div className="min-w-0">
-          {interests.length === 0 ? (
+          {!hasActiveScope ? (
+            <UnselectedTradeInterestPanel />
+          ) : interests.length === 0 ? (
             <EmptyState
               onCreate={
                 isIndividual
@@ -738,7 +773,7 @@ function TradeInterestScopeRail({
 }: {
   items: TradeableItemSummary[]
   interests: SavedTradeInterest[]
-  activeScopeId: string
+  activeScopeId: string | null
   onSelectInterests: () => void
   onSelectItem: (id: string) => void
 }) {
@@ -776,7 +811,7 @@ function TradeInterestScopeRail({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-foreground">
-                All
+                All Interests
               </span>
               <span className="block truncate text-xs text-muted-foreground">
                 {interests.length} total · {globalCount} global{" "}
@@ -1012,7 +1047,7 @@ function InterestLibraryCard({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold leading-tight text-foreground">
-            All
+            All Interests
           </p>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
             Manage all of your saved trade interests
@@ -1284,7 +1319,6 @@ function AddExistingPicker({
                           : " · Not applied yet"}
                       </p>
                     </div>
-                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary opacity-0 transition-opacity group-hover/item:opacity-100" />
                   </button>
                 )
               })
@@ -1364,19 +1398,15 @@ function InterestRow({
   const isEditOpen = expanded && expandedMode === "edit"
   const isNewInterestDraft = isEditOpen && isEmptyInterestDraft(interest)
 
-  // Name is edited inline in the row header while the editor is open.
   // The parent remounts this row when edit mode opens so canceled drafts reset.
   const [draftName, setDraftName] = React.useState(interest.name)
+  const editorFormId = React.useId()
+  const [editorSaveDisabled, setEditorSaveDisabled] = React.useState(false)
 
   const nameInput = isEditOpen ? (
-    <input
-      type="text"
-      value={draftName}
-      onChange={(e) => setDraftName(e.target.value)}
-      placeholder="Name this trade interest"
-      autoFocus={false}
-      className="w-full rounded-md border border-border/40 bg-transparent px-2.5 py-1.5 text-sm font-semibold text-foreground placeholder:font-medium placeholder:text-muted-foreground/45 transition-colors group-hover/header:border-border/70 group-hover/header:bg-background/30 hover:border-border/70 hover:bg-background/30 focus:border-border/70 focus:bg-background/45 focus:outline-none focus:ring-1 focus:ring-border/60"
-    />
+    <div className="px-1 py-1.5 text-sm font-semibold text-foreground">
+      {isNewInterestDraft ? "Create trade interest" : "Edit trade interest"}
+    </div>
   ) : undefined
 
   const removalMessage = canRemoveOnlyFromCurrentListing
@@ -1396,18 +1426,37 @@ function InterestRow({
           appliedCount === 1 ? "listing" : "listings"
         }. Removing it will affect all of them.`
       : "Remove this interest?"
+  const removalTitle = canRemoveOnlyFromCurrentListing
+    ? "Where should this be removed?"
+    : hasMultipleAppliedListings
+      ? "Remove everywhere?"
+      : "Remove this interest?"
+  const removeEverywhereLabel = hasMultipleAppliedListings
+    ? "Remove everywhere"
+    : "Remove"
 
   const actions =
     isEditOpen && !confirming ? (
-      <button
-        type="button"
-        onClick={onCancelEdit}
-        aria-label="Cancel editing"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-      >
-        <X className="h-5 w-5" />
-      </button>
-    ) : expanded && !confirming && !isNewInterestDraft ? (
+      <>
+        <button
+          type="submit"
+          form={editorFormId}
+          disabled={editorSaveDisabled}
+          aria-label="Save interest"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+        >
+          <Check className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onCancelEdit}
+          aria-label="Cancel editing"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </>
+    ) : expanded && !isNewInterestDraft ? (
       <>
         <button
           type="button"
@@ -1423,57 +1472,72 @@ function InterestRow({
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>
-        <button
-          type="button"
-          onClick={onRequestRemove}
-          aria-label="Remove interest"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+        <Popover
+          open={confirming}
+          onOpenChange={(open) =>
+            open ? onRequestRemove() : onCancelRemove()
+          }
         >
-          <X className="h-4 w-4" />
-        </button>
-      </>
-    ) : null
-
-  const removalConfirmation =
-    expanded && confirming ? (
-      <div
-        className="rounded-lg border border-border/70 bg-background/50 px-3 py-3"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <p className="text-xs text-muted-foreground">{removalMessage}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {canRemoveOnlyFromCurrentListing ? (
-            <Button
+          <PopoverTrigger asChild>
+            <button
               type="button"
-              variant="quiet_outline"
-              size="sm"
-              onClick={onConfirmRemoveFromListing}
-              className="h-7 px-2.5"
+              aria-label="Remove interest"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive"
             >
-              Remove from this listing
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={onConfirmRemove}
-            className="h-7 px-2.5"
+              <X className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            className="w-72 p-3"
           >
-            <Trash2 className="mr-1 h-3 w-3" />
-            {hasMultipleAppliedListings ? "Remove everywhere" : "Remove"}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onCancelRemove}
-            className="h-7 px-2"
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {removalTitle}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {removalMessage}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {canRemoveOnlyFromCurrentListing ? (
+                  <Button
+                    type="button"
+                    variant="quiet_outline"
+                    size="sm"
+                    onClick={onConfirmRemoveFromListing}
+                    className="h-8 justify-start border-primary/40 bg-primary/5 px-2.5 text-foreground hover:border-primary/60 hover:bg-primary/10"
+                  >
+                    Remove from this listing
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="quiet_outline"
+                  size="sm"
+                  onClick={onConfirmRemove}
+                  className="h-8 justify-start border-destructive/35 px-2.5 text-destructive/90 hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {removeEverywhereLabel}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onCancelRemove}
+                  className="h-8 justify-start px-2.5 text-muted-foreground"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </>
     ) : null
 
   return (
@@ -1484,9 +1548,16 @@ function InterestRow({
       chips={chips}
       statusChip={statusChip}
       actions={actions}
-      confirmation={removalConfirmation}
       inlineEditor={isEditOpen ? (
-        <SavedInterestEditor interest={interest} name={draftName} onSaved={onSaved} onCancel={onCancelEdit} />
+        <SavedInterestEditor
+          interest={interest}
+          name={draftName}
+          onNameChange={setDraftName}
+          showNameFinalStep
+          formId={editorFormId}
+          onSaveDisabledChange={setEditorSaveDisabled}
+          onSaved={onSaved}
+        />
       ) : null}
       dimmed={dimmed}
       expanded={isDetailOpen}
@@ -1501,6 +1572,22 @@ function InterestRow({
 /* -------------------------------------------------------------------------- */
 /* Empty state                                                                */
 /* -------------------------------------------------------------------------- */
+
+function UnselectedTradeInterestPanel() {
+  return (
+    <div className="flex min-h-[28rem] items-center justify-center px-4 py-16 text-center sm:ml-6">
+      <div className="max-w-sm">
+        <p className="text-sm font-medium text-foreground">
+          Choose what you want to manage
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          Select All Interests to manage your saved trade interests, or select
+          a listing to manage the interests applied to that item.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (

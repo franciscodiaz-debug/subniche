@@ -173,6 +173,22 @@ function getTradeInterestCriteriaCount(interest: SavedTradeInterest): number {
   return savedInterestToChips(interest).length
 }
 
+function isEmptyInterestDraft(interest: SavedTradeInterest): boolean {
+  return (
+    interest.name.trim() === "" &&
+    interest.simpleText.trim() === "" &&
+    interest.category.trim() === "" &&
+    interest.subcategory.trim() === "" &&
+    interest.brand.trim() === "" &&
+    interest.model.trim() === "" &&
+    interest.condition.trim() === "" &&
+    interest.valueMin.trim() === "" &&
+    interest.valueMax.trim() === "" &&
+    interest.notes.trim() === "" &&
+    Object.values(interest.specs).every((value) => value.trim() === "")
+  )
+}
+
 function sortTradeInterests(
   list: SavedTradeInterest[],
   sortMode: InterestSortMode,
@@ -429,6 +445,14 @@ export function TradeInterestsView({
       ),
     [visibleListingInterests, selectedListingMatchCount],
   )
+  const expandedInterest = expandedId
+    ? interests.find((interest) => interest.id === expandedId)
+    : null
+  const isCreateFlowOpen = Boolean(
+    expandedInterest &&
+      expandedMode === "edit" &&
+      isEmptyInterestDraft(expandedInterest),
+  )
 
   const handleApplyExisting = (interestId: string) => {
     if (!selectedListingId) return
@@ -455,8 +479,12 @@ export function TradeInterestsView({
         interest.appliedTo.includes(selectedListingId) &&
         (isGlobalInterest(interest, items) || interest.appliedTo.length > 1),
     )
+    const isBlockedByCreateFlow = isCreateFlowOpen && expandedId !== interest.id
     return (
-      <li key={interest.id}>
+      <li
+        key={interest.id}
+        className={cn(isBlockedByCreateFlow && "pointer-events-none")}
+      >
         <InterestRow
           key={isEditOpen ? "edit" : "view"}
           interest={interest}
@@ -479,6 +507,7 @@ export function TradeInterestsView({
           }
           onSaved={() => setExpandedId(null)}
           onCancelEdit={() => setExpandedId(null)}
+          dimmed={isBlockedByCreateFlow}
         />
       </li>
     )
@@ -486,7 +515,12 @@ export function TradeInterestsView({
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-8 pt-3 md:px-8">
-      <div className="mb-4 flex items-start gap-3">
+      <div
+        className={cn(
+          "mb-4 flex items-start gap-3 transition-opacity duration-200",
+          isCreateFlowOpen && "pointer-events-none opacity-35",
+        )}
+      >
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -504,7 +538,12 @@ export function TradeInterestsView({
         </div>
       </div>
 
-      <div className="mb-5 flex w-full flex-wrap items-center gap-2 lg:hidden">
+      <div
+        className={cn(
+          "mb-5 flex w-full flex-wrap items-center gap-2 transition-opacity duration-200 lg:hidden",
+          isCreateFlowOpen && "pointer-events-none opacity-35",
+        )}
+      >
         <span className="text-sm text-muted-foreground">For</span>
         <TradeItemSelector
           items={items}
@@ -517,13 +556,20 @@ export function TradeInterestsView({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[288px_minmax(0,1fr)]">
-        <TradeInterestScopeRail
-          items={items}
-          interests={interests}
-          activeScopeId={activeScopeId}
-          onSelectInterests={handleSelectInterestLibrary}
-          onSelectItem={handleSelectItem}
-        />
+        <div
+          className={cn(
+            "transition-opacity duration-200",
+            isCreateFlowOpen && "pointer-events-none opacity-35",
+          )}
+        >
+          <TradeInterestScopeRail
+            items={items}
+            interests={interests}
+            activeScopeId={activeScopeId}
+            onSelectInterests={handleSelectInterestLibrary}
+            onSelectItem={handleSelectItem}
+          />
+        </div>
 
         {/* Body ------------------------------------------------------------- */}
         <div className="min-w-0">
@@ -542,37 +588,44 @@ export function TradeInterestsView({
                 empty="No interests here yet."
               >
                 <div className="sm:ml-6">
-                  <p className="mb-1.5 truncate px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Trade interests for your
-                  </p>
-                  <div className="flex">
-                    <SelectedTradeItemCard
-                      item={selectedItem}
-                      interestCount={buckets.itemSpecific.length}
-                      globalCount={buckets.global.length}
+                  <div
+                    className={cn(
+                      "transition-opacity duration-200",
+                      isCreateFlowOpen && "pointer-events-none opacity-35",
+                    )}
+                  >
+                    <p className="mb-1.5 truncate px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Trade interests for your
+                    </p>
+                    <div className="flex">
+                      <SelectedTradeItemCard
+                        item={selectedItem}
+                        interestCount={buckets.itemSpecific.length}
+                        globalCount={buckets.global.length}
+                      />
+                    </div>
+                    <ListingInterestToolbar
+                      activeFilter={listingInterestFilter}
+                      counts={{
+                        listing: listingInterestGroups.listing.length,
+                        global: listingInterestGroups.global.length,
+                      }}
+                      sortMode={interestSortMode}
+                      onSelectSort={setInterestSortMode}
+                      onSelectFilter={(filter) =>
+                        setListingInterestFilter((current) =>
+                          current === filter ? null : filter,
+                        )
+                      }
+                      addControl={
+                        <AddExistingPicker
+                          available={buckets.availableForItem}
+                          onApply={handleApplyExisting}
+                          onAddNew={handleNew}
+                        />
+                      }
                     />
                   </div>
-                  <ListingInterestToolbar
-                    activeFilter={listingInterestFilter}
-                    counts={{
-                      listing: listingInterestGroups.listing.length,
-                      global: listingInterestGroups.global.length,
-                    }}
-                    sortMode={interestSortMode}
-                    onSelectSort={setInterestSortMode}
-                    onSelectFilter={(filter) =>
-                      setListingInterestFilter((current) =>
-                        current === filter ? null : filter,
-                      )
-                    }
-                    addControl={
-                      <AddExistingPicker
-                        available={buckets.availableForItem}
-                        onApply={handleApplyExisting}
-                        onAddNew={handleNew}
-                      />
-                    }
-                  />
                   {filteredListingInterests.length > 0 ? (
                     <ul className="space-y-2">
                       {filteredListingInterests.map((interest) =>
@@ -603,38 +656,45 @@ export function TradeInterestsView({
                 empty="No saved interests yet."
               >
                 <div className="sm:ml-6">
-                  <span className="mb-1.5 block h-4 px-1" aria-hidden="true" />
-                  <div className="flex">
-                    <InterestLibraryCard
-                      interestCount={interests.length}
-                      globalCount={buckets.global.length}
-                      listingSpecificCount={buckets.partial.length}
+                  <div
+                    className={cn(
+                      "transition-opacity duration-200",
+                      isCreateFlowOpen && "pointer-events-none opacity-35",
+                    )}
+                  >
+                    <span className="mb-1.5 block h-4 px-1" aria-hidden="true" />
+                    <div className="flex">
+                      <InterestLibraryCard
+                        interestCount={interests.length}
+                        globalCount={buckets.global.length}
+                        listingSpecificCount={buckets.partial.length}
+                      />
+                    </div>
+                    <ListingInterestToolbar
+                      activeFilter={allInterestFilter}
+                      counts={{
+                        listing: buckets.partial.length,
+                        global: buckets.global.length,
+                      }}
+                      sortMode={interestSortMode}
+                      onSelectSort={setInterestSortMode}
+                      onSelectFilter={(filter) =>
+                        setAllInterestFilter((current) =>
+                          current === filter ? null : filter,
+                        )
+                      }
+                      addControl={
+                        <button
+                          type="button"
+                          onClick={handleNewTemplate}
+                          className="flex h-8 flex-shrink-0 items-center gap-2 rounded-lg border border-border bg-transparent px-3 py-1.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Add Interest
+                        </button>
+                      }
                     />
                   </div>
-                  <ListingInterestToolbar
-                    activeFilter={allInterestFilter}
-                    counts={{
-                      listing: buckets.partial.length,
-                      global: buckets.global.length,
-                    }}
-                    sortMode={interestSortMode}
-                    onSelectSort={setInterestSortMode}
-                    onSelectFilter={(filter) =>
-                      setAllInterestFilter((current) =>
-                        current === filter ? null : filter,
-                      )
-                    }
-                    addControl={
-                      <button
-                        type="button"
-                        onClick={handleNewTemplate}
-                        className="flex h-8 flex-shrink-0 items-center gap-2 rounded-lg border border-border bg-transparent px-3 py-1.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Add Interest
-                      </button>
-                    }
-                  />
                   {visibleAllInterests.length > 0 ? (
                     <ul className="space-y-2">
                       {visibleAllInterests.map((interest) =>
@@ -1302,6 +1362,7 @@ function InterestRow({
     .join(" · ")
   const isDetailOpen = expanded && expandedMode === "detail"
   const isEditOpen = expanded && expandedMode === "edit"
+  const isNewInterestDraft = isEditOpen && isEmptyInterestDraft(interest)
 
   // Name is edited inline in the row header while the editor is open.
   // The parent remounts this row when edit mode opens so canceled drafts reset.
@@ -1312,9 +1373,9 @@ function InterestRow({
       type="text"
       value={draftName}
       onChange={(e) => setDraftName(e.target.value)}
-      placeholder="Give this interest a name…"
+      placeholder="Name this trade interest"
       autoFocus={false}
-      className="w-full bg-transparent text-sm font-semibold text-foreground placeholder:font-normal placeholder:italic placeholder:text-muted-foreground/70 focus:outline-none border-b border-dashed border-border/60 focus:border-primary pb-px"
+      className="w-full rounded-md border border-border/40 bg-transparent px-2.5 py-1.5 text-sm font-semibold text-foreground placeholder:font-medium placeholder:text-muted-foreground/45 transition-colors group-hover/header:border-border/70 group-hover/header:bg-background/30 hover:border-border/70 hover:bg-background/30 focus:border-border/70 focus:bg-background/45 focus:outline-none focus:ring-1 focus:ring-border/60"
     />
   ) : undefined
 
@@ -1337,7 +1398,16 @@ function InterestRow({
       : "Remove this interest?"
 
   const actions =
-    expanded && !confirming ? (
+    isEditOpen && !confirming ? (
+      <button
+        type="button"
+        onClick={onCancelEdit}
+        aria-label="Cancel editing"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+      >
+        <X className="h-5 w-5" />
+      </button>
+    ) : expanded && !confirming && !isNewInterestDraft ? (
       <>
         <button
           type="button"

@@ -144,8 +144,8 @@ export function TradeInterestRow({
       {/* Compact row */}
       <div
         className={cn(
-          "flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20",
-          !nameInput && "cursor-pointer",
+          "group/header flex items-center gap-3 px-3 py-3 transition-colors",
+          !nameInput && "cursor-pointer hover:bg-secondary/20",
         )}
         onClick={!nameInput ? toggle : undefined}
       >
@@ -171,9 +171,9 @@ export function TradeInterestRow({
         <div className="min-w-0 flex-1">
           {nameInput ? (
             <div className="flex min-w-0 items-start gap-2">
-              <div className="min-w-0 flex-1">{nameInput}</div>
+              <div className="min-w-0 flex-1 md:w-72 md:flex-none">{nameInput}</div>
               {actions ? (
-                <div className="flex shrink-0 items-center gap-1.5">
+                <div className="ml-auto flex shrink-0 items-center gap-1.5">
                   {actions}
                 </div>
               ) : null}

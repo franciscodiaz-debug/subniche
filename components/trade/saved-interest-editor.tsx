@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { ChevronDown, Loader2, Plus, Sparkles, X } from "lucide-react"
+import { Check, ChevronDown, Loader2, Minus, Plus, Sparkles, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { getBrandsFor, getModelsFor } from "@/lib/trade-brands"
 import {
   getSpecsFor,
   SUBCATEGORIES_BY_CATEGORY,
@@ -23,6 +24,20 @@ const SIMPLE_SOFT_LIMIT = 140
 
 // Keys that are always available regardless of category
 const UNIVERSAL_KEYS = new Set(["value", "notes"])
+
+function splitChipValues(value: string): string[] {
+  return value.split(", ").map((item) => item.trim()).filter(Boolean)
+}
+
+function uniqueValues(values: string[]): string[] {
+  const seen = new Set<string>()
+  return values.filter((value) => {
+    const key = value.trim().toLowerCase()
+    if (!key || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 interface SavedInterestEditorProps {
   interest: SavedTradeInterest
@@ -52,13 +67,6 @@ export function SavedInterestEditor({
   const [activeCriteria, setActiveCriteria] = React.useState<Set<string>>(
     () => inferActiveCriteria(interest),
   )
-
-  React.useEffect(() => {
-    setDraft(interest)
-    setParsed(hasStructuredData(interest))
-    setActiveCriteria(inferActiveCriteria(interest))
-    setApplyOpen(false)
-  }, [interest])
 
   const patch = (p: Partial<SavedTradeInterest>) =>
     setDraft((prev) => ({ ...prev, ...p }))
@@ -155,19 +163,68 @@ export function SavedInterestEditor({
   const categorySelected = !!draft.category
 
   // Build the ordered menu of all optional criteria
-  const allCriteriaOptions = React.useMemo(() => [
+  const allCriteriaOptions = [
     ...(subcategories.length > 0 ? [{ key: "subcategory", label: "Subcategory", categoryRequired: true }] : []),
     { key: "brand",  label: "Brand",       categoryRequired: true  },
     { key: "model",  label: "Model",       categoryRequired: true  },
     ...specFields.map((f) => ({ key: f.key, label: f.label, categoryRequired: true })),
     { key: "value",  label: "Value range", categoryRequired: true },
     { key: "notes",  label: "Notes",       categoryRequired: true },
-  ], [subcategories, specFields])
+  ]
 
   const availableToAdd = allCriteriaOptions.filter(
     (c) => !activeCriteria.has(c.key) && (!c.categoryRequired || categorySelected),
   )
   const activeList = allCriteriaOptions.filter((c) => activeCriteria.has(c.key))
+  const brandValues = splitChipValues(draft.brand)
+  const modelValues = splitChipValues(draft.model)
+  const brandSuggestions = uniqueValues(
+    getBrandsFor(draft.category).map((brand) => brand.name),
+  )
+  const modelSuggestions = uniqueValues(
+    brandValues.length > 0
+      ? brandValues.flatMap((brand) => getModelsFor(draft.category, brand))
+      : getBrandsFor(draft.category).flatMap((brand) => brand.models),
+  )
+  const clearCategory = () => {
+    patch({ category: "", subcategory: "", brand: "", model: "", specs: {} })
+    clearSpecCriteria()
+  }
+  const valueForCriterion = (key: string) => {
+    if (key === "subcategory") return selectedSubs.join(", ")
+    if (key === "brand") return brandValues.join(", ")
+    if (key === "model") return modelValues.join(", ")
+    if (key === "value") {
+      const min = draft.valueMin.trim()
+      const max = draft.valueMax.trim()
+      if (min && max) return `$${min} - $${max}`
+      if (min) return `From $${min}`
+      if (max) return `Up to $${max}`
+      return ""
+    }
+    if (key === "notes") return draft.notes.trim()
+    return splitChipValues(draft.specs[key] ?? "").join(", ")
+  }
+  const selectedFilterChips = [
+    ...(draft.category
+      ? [
+          {
+            id: "category",
+            label: "Category",
+            value: draft.category,
+            onRemove: clearCategory,
+          },
+        ]
+      : []),
+    ...activeList
+      .map((criterion) => ({
+        id: criterion.key,
+        label: criterion.key === "value" ? "Budget" : criterion.label,
+        value: valueForCriterion(criterion.key),
+        onRemove: () => removeCriterion(criterion.key),
+      }))
+      .filter((chip) => chip.value.trim()),
+  ]
 
   const simpleLen = draft.simpleText.length
   const simpleOver = simpleLen > SIMPLE_SOFT_LIMIT
@@ -175,19 +232,22 @@ export function SavedInterestEditor({
   const saveDisabled = parseLoading || (draft.mode === "simple" && !parsed)
 
   return (
-    <div className="border-t border-border bg-background/40 px-4 py-3 space-y-3">
+    <div className="flex min-h-[24rem] flex-col gap-2.5 px-4 pb-4 pt-0">
 
       {/* Mode toggle -------------------------------------------------------- */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] text-muted-foreground">Set your trade criteria below</span>
-        <div role="tablist" className="inline-flex rounded-md border border-border bg-background p-0.5">
+      <div className="flex justify-start">
+        <div
+          role="tablist"
+          aria-label="Trade interest mode"
+          className="inline-flex rounded-full border border-border/60 bg-transparent p-0.5"
+        >
           {(["simple", "advanced"] as const).map((m) => {
             const active = draft.mode === m
             return (
               <button key={m} role="tab" aria-selected={active} type="button" onClick={() => setMode(m)}
                 className={cn(
-                  "h-6 rounded px-2 text-[11px] font-medium capitalize transition-colors",
-                  active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  "h-6 rounded-full px-2.5 text-[11px] font-medium capitalize transition-colors",
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground/70 hover:text-foreground",
                 )}>
                 {m}
               </button>
@@ -196,171 +256,221 @@ export function SavedInterestEditor({
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------- */}
-      {draft.mode === "simple" ? (
+      <div className="pl-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          {draft.mode === "advanced" ? "Trade Criteria" : "What are you open to trading for?"}
+        </p>
 
-        <div className="space-y-1.5">
-          <div className="relative">
-            <textarea
-              id={`saved-interest-simple-${draft.id}`}
-              value={draft.simpleText}
-              onChange={(e) => { patch({ simpleText: e.target.value }); if (parsed) setParsed(false) }}
-              disabled={parseLoading}
-              placeholder="e.g. Any flagship boutique reverb — Strymon BigSky, Eventide H9 Max, or similar."
-              rows={3}
-              className={cn(
-                "w-full bg-background rounded-lg border px-3 py-2 pr-10 text-sm resize-none",
-                "text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1",
-                simpleOver
-                  ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
-                  : "border-border focus:border-primary focus:ring-primary/30",
-                parseLoading && "opacity-60",
-              )}
-            />
-            <Button type="button" size="icon" variant="quiet" onClick={runParse}
-              disabled={parseLoading || !draft.simpleText.trim()}
-              aria-label="Structure with AI" className="absolute right-1.5 top-1.5 h-7 w-7">
-              {parseLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            </Button>
-          </div>
-          <div className="flex justify-between text-[11px] text-muted-foreground">
-            <span className={cn(simpleOver && "text-destructive")}>{simpleLen}/{SIMPLE_SOFT_LIMIT}</span>
-            <span>Tap sparkles to structure.</span>
-          </div>
-          {parseState.status === "empty" ? (
-            <p className="rounded border border-dashed border-border px-2.5 py-1.5 text-xs text-muted-foreground">{parseState.message}</p>
-          ) : null}
-          {parseState.status === "error" ? (
-            <div className="flex items-center gap-2 rounded border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
-              <span className="flex-1">{parseState.message}</span>
-              <button type="button" onClick={runParse} className="font-medium hover:underline">Retry</button>
+        {/* ------------------------------------------------------------------- */}
+        <div className="mt-2.5 min-h-[15rem]">
+        {draft.mode === "simple" ? (
+
+          <div className="space-y-2">
+            <div className="relative">
+              <textarea
+                id={`saved-interest-simple-${draft.id}`}
+                value={draft.simpleText}
+                onChange={(e) => { patch({ simpleText: e.target.value }); if (parsed) setParsed(false) }}
+                disabled={parseLoading}
+                placeholder="We'll create trade filters based on your description."
+                rows={4}
+                className={cn(
+                  "w-full resize-none rounded-lg border bg-background px-3 py-2.5 pb-11 pr-11 text-sm",
+                  "text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1",
+                  simpleOver
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-border focus:border-primary focus:ring-primary/30",
+                  parseLoading && "opacity-60",
+                )}
+              />
+              <Button type="button" size="icon" variant="quiet" onClick={runParse}
+                disabled={parseLoading || !draft.simpleText.trim()}
+                aria-label="Structure with AI"
+                className={cn(
+                  "absolute bottom-3 right-3 h-8 w-8 rounded-full border bg-secondary/80",
+                  draft.simpleText.trim() && !parseLoading
+                    ? "border-primary/70 text-primary hover:bg-primary/10"
+                    : "border-transparent",
+                )}>
+                {parseLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              </Button>
+              <p
+                className={cn(
+                  "pointer-events-none absolute bottom-3 left-3 right-14 truncate text-[11px] text-muted-foreground",
+                  simpleOver && "text-destructive",
+                )}
+              >
+                {simpleLen}/{SIMPLE_SOFT_LIMIT}
+              </p>
             </div>
-          ) : null}
-        </div>
+            {parseState.status === "empty" ? (
+              <p className="rounded border border-dashed border-border px-2.5 py-1.5 text-xs text-muted-foreground">{parseState.message}</p>
+            ) : null}
+            {parseState.status === "error" ? (
+              <div className="flex items-center gap-2 rounded border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
+                <span className="flex-1">{parseState.message}</span>
+                <button type="button" onClick={runParse} className="font-medium hover:underline">Retry</button>
+              </div>
+            ) : null}
+          </div>
 
       ) : (
 
         /* Advanced — opt-in chip-based ------------------------------------- */
         <div className="space-y-3">
 
-          {/* Category — always shown first; collapse to selected chip once chosen */}
-          <ChipRow label="Category">
-            {TRADE_CATEGORIES.filter((cat) => !draft.category || draft.category === cat).map((cat) => (
-              <Chip key={cat} label={cat} selected={draft.category === cat}
-                onClick={() => {
-                  patch(draft.category === cat
-                    ? { category: "", subcategory: "", brand: "", model: "", specs: {} }
-                    : { category: cat, subcategory: "", brand: "", model: "", specs: {} }
-                  )
-                  clearSpecCriteria()
-                }}
-              />
-            ))}
-          </ChipRow>
+          <div className="min-h-[7.25rem] space-y-3">
+            {/* Category — lightweight first step; choosing one unlocks narrower criteria. */}
+            {!draft.category ? (
+            <div className="flex flex-wrap gap-1.5">
+              {TRADE_CATEGORIES.map((cat) => (
+                <CategoryChoiceChip
+                  key={cat}
+                  label={cat}
+                  selected={false}
+                  onClick={() => {
+                    patch({ category: cat, subcategory: "", brand: "", model: "", specs: {} })
+                    clearSpecCriteria()
+                  }}
+                />
+              ))}
+            </div>
+            ) : null}
+
+            {selectedFilterChips.length > 0 ? (
+              <div className="flex max-w-full gap-1.5 overflow-x-auto pb-0.5">
+                {selectedFilterChips.map((chip) => (
+                  <SelectedFilterChip
+                    key={chip.id}
+                    label={chip.label}
+                    value={chip.value}
+                    onRemove={chip.onRemove}
+                  />
+                ))}
+              </div>
+            ) : null}
+
+            {/* Add-criteria chips — reserve two rows so the fields below don't jump. */}
+            {draft.category ? (
+              <div className="flex min-h-[4.25rem] content-start flex-wrap gap-2">
+                {availableToAdd.map((c) => (
+                  <AddCriteriaChip key={c.key} label={c.label} onAdd={() => activate(c.key)} />
+                ))}
+              </div>
+            ) : null}
+          </div>
 
           {/* Active criteria fields — populated first */}
-          {activeList.map((c) => (
-            <div key={c.key} className="group/criterion space-y-1">
-              <div className="flex items-center gap-1">
-                <p className="flex-1 text-[11px] font-medium text-muted-foreground">{c.label}</p>
-                <button type="button" onClick={() => removeCriterion(c.key)}
-                  aria-label={`Remove ${c.label}`}
-                  className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-foreground group-hover/criterion:opacity-100">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
+          {activeList.length > 0 ? (
+            <div className="space-y-3 border-t border-border/60 pt-3">
+              {activeList.map((c) => (
+                <div key={c.key} className="group/criterion space-y-1.5">
+                  <div className="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => removeCriterion(c.key)}
+                      aria-label={`Remove ${c.label}`}
+                      className="rounded-sm text-muted-foreground/70 transition-colors hover:text-foreground"
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <p className="text-xs font-medium text-foreground">{c.label}</p>
+                  </div>
 
-              {c.key === "subcategory" ? (
-                <div className="flex flex-wrap gap-1">
-                  {subcategories.map((sub) => (
-                    <Chip key={sub} label={sub} selected={selectedSubs.includes(sub)}
-                      onClick={() => {
-                        const next = selectedSubs.includes(sub)
-                          ? selectedSubs.filter((s) => s !== sub)
-                          : [...selectedSubs, sub]
-                        if (next.length === 0) {
-                          removeCriterion("subcategory")
-                        } else {
-                          patch({ subcategory: next.join(", "), specs: {} })
-                          clearOnlySpecKeys()
-                        }
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : c.key === "brand" ? (
-                <div className="max-w-[240px]">
-                  <TagInput
-                    values={draft.brand ? draft.brand.split(", ").filter(Boolean) : []}
-                    onChange={(vals) => patch({ brand: vals.join(", ") })}
-                    placeholder="e.g. Gibson, Fender — Enter to add"
-                  />
-                </div>
-              ) : c.key === "model" ? (
-                <div className="max-w-[240px]">
-                  <TagInput
-                    values={draft.model ? draft.model.split(", ").filter(Boolean) : []}
-                    onChange={(vals) => patch({ model: vals.join(", ") })}
-                    placeholder="e.g. Les Paul, Strat…"
-                  />
-                </div>
-              ) : c.key === "value" ? (
-                <div className="flex items-center gap-1.5">
-                  <input type="text" inputMode="decimal" value={draft.valueMin}
-                    onChange={(e) => patch({ valueMin: e.target.value })} placeholder="Min $"
-                    className="w-20 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30" />
-                  <span className="text-xs text-muted-foreground">–</span>
-                  <input type="text" inputMode="decimal" value={draft.valueMax}
-                    onChange={(e) => patch({ valueMax: e.target.value })} placeholder="Max $"
-                    className="w-20 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30" />
-                </div>
-              ) : c.key === "notes" ? (
-                <textarea value={draft.notes} onChange={(e) => patch({ notes: e.target.value })}
-                  placeholder="Preferred year range, finish, etc." rows={2}
-                  className="w-[200px] resize-none rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30" />
-              ) : (
-                // Spec field — multi-select chips
-                <div className="flex flex-wrap gap-1">
-                  {specFields.find((f) => f.key === c.key)?.options.map((opt) => {
-                    const sel = (draft.specs[c.key] || "").split(", ").filter(Boolean)
-                    return (
-                      <Chip key={opt} label={opt} selected={sel.includes(opt)}
-                        onClick={() => {
-                          const next = sel.includes(opt) ? sel.filter((v) => v !== opt) : [...sel, opt]
-                          patch({ specs: { ...draft.specs, [c.key]: next.join(", ") } })
-                        }}
+                  {c.key === "subcategory" ? (
+                    <div className="ml-5 flex flex-wrap gap-1.5">
+                      {subcategories.filter((sub) => !selectedSubs.includes(sub)).map((sub) => (
+                        <Chip key={sub} label={sub} selected={selectedSubs.includes(sub)}
+                          onClick={() => {
+                            const next = selectedSubs.includes(sub)
+                              ? selectedSubs.filter((s) => s !== sub)
+                              : [...selectedSubs, sub]
+                            if (next.length === 0) {
+                              patch({ subcategory: "", specs: {} })
+                              clearOnlySpecKeys()
+                            } else {
+                              patch({ subcategory: next.join(", "), specs: {} })
+                              clearOnlySpecKeys()
+                            }
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : c.key === "brand" ? (
+                    <div className="ml-5 max-w-[240px]">
+                      <TagInput
+                        values={draft.brand ? draft.brand.split(", ").filter(Boolean) : []}
+                        onChange={(vals) => patch({ brand: vals.join(", ") })}
+                        placeholder="Type a brand"
+                        suggestions={brandSuggestions}
+                        attributeLabel="Brand"
                       />
-                    )
-                  })}
+                    </div>
+                  ) : c.key === "model" ? (
+                    <div className="ml-5 max-w-[240px]">
+                      <TagInput
+                        values={draft.model ? draft.model.split(", ").filter(Boolean) : []}
+                        onChange={(vals) => patch({ model: vals.join(", ") })}
+                        placeholder="Type a model"
+                        suggestions={modelSuggestions}
+                        attributeLabel="Model"
+                      />
+                    </div>
+                  ) : c.key === "value" ? (
+                    <div className="ml-5 flex items-center gap-2">
+                      <input type="text" inputMode="decimal" value={draft.valueMin}
+                        onChange={(e) => patch({ valueMin: e.target.value })} placeholder="Min $"
+                        className="w-24 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                      <span className="text-xs text-muted-foreground">–</span>
+                      <input type="text" inputMode="decimal" value={draft.valueMax}
+                        onChange={(e) => patch({ valueMax: e.target.value })} placeholder="Max $"
+                        className="w-24 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                    </div>
+                  ) : c.key === "notes" ? (
+                    <textarea value={draft.notes} onChange={(e) => patch({ notes: e.target.value })}
+                      placeholder="Preferred year range, finish, etc." rows={2}
+                      className="ml-5 w-[240px] resize-none rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                  ) : (
+                    // Spec field — multi-select chips
+                    <div className="ml-5 flex flex-wrap gap-1.5">
+                      {specFields.find((f) => f.key === c.key)?.options.map((opt) => {
+                        const sel = (draft.specs[c.key] || "").split(", ").filter(Boolean)
+                        return (
+                          <Chip key={opt} label={opt} selected={sel.includes(opt)}
+                            onClick={() => {
+                              const next = sel.includes(opt) ? sel.filter((v) => v !== opt) : [...sel, opt]
+                              patch({ specs: { ...draft.specs, [c.key]: next.join(", ") } })
+                            }}
+                          />
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
-
-          {/* Add-criteria chips — always at the bottom */}
-          {availableToAdd.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {availableToAdd.map((c) => (
-                <AddCriteriaChip key={c.key} label={c.label} onAdd={() => activate(c.key)} />
               ))}
             </div>
           ) : null}
 
         </div>
       )}
-
-      {/* Apply to ---------------------------------------------------------- */}
-      <ApplyToSection
-        interest={draft} open={applyOpen}
-        onToggle={() => setApplyOpen((v) => !v)}
-        onApply={(id) => applyToListing(draft.id, id)}
-        onUnapply={(id) => unapplyFromListing(draft.id, id)}
-      />
+        </div>
+      </div>
 
       {/* CTAs -------------------------------------------------------------- */}
-      <div className="flex items-center justify-end gap-2 border-t border-border pt-3">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="h-8 text-xs">Cancel</Button>
-        <Button type="button" size="sm" onClick={handleSave} disabled={saveDisabled} className="h-8 text-xs">Save</Button>
+      <div className="mt-auto border-t border-border pt-3">
+        <div className="flex items-center justify-between gap-3">
+          <ApplyToSection
+            interest={draft} open={applyOpen}
+            onToggle={() => setApplyOpen((v) => !v)}
+            onApply={(id) => applyToListing(draft.id, id)}
+            onUnapply={(id) => unapplyFromListing(draft.id, id)}
+          />
+          <div className="flex shrink-0 items-center justify-end gap-2">
+            <Button type="button" size="icon" onClick={handleSave} disabled={saveDisabled} aria-label="Save" className="h-8 w-8">
+              <Check className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -375,11 +485,67 @@ function AddCriteriaChip({ label, onAdd }: { label: string; onAdd: () => void })
     <button
       type="button"
       onClick={onAdd}
-      className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/70 hover:text-foreground"
+      className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border/80 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground"
     >
-      <Plus className="h-3 w-3" />
+      <Plus className="h-3.5 w-3.5" />
       {label}
     </button>
+  )
+}
+
+function CategoryChoiceChip({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string
+  selected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+        selected
+          ? "border-border/70 bg-secondary/35 text-foreground"
+          : "border-dashed border-border/80 bg-transparent text-muted-foreground hover:border-primary/60 hover:text-foreground",
+      )}
+    >
+      {selected ? (
+        <X className="h-3.5 w-3.5" aria-hidden="true" />
+      ) : (
+        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+      )}
+      {label}
+    </button>
+  )
+}
+
+function SelectedFilterChip({
+  label,
+  value,
+  onRemove,
+}: {
+  label: string
+  value: string
+  onRemove: () => void
+}) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/60 bg-primary/5 px-2.5 py-1 text-xs font-medium">
+      {label ? <span className="text-muted-foreground">{label}:</span> : null}
+      <span className="text-foreground">{value}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={label ? `Remove ${label} ${value}` : `Remove ${value}`}
+        className="-mr-0.5 rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </span>
   )
 }
 
@@ -387,13 +553,18 @@ function Chip({ label, selected, onClick, dimmed }: { label: string; selected: b
   return (
     <button type="button" onClick={onClick}
       className={cn(
-        "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all",
         selected
-          ? "border border-primary bg-primary/10 text-foreground font-semibold"
+          ? "border border-foreground/70 bg-secondary/35 text-foreground hover:border-destructive/50 hover:bg-destructive/10 hover:text-foreground"
           : dimmed
-          ? "border border-border bg-card text-muted-foreground/30 hover:text-muted-foreground"
-          : "border border-border bg-card text-foreground hover:bg-secondary",
+          ? "border border-dashed border-border/70 bg-transparent text-muted-foreground/30 hover:text-muted-foreground"
+          : "border border-dashed border-border/80 bg-transparent text-muted-foreground hover:border-primary/60 hover:text-foreground",
       )}>
+      {selected ? (
+        <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+      ) : (
+        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+      )}
       {label}
     </button>
   )
@@ -412,48 +583,110 @@ function TagInput({
   values,
   onChange,
   placeholder,
+  suggestions = [],
+  attributeLabel = "value",
 }: {
   values: string[]
   onChange: (vals: string[]) => void
   placeholder?: string
+  suggestions?: string[]
+  attributeLabel?: string
 }) {
   const [inputVal, setInputVal] = React.useState("")
+  const [suggestionsOpen, setSuggestionsOpen] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
+  const trimmedInput = inputVal.trim()
+  const normalizedValues = values.map((value) => value.toLowerCase())
+  const availableSuggestions = suggestions.filter(
+    (suggestion) => !normalizedValues.includes(suggestion.toLowerCase()),
+  )
+  const filteredSuggestions = availableSuggestions
+    .filter((suggestion) =>
+      suggestion.toLowerCase().includes(trimmedInput.toLowerCase()),
+    )
+    .slice(0, 6)
+  const exactSuggestion = availableSuggestions.find(
+    (suggestion) => suggestion.toLowerCase() === trimmedInput.toLowerCase(),
+  )
+  const showSuggestions = suggestionsOpen && (filteredSuggestions.length > 0 || Boolean(trimmedInput))
+  const showCustomOption = Boolean(
+    trimmedInput &&
+      !exactSuggestion &&
+      !normalizedValues.includes(trimmedInput.toLowerCase()),
+  )
 
   const add = (raw: string) => {
     const trimmed = raw.trim()
-    if (!trimmed || values.includes(trimmed)) { setInputVal(""); return }
-    onChange([...values, trimmed])
+    if (!trimmed) { setInputVal(""); return }
+    const canonical =
+      suggestions.find((suggestion) => suggestion.toLowerCase() === trimmed.toLowerCase()) ?? trimmed
+    if (normalizedValues.includes(canonical.toLowerCase())) { setInputVal(""); return }
+    onChange([...values, canonical])
     setInputVal("")
+    setSuggestionsOpen(false)
   }
 
-  const remove = (val: string) => onChange(values.filter((v) => v !== val))
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(inputVal) }
-    else if (e.key === "Backspace" && !inputVal && values.length > 0) remove(values[values.length - 1])
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault()
+      add(filteredSuggestions[0] ?? inputVal)
+    }
+    else if (e.key === "Escape") setSuggestionsOpen(false)
   }
 
   return (
-    <div
-      onClick={() => inputRef.current?.focus()}
-      className="flex min-h-[30px] cursor-text flex-wrap items-center gap-1 rounded-md border border-border bg-card px-2 py-1"
-    >
-      {values.map((v) => (
-        <span key={v}
-          className="inline-flex items-center gap-1 rounded border border-primary bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-foreground">
-          {v}
-          <button type="button" onClick={(e) => { e.stopPropagation(); remove(v) }}
-            className="leading-none text-muted-foreground hover:text-foreground">×</button>
-        </span>
-      ))}
-      <input ref={inputRef} type="text" value={inputVal}
-        onChange={(e) => setInputVal(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={() => { if (inputVal.trim()) add(inputVal) }}
-        placeholder={values.length === 0 ? placeholder : undefined}
-        className="min-w-[80px] flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
-      />
+    <div className="relative">
+      <div
+        onClick={() => inputRef.current?.focus()}
+        className="flex min-h-8 cursor-text flex-wrap items-center gap-1 rounded-md border border-border bg-card px-2 py-1.5"
+      >
+        <input ref={inputRef} type="text" value={inputVal}
+          onChange={(e) => {
+            setInputVal(e.target.value)
+            setSuggestionsOpen(true)
+          }}
+          onFocus={() => setSuggestionsOpen(true)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => setSuggestionsOpen(false)}
+          placeholder={values.length === 0 ? placeholder : `Add another ${attributeLabel.toLowerCase()}`}
+          className="min-w-[90px] flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+        />
+      </div>
+
+      {showSuggestions ? (
+        <div className="absolute left-0 top-full z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover shadow-lg">
+          {filteredSuggestions.length > 0 ? (
+            <div className="py-1">
+              {filteredSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onMouseDown={(event) => {
+                    event.preventDefault()
+                    add(suggestion)
+                  }}
+                  className="flex w-full items-center px-2.5 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {showCustomOption ? (
+            <button
+              type="button"
+              onMouseDown={(event) => {
+                event.preventDefault()
+                add(inputVal)
+              }}
+              className="flex w-full items-center gap-1.5 border-t border-border px-2.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Plus className="h-3 w-3" />
+              Add &ldquo;{trimmedInput}&rdquo; to the {attributeLabel.toLowerCase()} database
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -479,7 +712,7 @@ function ApplyToSection({
   return (
     <div>
       <button type="button" onClick={onToggle}
-        className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+        className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
         Applied to {count} of {total} {total === 1 ? "listing" : "listings"}
         <ChevronDown className={cn("h-3 w-3 transition-transform", open && "rotate-180")} />
       </button>

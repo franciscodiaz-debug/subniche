@@ -11,13 +11,13 @@
  *
  *   1. ALL  (selectedItemId === "all")
  *      Shows every saved trade interest. Row chips explain whether each
- *      interest is global, listing-specific, shared, or not applied yet.
+ *      interest is global, listing-specific, or not applied yet.
  *
  *   2. INDIVIDUAL ITEM  (selectedItemId === "my-1" etc.)
  *      The whole surface is reframed around that single item, since the user
  *      arrived here from "For <item>" upstream.
- *      Listing-specific, shared, and global interests that apply to that item
- *      are shown together, with global interests using a softer treatment.
+ *      Listing-specific and global interests that apply to that item are shown
+ *      together, with global interests using a softer treatment.
  *      Add Interest lets the user either author from scratch or reuse an
  *      existing saved interest without retyping.
  *
@@ -43,6 +43,7 @@ import * as React from "react"
 import Image from "next/image"
 import {
   ArrowLeft,
+  ArrowUpDown,
   Check,
   ChevronDown,
   ChevronRight,
@@ -55,6 +56,12 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   summarizeSavedInterest,
   useSavedTradeInterests,
@@ -91,6 +98,18 @@ interface TradeInterestsViewProps {
 /* -------------------------------------------------------------------------- */
 
 const INTERESTS_SCOPE_ID = "__interests__"
+type ListingInterestFilter = "listing" | "global"
+type InterestSortMode = "newest" | "oldest" | "broad" | "narrow"
+
+const INTEREST_SORT_OPTIONS: Array<{
+  id: InterestSortMode
+  label: string
+}> = [
+  { id: "newest", label: "Newest first" },
+  { id: "oldest", label: "Oldest first" },
+  { id: "broad", label: "Broad to specific" },
+  { id: "narrow", label: "Specific to broad" },
+]
 
 /**
  * Interest is "global" when its `appliedTo` covers every tradeable item.
@@ -113,7 +132,7 @@ function getInterestApplicationStatus(
   items: TradeableItemSummary[],
 ) {
   if (isGlobalInterest(interest, items)) {
-    return "Global - Applied to all listings"
+    return "Global"
   }
 
   const appliedItems = interest.appliedTo
@@ -121,11 +140,11 @@ function getInterestApplicationStatus(
     .filter((item): item is TradeableItemSummary => Boolean(item))
 
   if (appliedItems.length === 1) {
-    return `Applied to ${appliedItems[0].title}`
+    return "Listing-specific"
   }
 
   if (appliedItems.length > 1) {
-    return `Shared - Applied to ${appliedItems.length} listings`
+    return `Listing-specific (${appliedItems.length})`
   }
 
   return "Not applied yet"
@@ -136,14 +155,48 @@ function getListingInterestStatus(
   items: TradeableItemSummary[],
 ) {
   if (isGlobalInterest(interest, items)) {
-    return "Global - Applied to all listings"
+    return "Global"
   }
 
-  if (interest.appliedTo.length > 1) {
-    return `Shared - Applied to ${interest.appliedTo.length} listings`
+  const appliedCount = interest.appliedTo.filter((id) =>
+    items.some((item) => item.id === id),
+  ).length
+
+  if (appliedCount > 1) {
+    return `Listing-specific (${appliedCount})`
   }
 
-  return "Applied to this listing"
+  return "Listing-specific"
+}
+
+function getTradeInterestCriteriaCount(interest: SavedTradeInterest): number {
+  return savedInterestToChips(interest).length
+}
+
+function sortTradeInterests(
+  list: SavedTradeInterest[],
+  sortMode: InterestSortMode,
+  orderedInterests: SavedTradeInterest[],
+): SavedTradeInterest[] {
+  const order = new Map(
+    orderedInterests.map((interest, index) => [interest.id, index]),
+  )
+  const orderFor = (interest: SavedTradeInterest) =>
+    order.get(interest.id) ?? Number.MAX_SAFE_INTEGER
+  const newestFirst = (a: SavedTradeInterest, b: SavedTradeInterest) =>
+    orderFor(a) - orderFor(b)
+
+  return [...list].sort((a, b) => {
+    if (sortMode === "oldest") return orderFor(b) - orderFor(a)
+
+    if (sortMode === "broad" || sortMode === "narrow") {
+      const diff =
+        getTradeInterestCriteriaCount(a) - getTradeInterestCriteriaCount(b)
+      if (diff !== 0) return sortMode === "broad" ? diff : -diff
+    }
+
+    return newestFirst(a, b)
+  })
 }
 
 function allocateListingInterestMatches(
@@ -187,7 +240,7 @@ export function TradeInterestsView({
   selectedItemId,
   onSelectItem,
 }: TradeInterestsViewProps) {
-  const { interests, create, remove, applyToListing } =
+  const { interests, create, remove, applyToListing, unapplyFromListing } =
     useSavedTradeInterests()
 
   const activeScopeId =
@@ -197,6 +250,8 @@ export function TradeInterestsView({
   const selectedItem = isIndividual
     ? items.find((item) => item.id === activeScopeId) ?? null
     : null
+  const selectedListingId = isIndividual ? activeScopeId : null
+  const selectedListingMatchCount = selectedItem?.matchCount ?? 0
 
   /* Expansion model — at most one row is open at a time, in one of two modes:
    *   - "detail": lightweight pill-chip summary of the saved criteria.
@@ -214,16 +269,25 @@ export function TradeInterestsView({
   const [confirmingRemovalId, setConfirmingRemovalId] = React.useState<
     string | null
   >(null)
+  const [listingInterestFilter, setListingInterestFilter] =
+    React.useState<ListingInterestFilter | null>(null)
+  const [allInterestFilter, setAllInterestFilter] =
+    React.useState<ListingInterestFilter | null>(null)
+  const [interestSortMode, setInterestSortMode] =
+    React.useState<InterestSortMode>("newest")
 
   /* Listing-specific creation entry point. In individual mode the new
    * interest is pre-bound to the focused item so it lands in the right
    * listing without an extra apply step. */
   const handleNew = () => {
     const seed: Partial<Omit<SavedTradeInterest, "id">> | undefined =
-      isIndividual && selectedItem ? { appliedTo: [selectedItem.id] } : undefined
+      isIndividual && selectedListingId
+        ? { appliedTo: [selectedListingId] }
+        : undefined
     const created = create(seed)
     setExpandedId(created.id)
     setExpandedMode("edit")
+    if (isIndividual && selectedListingId) setListingInterestFilter("listing")
     setConfirmingRemovalId(null)
   }
 
@@ -231,18 +295,23 @@ export function TradeInterestsView({
     const created = create({ appliedTo: [] })
     setExpandedId(created.id)
     setExpandedMode("edit")
+    setAllInterestFilter(null)
     setConfirmingRemovalId(null)
   }
 
   const handleSelectInterestLibrary = () => {
     onSelectItem("all")
     setExpandedId(null)
+    setListingInterestFilter(null)
+    setAllInterestFilter(null)
     setConfirmingRemovalId(null)
   }
 
   const handleSelectItem = (id: string) => {
     onSelectItem(id)
     setExpandedId(null)
+    setListingInterestFilter(null)
+    setAllInterestFilter(null)
     setConfirmingRemovalId(null)
   }
 
@@ -270,6 +339,13 @@ export function TradeInterestsView({
     if (confirmingRemovalId === id) setConfirmingRemovalId(null)
   }
 
+  const handleRemoveFromSelectedListing = (id: string) => {
+    if (!selectedListingId) return
+    unapplyFromListing(id, selectedListingId)
+    if (expandedId === id) setExpandedId(null)
+    if (confirmingRemovalId === id) setConfirmingRemovalId(null)
+  }
+
   /* Memoize bucketing — interests rebucket only when the underlying list or
    * the selected-item context changes, not on every expansion toggle. */
   const buckets = React.useMemo(() => {
@@ -291,8 +367,8 @@ export function TradeInterestsView({
         partial.push(interest)
       }
 
-      if (isIndividual && selectedItem) {
-        if (interest.appliedTo.includes(selectedItem.id)) {
+      if (isIndividual && selectedListingId) {
+        if (interest.appliedTo.includes(selectedListingId)) {
           itemSpecific.push(interest)
         } else {
           /* Anything not global and not already applied to the current item
@@ -303,29 +379,65 @@ export function TradeInterestsView({
     }
 
     return { global, partial, templates, itemSpecific, availableForItem }
-  }, [interests, items, isIndividual, selectedItem])
+  }, [interests, items, isIndividual, selectedListingId])
 
   const visibleListingInterests = React.useMemo(
     () => [...buckets.itemSpecific, ...buckets.global],
     [buckets.itemSpecific, buckets.global],
   )
 
+  const listingInterestGroups = React.useMemo(
+    () => ({ listing: buckets.itemSpecific, global: buckets.global }),
+    [buckets.itemSpecific, buckets.global],
+  )
+
+  const filteredListingInterests = React.useMemo(() => {
+    const list = listingInterestFilter
+      ? listingInterestGroups[listingInterestFilter]
+      : visibleListingInterests
+    return sortTradeInterests(list, interestSortMode, interests)
+  }, [
+    interestSortMode,
+    interests,
+    listingInterestFilter,
+    listingInterestGroups,
+    visibleListingInterests,
+  ])
+
+  const visibleAllInterests = React.useMemo(() => {
+    const list =
+      allInterestFilter === "global"
+        ? buckets.global
+        : allInterestFilter === "listing"
+          ? buckets.partial
+          : [...buckets.global, ...buckets.partial, ...buckets.templates]
+    return sortTradeInterests(list, interestSortMode, interests)
+  }, [
+    allInterestFilter,
+    buckets.global,
+    buckets.partial,
+    buckets.templates,
+    interestSortMode,
+    interests,
+  ])
+
   const listingInterestMatchCounts = React.useMemo(
     () =>
       allocateListingInterestMatches(
         visibleListingInterests,
-        selectedItem?.matchCount ?? 0,
+        selectedListingMatchCount,
       ),
-    [visibleListingInterests, selectedItem?.matchCount],
+    [visibleListingInterests, selectedListingMatchCount],
   )
 
   const handleApplyExisting = (interestId: string) => {
-    if (!selectedItem) return
-    applyToListing(interestId, selectedItem.id)
+    if (!selectedListingId) return
+    applyToListing(interestId, selectedListingId)
     /* Snap focus to the row the user just adopted so they can immediately
      * tweak its criteria for this item if they want to. */
     setExpandedId(interestId)
     setExpandedMode("edit")
+    setListingInterestFilter(null)
     setConfirmingRemovalId(null)
   }
 
@@ -337,6 +449,12 @@ export function TradeInterestsView({
   ) => {
     const isExpanded = expandedId === interest.id
     const isEditOpen = isExpanded && expandedMode === "edit"
+    const canRemoveFromCurrentListing = Boolean(
+      isIndividual &&
+        selectedListingId &&
+        interest.appliedTo.includes(selectedListingId) &&
+        (isGlobalInterest(interest, items) || interest.appliedTo.length > 1),
+    )
     return (
       <li key={interest.id}>
         <InterestRow
@@ -354,6 +472,11 @@ export function TradeInterestsView({
           onRequestRemove={() => setConfirmingRemovalId(interest.id)}
           onCancelRemove={() => setConfirmingRemovalId(null)}
           onConfirmRemove={() => handleRemove(interest.id)}
+          onConfirmRemoveFromListing={
+            canRemoveFromCurrentListing
+              ? () => handleRemoveFromSelectedListing(interest.id)
+              : undefined
+          }
           onSaved={() => setExpandedId(null)}
           onCancelEdit={() => setExpandedId(null)}
         />
@@ -422,32 +545,37 @@ export function TradeInterestsView({
                   <p className="mb-1.5 truncate px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     Trade interests for your
                   </p>
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex">
                     <SelectedTradeItemCard
                       item={selectedItem}
                       interestCount={buckets.itemSpecific.length}
                       globalCount={buckets.global.length}
                     />
-                    <div className="flex-shrink-0">
+                  </div>
+                  <ListingInterestToolbar
+                    activeFilter={listingInterestFilter}
+                    counts={{
+                      listing: listingInterestGroups.listing.length,
+                      global: listingInterestGroups.global.length,
+                    }}
+                    sortMode={interestSortMode}
+                    onSelectSort={setInterestSortMode}
+                    onSelectFilter={(filter) =>
+                      setListingInterestFilter((current) =>
+                        current === filter ? null : filter,
+                      )
+                    }
+                    addControl={
                       <AddExistingPicker
                         available={buckets.availableForItem}
                         onApply={handleApplyExisting}
                         onAddNew={handleNew}
                       />
-                    </div>
-                  </div>
-                  <div className="my-4 h-px max-w-md bg-border/70" />
-                  {visibleListingInterests.length > 0 ? (
+                    }
+                  />
+                  {filteredListingInterests.length > 0 ? (
                     <ul className="space-y-2">
-                      {buckets.itemSpecific.map((interest) =>
-                        renderRow(interest, {
-                          statusChip: getListingInterestStatus(
-                            interest,
-                            items,
-                          ),
-                        }),
-                      )}
-                      {buckets.global.map((interest) =>
+                      {filteredListingInterests.map((interest) =>
                         renderRow(interest, {
                           statusChip: getListingInterestStatus(
                             interest,
@@ -476,27 +604,40 @@ export function TradeInterestsView({
               >
                 <div className="sm:ml-6">
                   <span className="mb-1.5 block h-4 px-1" aria-hidden="true" />
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex">
                     <InterestLibraryCard
                       interestCount={interests.length}
                       globalCount={buckets.global.length}
                       listingSpecificCount={buckets.partial.length}
                     />
-                    <Button
-                      type="button"
-                      variant="quiet_outline"
-                      size="sm"
-                      onClick={handleNewTemplate}
-                      className="h-8 min-w-[9.75rem] flex-shrink-0"
-                    >
-                      <Plus className="mr-1 h-3.5 w-3.5" />
-                      Add Interest
-                    </Button>
                   </div>
-                  <div className="my-4 h-px max-w-md bg-border/70" />
-                  {interests.length > 0 ? (
+                  <ListingInterestToolbar
+                    activeFilter={allInterestFilter}
+                    counts={{
+                      listing: buckets.partial.length,
+                      global: buckets.global.length,
+                    }}
+                    sortMode={interestSortMode}
+                    onSelectSort={setInterestSortMode}
+                    onSelectFilter={(filter) =>
+                      setAllInterestFilter((current) =>
+                        current === filter ? null : filter,
+                      )
+                    }
+                    addControl={
+                      <button
+                        type="button"
+                        onClick={handleNewTemplate}
+                        className="flex h-8 flex-shrink-0 items-center gap-2 rounded-lg border border-border bg-transparent px-3 py-1.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add Interest
+                      </button>
+                    }
+                  />
+                  {visibleAllInterests.length > 0 ? (
                     <ul className="space-y-2">
-                      {buckets.global.map((interest) =>
+                      {visibleAllInterests.map((interest) =>
                         renderRow(interest, {
                           statusChip: getInterestApplicationStatus(
                             interest,
@@ -504,14 +645,6 @@ export function TradeInterestsView({
                           ),
                           rowClassName:
                             "border-border/70 bg-card/45 hover:border-border",
-                        }),
-                      )}
-                      {[...buckets.partial, ...buckets.templates].map((interest) =>
-                        renderRow(interest, {
-                          statusChip: getInterestApplicationStatus(
-                            interest,
-                            items,
-                          ),
                         }),
                       )}
                     </ul>
@@ -578,7 +711,7 @@ function TradeInterestScopeRail({
                 : "border-transparent bg-transparent hover:border-border hover:bg-card",
             )}
           >
-            <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+            <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border/50 bg-card/60 text-muted-foreground/80">
               <Pencil className="h-4 w-4" />
             </span>
             <span className="min-w-0 flex-1">
@@ -667,19 +800,19 @@ function SelectedTradeItemCard({
       : null
 
   return (
-    <div className="w-full max-w-md">
-      <div className="flex items-center gap-3 px-1 py-1">
-        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-border/50 bg-secondary">
+    <div className="w-full max-w-lg">
+      <div className="flex items-center gap-4 px-1 py-1.5">
+        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/50 bg-secondary sm:h-28 sm:w-28">
           <Image
             src={item.image || "/placeholder.svg"}
             alt={item.title}
-            width={64}
-            height={64}
+            width={160}
+            height={128}
             className="h-full w-full object-cover"
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+          <p className="truncate text-base font-semibold leading-tight text-foreground">
             {item.title}
           </p>
           {item.subtitle || formattedPrice ? (
@@ -713,6 +846,95 @@ function SelectedTradeItemCard({
   )
 }
 
+function ListingInterestToolbar({
+  activeFilter,
+  counts,
+  sortMode,
+  onSelectFilter,
+  onSelectSort,
+  addControl,
+}: {
+  activeFilter: ListingInterestFilter | null
+  counts: Record<ListingInterestFilter, number>
+  sortMode: InterestSortMode
+  onSelectFilter: (filter: ListingInterestFilter) => void
+  onSelectSort: (sortMode: InterestSortMode) => void
+  addControl: React.ReactNode
+}) {
+  const filters: Array<{ id: ListingInterestFilter; label: string }> = [
+    { id: "listing", label: "Listing-specific" },
+    { id: "global", label: "Global" },
+  ]
+  const sortLabel =
+    INTEREST_SORT_OPTIONS.find((option) => option.id === sortMode)?.label ??
+    "Newest first"
+
+  return (
+    <div className="my-4 flex w-full flex-wrap items-center gap-2">
+      <div className="flex-shrink-0">{addControl}</div>
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        {filters.map((filter) => {
+          const selected = activeFilter === filter.id
+          return (
+            <button
+              key={filter.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onSelectFilter(filter.id)}
+              className={cn(
+                "inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                selected
+                  ? "border-primary/50 bg-primary/10 text-foreground"
+                  : "border-border bg-card/50 text-muted-foreground hover:border-primary/30 hover:text-foreground",
+              )}
+            >
+              <span>{filter.label}</span>
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] tabular-nums",
+                  selected
+                    ? "bg-primary/15 text-primary"
+                    : "bg-secondary text-muted-foreground",
+                )}
+              >
+                {counts[filter.id]}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <div className="ml-auto flex flex-shrink-0 items-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label={`Sort: ${sortLabel}`}
+              title={`Sort: ${sortLabel}`}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-transparent text-foreground transition-colors hover:bg-secondary"
+            >
+              <ArrowUpDown className="h-4 w-4 shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {INTEREST_SORT_OPTIONS.map((option) => (
+              <DropdownMenuItem
+                key={option.id}
+                onClick={() => onSelectSort(option.id)}
+                className="flex items-center justify-between"
+              >
+                {option.label}
+                {sortMode === option.id ? (
+                  <Check className="h-4 w-4 text-primary" />
+                ) : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  )
+}
+
 function InterestLibraryCard({
   interestCount,
   globalCount,
@@ -723,13 +945,13 @@ function InterestLibraryCard({
   listingSpecificCount: number
 }) {
   return (
-    <div className="w-full max-w-md">
-      <div className="flex items-center gap-3 px-1 py-1">
-        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md border border-border/50 bg-secondary text-muted-foreground">
-          <Pencil className="h-6 w-6" />
+    <div className="w-full max-w-lg">
+      <div className="flex items-center gap-4 px-1 py-1.5">
+        <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg border border-border/50 bg-card/60 text-muted-foreground/80 sm:h-28 sm:w-28">
+          <Pencil className="h-7 w-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+          <p className="truncate text-base font-semibold leading-tight text-foreground">
             All
           </p>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -744,7 +966,7 @@ function InterestLibraryCard({
               {globalCount} global
             </span>
             <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
-              {listingSpecificCount} listing-specific
+              {listingSpecificCount} specific
             </span>
           </div>
         </div>
@@ -872,10 +1094,12 @@ function AddExistingPicker({
   available,
   onApply,
   onAddNew,
+  triggerClassName,
 }: {
   available: SavedTradeInterest[]
   onApply: (id: string) => void
   onAddNew: () => void
+  triggerClassName?: string
 }) {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
@@ -911,22 +1135,25 @@ function AddExistingPicker({
 
   return (
     <div className="relative" ref={containerRef}>
-      <Button
+      <button
         type="button"
-        variant="quiet_outline"
-        size="sm"
         onClick={() => setOpen((v) => !v)}
-        className="h-8"
+        aria-expanded={open}
+        className={cn(
+          "flex h-8 items-center gap-2 rounded-lg border border-border bg-transparent px-3 py-1.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary",
+          open && "border-primary/50 bg-secondary",
+          triggerClassName,
+        )}
       >
-        <Plus className="mr-1 h-3.5 w-3.5" />
+        <Plus className="h-3.5 w-3.5" />
         Add Interest
         <ChevronDown
           className={cn(
-            "ml-1 h-3.5 w-3.5 transition-transform",
+            "h-3.5 w-3.5 transition-transform",
             open && "rotate-180",
           )}
         />
-      </Button>
+      </button>
 
       {open ? (
         <div className="absolute right-0 top-full z-[60] mt-1 w-80 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
@@ -1028,6 +1255,7 @@ function InterestRow({
   onRequestRemove,
   onCancelRemove,
   onConfirmRemove,
+  onConfirmRemoveFromListing,
   onSaved,
   onCancelEdit,
 }: {
@@ -1045,22 +1273,31 @@ function InterestRow({
   onRequestRemove: () => void
   onCancelRemove: () => void
   onConfirmRemove: () => void
+  onConfirmRemoveFromListing?: () => void
   onSaved: () => void
   onCancelEdit: () => void
 }) {
   const isGlobal = isGlobalInterest(interest, items)
-  const appliedCount = isGlobal ? items.length : interest.appliedTo.length
+  const appliedListingCount = interest.appliedTo.filter((id) =>
+    items.some((item) => item.id === id),
+  ).length
+  const appliedCount = isGlobal ? items.length : appliedListingCount
+  const hasMultipleAppliedListings = appliedCount > 1
+  const canRemoveOnlyFromCurrentListing = Boolean(
+    onConfirmRemoveFromListing && hasMultipleAppliedListings,
+  )
+  const otherListingCount = Math.max(0, appliedCount - 1)
   const chips = savedInterestToChips(interest)
   const description = savedInterestDescription(interest)
-  const sharedReach =
+  const listingReach =
     !statusChip && !isGlobal && appliedCount >= 2
-      ? `Shared with ${appliedCount} listings`
+      ? `Listing-specific across ${appliedCount} listings`
       : ""
   const matchSummary =
     matchCount && matchCount > 0
       ? `${matchCount} ${matchCount === 1 ? "match" : "matches"}`
       : ""
-  const rowDescription = [description, sharedReach, matchSummary]
+  const rowDescription = [description, listingReach, matchSummary]
     .filter(Boolean)
     .join(" · ")
   const isDetailOpen = expanded && expandedMode === "detail"
@@ -1081,8 +1318,26 @@ function InterestRow({
     />
   ) : undefined
 
-  const actions = expanded ? (
-    !confirming ? (
+  const removalMessage = canRemoveOnlyFromCurrentListing
+    ? `${
+        isGlobal ? "This global interest applies" : "This interest is attached"
+      } to ${otherListingCount} other ${
+        otherListingCount === 1 ? "listing" : "listings"
+      }. Removing it everywhere will affect ${
+        otherListingCount === 1 ? "that listing" : "those listings"
+      }.`
+    : hasMultipleAppliedListings
+      ? `${
+          isGlobal
+            ? "This global interest is attached"
+            : "This interest is attached"
+        } to ${appliedCount} ${
+          appliedCount === 1 ? "listing" : "listings"
+        }. Removing it will affect all of them.`
+      : "Remove this interest?"
+
+  const actions =
+    expanded && !confirming ? (
       <>
         <button
           type="button"
@@ -1107,33 +1362,49 @@ function InterestRow({
           <X className="h-4 w-4" />
         </button>
       </>
-    ) : (
-      <div className="flex flex-shrink-0 items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">
-          Remove this interest?
-        </span>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={onConfirmRemove}
-          className="h-7 px-2.5"
-        >
-          <Trash2 className="mr-1 h-3 w-3" />
-          Remove
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancelRemove}
-          className="h-7 px-2"
-        >
-          Cancel
-        </Button>
+    ) : null
+
+  const removalConfirmation =
+    expanded && confirming ? (
+      <div
+        className="rounded-lg border border-border/70 bg-background/50 px-3 py-3"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <p className="text-xs text-muted-foreground">{removalMessage}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {canRemoveOnlyFromCurrentListing ? (
+            <Button
+              type="button"
+              variant="quiet_outline"
+              size="sm"
+              onClick={onConfirmRemoveFromListing}
+              className="h-7 px-2.5"
+            >
+              Remove from this listing
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={onConfirmRemove}
+            className="h-7 px-2.5"
+          >
+            <Trash2 className="mr-1 h-3 w-3" />
+            {hasMultipleAppliedListings ? "Remove everywhere" : "Remove"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onCancelRemove}
+            className="h-7 px-2"
+          >
+            Cancel
+          </Button>
+        </div>
       </div>
-    )
-  ) : null
+    ) : null
 
   return (
     <TradeInterestRow
@@ -1143,6 +1414,7 @@ function InterestRow({
       chips={chips}
       statusChip={statusChip}
       actions={actions}
+      confirmation={removalConfirmation}
       inlineEditor={isEditOpen ? (
         <SavedInterestEditor interest={interest} name={draftName} onSaved={onSaved} onCancel={onCancelEdit} />
       ) : null}

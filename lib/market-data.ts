@@ -271,8 +271,7 @@ export const myTradeableItems: TradeableItemSummary[] = [
   {
     id: "my-1",
     title: "Fender American Pro II Stratocaster",
-    image:
-      "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=200&h=200&fit=crop",
+    image: "/listings/strat-hero.jpg",
     type: "listing",
     matchCount: 5,
     perfectCount: 1,
@@ -282,8 +281,7 @@ export const myTradeableItems: TradeableItemSummary[] = [
   {
     id: "my-2",
     title: "Martin D-28 Acoustic",
-    image:
-      "https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=200&h=200&fit=crop",
+    image: "/autofill/guitar-1.jpg",
     type: "listing",
     matchCount: 3,
     perfectCount: 1,
@@ -293,8 +291,7 @@ export const myTradeableItems: TradeableItemSummary[] = [
   {
     id: "my-3",
     title: "Mesa Boogie Dual Rectifier",
-    image:
-      "https://images.unsplash.com/photo-1558098329-a11cff621064?w=200&h=200&fit=crop",
+    image: "/listings/owner-amp-hero.jpg",
     type: "collection_item",
     matchCount: 2,
     perfectCount: 1,

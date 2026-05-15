@@ -77,9 +77,11 @@ interface TradeInterestRowProps {
   count?: number
   /** Optional status chip shown next to the title, e.g. where this interest is applied. */
   statusChip?: string
-  /** Management-screen action buttons (pencil, delete, etc.) rendered before
-   *  the expand chevron. Omit for read-only profile view. */
+  /** Management-screen action buttons (pencil, delete, etc.) rendered on the
+   *  right side of the row. Omit for read-only profile view. */
   actions?: ReactNode
+  /** Temporary confirmation/warning content rendered inside the row. */
+  confirmation?: ReactNode
   /** Inline editor (e.g. SavedInterestEditor) rendered below the row when
    *  the management screen opens the edit form. */
   inlineEditor?: ReactNode
@@ -109,6 +111,7 @@ export function TradeInterestRow({
   count,
   statusChip,
   actions,
+  confirmation,
   inlineEditor,
   dimmed,
   expanded: controlledExpanded,
@@ -123,6 +126,12 @@ export function TradeInterestRow({
   const isControlled = controlledExpanded !== undefined
   const expanded = isControlled ? controlledExpanded : localExpanded
   const toggle = isControlled ? onToggle! : () => setLocalExpanded((v) => !v)
+  const statusChipClassName =
+    statusChip === "Global"
+      ? "border-primary/35 bg-primary/5 text-muted-foreground"
+      : statusChip?.startsWith("Listing-specific")
+        ? "border-border/70 bg-card/40 text-muted-foreground"
+      : "border-transparent bg-secondary/70 text-muted-foreground"
 
   return (
     <div
@@ -133,87 +142,136 @@ export function TradeInterestRow({
       )}
     >
       {/* Compact row */}
-      <div className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20">
-
-        {nameInput ? (
-          <div className="min-w-0 flex-1">{nameInput}</div>
-        ) : (
+      <div
+        className={cn(
+          "flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/20",
+          !nameInput && "cursor-pointer",
+        )}
+        onClick={!nameInput ? toggle : undefined}
+      >
+        {!nameInput ? (
           <button
             type="button"
-            onClick={toggle}
-            aria-expanded={expanded}
-            className="min-w-0 flex-1 text-left"
+            onClick={(event) => {
+              event.stopPropagation()
+              toggle()
+            }}
+            aria-label={expanded ? "Hide details" : "Show details"}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
-            <div className="flex min-w-0 items-center gap-2">
-              <span
-                className={cn(
-                  "truncate text-sm font-semibold transition-colors",
-                  !name
-                    ? "italic text-muted-foreground"
-                    : "text-foreground group-hover/row:text-primary",
-                  expanded && name && "text-primary",
-                )}
-              >
-                {name || "Untitled interest"}
-              </span>
-              {count != null && (
-                <span
-                  className="flex-shrink-0 text-xs tabular-nums text-muted-foreground"
-                  aria-label={`${count} listing${count === 1 ? "" : "s"}`}
-                >
-                  ({count})
-                </span>
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 transition-transform",
+                expanded && "rotate-180",
               )}
-              {statusChip ? (
-                <span className="inline-flex max-w-[260px] shrink truncate rounded-full bg-secondary/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  {statusChip}
-                </span>
+            />
+          </button>
+        ) : null}
+
+        <div className="min-w-0 flex-1">
+          {nameInput ? (
+            <div className="flex min-w-0 items-start gap-2">
+              <div className="min-w-0 flex-1">{nameInput}</div>
+              {actions ? (
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {actions}
+                </div>
               ) : null}
             </div>
-            {description ? (
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {description}
-              </p>
-            ) : null}
-            {showChipsPreview && !expanded && chips.length > 0 ? (
-              <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
-                {chips.slice(0, 4).map((chip, i) => (
-                  <span
-                    key={`${chip.label}-${i}`}
-                    className="inline-flex max-w-[180px] items-center gap-1 rounded-md bg-secondary/60 px-2 py-0.5 text-[11px]"
+          ) : (
+            <>
+              <div className="flex min-w-0 items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      toggle()
+                    }}
+                    aria-expanded={expanded}
+                    className="min-w-0 text-left"
                   >
-                    <span className="shrink-0 text-muted-foreground">
-                      {chip.label}
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          "truncate text-sm font-semibold transition-colors",
+                          !name
+                            ? "italic text-muted-foreground"
+                            : "text-foreground group-hover/row:text-primary",
+                          expanded && name && "text-primary",
+                        )}
+                      >
+                        {name || "Untitled interest"}
+                      </span>
+                      {count != null && (
+                        <span
+                          className="flex-shrink-0 text-xs tabular-nums text-muted-foreground"
+                          aria-label={`${count} listing${count === 1 ? "" : "s"}`}
+                        >
+                          ({count})
+                        </span>
+                      )}
+                      {statusChip ? (
+                        <span
+                          className={cn(
+                            "inline-flex max-w-[260px] shrink truncate rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                            statusChipClassName,
+                          )}
+                        >
+                          {statusChip}
+                        </span>
+                      ) : null}
                     </span>
-                    <span className="truncate font-medium text-foreground/80">
-                      {chip.value}
-                    </span>
-                  </span>
-                ))}
-                {chips.length > 4 ? (
-                  <span className="inline-flex items-center rounded-md bg-secondary/40 px-2 py-0.5 text-[11px] text-muted-foreground">
-                    +{chips.length - 4}
-                  </span>
+                  </button>
+                </div>
+                {actions ? (
+                  <div
+                    className="flex shrink-0 items-center gap-1.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {actions}
+                  </div>
                 ) : null}
               </div>
-            ) : null}
-          </button>
-        )}
-
-        {/* Right-side controls */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          {!nameInput ? (
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label={expanded ? "Hide details" : "Show details"}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <ChevronDown
-                className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")}
-              />
-            </button>
-          ) : null}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  toggle()
+                }}
+                aria-expanded={expanded}
+                className="block min-w-0 max-w-full text-left"
+              >
+                {description ? (
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {description}
+                  </p>
+                ) : null}
+                {showChipsPreview && !expanded && chips.length > 0 ? (
+                  <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
+                    {chips.slice(0, 4).map((chip, i) => (
+                      <span
+                        key={`${chip.label}-${i}`}
+                        className="inline-flex max-w-[180px] items-center gap-1 rounded-md bg-secondary/60 px-2 py-0.5 text-[11px]"
+                      >
+                        <span className="shrink-0 text-muted-foreground">
+                          {chip.label}
+                        </span>
+                        <span className="truncate font-medium text-foreground/80">
+                          {chip.value}
+                        </span>
+                      </span>
+                    ))}
+                    {chips.length > 4 ? (
+                      <span className="inline-flex items-center rounded-md bg-secondary/40 px-2 py-0.5 text-[11px] text-muted-foreground">
+                        +{chips.length - 4}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -243,16 +301,10 @@ export function TradeInterestRow({
           ) : (
             <p className="text-xs italic text-muted-foreground">{emptyChipsLabel}</p>
           )}
-          {actions ? (
-            <div
-              className="mt-3 flex justify-end"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-1.5">{actions}</div>
-            </div>
-          ) : null}
         </div>
       ) : null}
+
+      {confirmation ? <div className="px-3 pb-3">{confirmation}</div> : null}
 
       {/* Inline editor slot */}
       {inlineEditor ?? null}

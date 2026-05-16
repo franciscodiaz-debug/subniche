@@ -777,6 +777,7 @@ function TradeInterestScopeRail({
   onSelectInterests: () => void
   onSelectItem: (id: string) => void
 }) {
+  const [listingQuery, setListingQuery] = React.useState("")
   const countFor = (itemId: string) =>
     interests.reduce(
       (count, interest) => {
@@ -788,6 +789,16 @@ function TradeInterestScopeRail({
   const globalCount = interests.filter((interest) =>
     isGlobalInterest(interest, items),
   ).length
+  const normalizedListingQuery = listingQuery.trim().toLowerCase()
+  const filteredItems = normalizedListingQuery
+    ? items.filter((item) =>
+        [item.title, item.subtitle, item.type]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedListingQuery),
+      )
+    : items
 
   return (
     <aside className="hidden lg:block">
@@ -825,54 +836,83 @@ function TradeInterestScopeRail({
           <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Listings
           </p>
+          <div className="relative mb-2 px-2">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70" />
+            <input
+              type="search"
+              value={listingQuery}
+              onChange={(event) => setListingQuery(event.target.value)}
+              placeholder="Find a listing"
+              aria-label="Search listings"
+              className="h-8 w-full rounded-md border border-border/60 bg-background/40 pl-7 pr-7 text-xs text-foreground placeholder:text-muted-foreground/55 transition-colors hover:border-border focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/25"
+            />
+            {listingQuery ? (
+              <button
+                type="button"
+                onClick={() => setListingQuery("")}
+                aria-label="Clear listing search"
+                className="absolute right-3 top-1/2 inline-flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            ) : null}
+          </div>
           <div className="space-y-1.5">
-            {items.map((item) => {
-              const selected = activeScopeId === item.id
-              const count = countFor(item.id)
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSelectItem(item.id)}
-                  className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
-                    selected
-                      ? "border-primary/50 bg-primary/10"
-                      : "border-transparent bg-transparent hover:border-border hover:bg-card",
-                  )}
-                >
-                  <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-                    <Image
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.title}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-foreground">
-                      {item.title}
-                    </span>
-                    <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                      <span className="truncate">
-                        {count} {count === 1 ? "interest" : "interests"}
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item) => {
+                const selected = activeScopeId === item.id
+                const count = countFor(item.id)
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onSelectItem(item.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                      selected
+                        ? "border-primary/50 bg-primary/10"
+                        : "border-transparent bg-transparent hover:border-border hover:bg-card",
+                    )}
+                  >
+                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
+                      <Image
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.title}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-foreground">
+                        {item.title}
                       </span>
-                      {globalCount > 0 ? (
-                        <span
-                          className="inline-flex flex-shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                          title={`${globalCount} global ${
-                            globalCount === 1 ? "interest" : "interests"
-                          } also apply`}
-                        >
-                          + {globalCount}
+                      <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="truncate">
+                          {count} {count === 1 ? "interest" : "interests"}
                         </span>
-                      ) : null}
+                        {globalCount > 0 ? (
+                          <span
+                            className="inline-flex flex-shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                            title={`${globalCount} global ${
+                              globalCount === 1 ? "interest" : "interests"
+                            } also apply`}
+                          >
+                            + {globalCount}
+                          </span>
+                        ) : null}
+                      </span>
                     </span>
-                  </span>
-                </button>
-              )
-            })}
+                  </button>
+                )
+              })
+            ) : (
+              <div className="mx-2 rounded-md border border-dashed border-border/70 px-3 py-3">
+                <p className="text-xs text-muted-foreground">
+                  No listings found.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

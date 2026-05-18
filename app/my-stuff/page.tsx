@@ -2,7 +2,7 @@ import { Package } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MyItemsTab } from "@/components/my-stuff/my-items-tab"
 import { CollectionsTab } from "@/components/my-stuff/collections-tab"
-import { collectionPreviewImages, myCollections, myItems } from "@/lib/mock/my-stuff"
+import { collectionPreviewImages, myItems } from "@/lib/mock/my-stuff"
 
 export default async function MyStuffPage({
   searchParams,
@@ -39,10 +39,7 @@ export default async function MyStuffPage({
         </TabsContent>
 
         <TabsContent value="collections" className="mt-0">
-          <CollectionsTab
-            collections={myCollections}
-            previewImages={collectionPreviewImages}
-          />
+          <CollectionsTab previewImages={collectionPreviewImages} />
         </TabsContent>
       </Tabs>
     </div>

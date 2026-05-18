@@ -59,8 +59,8 @@ import {
   summarizeInterest,
   TradeInterestSection,
 } from "@/components/create-item/trade-interest-section"
+import { AutoGrowTextarea } from "@/components/ui/inline-input"
 import {
-  AutoGrowTextarea,
   CategorySelector,
   ConditionGradePicker,
   PhotoUploadSection,

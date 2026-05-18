@@ -81,7 +81,13 @@ export function CollectionCard({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="truncate font-medium text-foreground">{collection.name}</h3>
-          <div className="flex-shrink-0 text-right" title={visibilityLabel}>
+          {collection.is_wishlist ? (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-chart-5/25 bg-chart-5/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-chart-5">
+              <Heart className="h-2.5 w-2.5 fill-current" />
+              Wishlist
+            </span>
+          ) : null}
+          <div className="ml-auto flex-shrink-0 text-right" title={visibilityLabel}>
             <VisibilityIcon className={cn("h-4 w-4", visibilityColor)} />
           </div>
         </div>
@@ -149,18 +155,47 @@ export function CollectionCard({
             ))}
           </div>
         ) : (
-          <div className="flex h-16 md:aspect-square items-center justify-center bg-muted">
-            {collection.is_wishlist ? (
-              <Heart className="h-6 w-6 text-chart-5/60" />
-            ) : (
-              <FolderOpen className="h-6 w-6 text-primary/40" />
-            )}
+          <div className="relative">
+            <div className="grid grid-cols-4 md:grid-cols-2 gap-px">
+              {[0, 1, 2, 3].map((index) => (
+                <div
+                  key={index}
+                  className="relative aspect-square overflow-hidden bg-secondary/40"
+                />
+              ))}
+            </div>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div
+                className={cn(
+                  "inline-flex items-center justify-center rounded-full p-3",
+                  collection.is_wishlist
+                    ? "bg-chart-5/10 text-chart-5"
+                    : "bg-primary/10 text-primary",
+                )}
+              >
+                {collection.is_wishlist ? (
+                  <Heart className="h-5 w-5" />
+                ) : (
+                  <FolderOpen className="h-5 w-5" />
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {/* Info section */}
       <div className="px-3 pb-3 pt-2">
+        {/* Badges row — only renders when there's something to show */}
+        {collection.is_wishlist ? (
+          <div className="mb-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full border border-chart-5/25 bg-chart-5/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-chart-5">
+              <Heart className="h-2.5 w-2.5 fill-current" />
+              Wishlist
+            </span>
+          </div>
+        ) : null}
+
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-sm font-semibold md:text-base text-foreground">{collection.name}</h3>
@@ -171,9 +206,6 @@ export function CollectionCard({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            {collection.is_wishlist ? (
-              <Heart className="h-3.5 w-3.5 fill-current text-chart-5" />
-            ) : null}
             <VisibilityIcon className={cn("h-3.5 w-3.5", visibilityColor)} />
           </div>
         </div>
@@ -221,7 +253,10 @@ export function CollectionCard({
     className,
   )
   const gridClassName = cn(
-    "group block overflow-hidden rounded-xl border border-border bg-card text-left transition-colors hover:border-primary/40",
+    "group block overflow-hidden rounded-xl border bg-card text-left transition-colors",
+    collection.is_wishlist
+      ? "border-chart-5/20 hover:border-chart-5/50"
+      : "border-border hover:border-primary/40",
     className,
   )
 

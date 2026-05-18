@@ -533,7 +533,11 @@ export function TradeInterestsView({
               : undefined
           }
           onSaved={() => setExpandedId(null)}
-          onCancelEdit={() => setExpandedId(null)}
+          onCancelEdit={() =>
+            isEmptyInterestDraft(interest)
+              ? handleRemove(interest.id)
+              : setExpandedId(null)
+          }
           dimmed={isBlockedByCreateFlow}
         />
       </li>
@@ -1445,7 +1449,7 @@ function InterestRow({
 
   const nameInput = isEditOpen ? (
     <div className="px-1 py-1.5 text-sm font-semibold text-foreground">
-      {isNewInterestDraft ? "Create trade interest" : "Edit trade interest"}
+      {isNewInterestDraft ? "Create a trade interest" : "Edit trade interest"}
     </div>
   ) : undefined
 
@@ -1618,11 +1622,11 @@ function UnselectedTradeInterestPanel() {
     <div className="flex min-h-[28rem] items-center justify-center px-4 py-16 text-center sm:ml-6">
       <div className="max-w-sm">
         <p className="text-sm font-medium text-foreground">
-          Choose what you want to manage
+          View and edit all of your trade interests here
         </p>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          Select All Interests to manage your saved trade interests, or select
-          a listing to manage the interests applied to that item.
+          Select an individual listing or &apos;All Interests&apos; to see
+          everything
         </p>
       </div>
     </div>

@@ -175,7 +175,7 @@ export function SavedInterestEditor({
     { key: "brand",  label: "Brand",       categoryRequired: true  },
     { key: "model",  label: "Model",       categoryRequired: true  },
     ...specFields.map((f) => ({ key: f.key, label: f.label, categoryRequired: true })),
-    { key: "value",  label: "Value range", categoryRequired: true },
+    { key: "value",  label: "Price", categoryRequired: true },
     { key: "notes",  label: "Notes",       categoryRequired: true },
   ]
 
@@ -473,7 +473,7 @@ export function SavedInterestEditor({
 
           {draft.category && availableToAdd.length > 0 ? (
             <div className="space-y-1.5 border-t border-border/60 pt-2">
-              <p className="text-xs font-medium text-muted-foreground">Add criteria</p>
+              <p className="text-xs font-medium text-muted-foreground">Add more criteria</p>
               <div className="ml-5 flex flex-wrap gap-2">
                 {availableToAdd.map((c) => (
                   <AddCriteriaChip key={c.key} label={c.label} onAdd={() => activate(c.key)} />

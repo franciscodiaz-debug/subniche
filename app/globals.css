@@ -20,7 +20,12 @@
   --muted-foreground: oklch(0.65 0.02 250);
   --accent: oklch(0.23 0.02 250);
   --accent-foreground: oklch(0.97 0.01 250);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* Destructive used to be a saturated red. The product treats every
+   * destructive action with an AlertDialog confirmation, so the color
+   * signal was redundant and visually noisy. Aligning destructive with
+   * muted-foreground neutralizes the UI; the modal remains the real
+   * "are you sure?" affordance. */
+  --destructive: oklch(0.65 0.02 250);
   --destructive-foreground: oklch(0.97 0.01 250);
   --border: oklch(0.30 0.02 250);
   --input: oklch(0.30 0.02 250);
@@ -73,7 +78,12 @@
   --muted-foreground: oklch(0.65 0.02 250);
   --accent: oklch(0.23 0.02 250);
   --accent-foreground: oklch(0.97 0.01 250);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* Destructive used to be a saturated red. The product treats every
+   * destructive action with an AlertDialog confirmation, so the color
+   * signal was redundant and visually noisy. Aligning destructive with
+   * muted-foreground neutralizes the UI; the modal remains the real
+   * "are you sure?" affordance. */
+  --destructive: oklch(0.65 0.02 250);
   --destructive-foreground: oklch(0.97 0.01 250);
   --border: oklch(0.30 0.02 250);
   --input: oklch(0.30 0.02 250);

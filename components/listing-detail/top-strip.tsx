@@ -104,7 +104,6 @@ export function TopStrip({ categoryPath, availability, mutualMatch }: TopStripPr
         </div>
       </div>
 
-      {mutualMatch ? <MutualMatchBanner match={mutualMatch} /> : null}
     </div>
   )
 }

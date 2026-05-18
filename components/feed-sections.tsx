@@ -2,6 +2,7 @@ import { Heart, Layers, Search, TrendingUp, Zap, Users } from 'lucide-react'
 import { HomeSectionHeader } from '@/components/home/home-section-header'
 import { ItemCard } from '@/components/item-card'
 import { CollectionCard } from '@/components/collection-card'
+import { resolveListingHref } from '@/lib/mock-listing-detail'
 import type { Collection } from '@/lib/types'
 
 /* ─── Trending Section ───────────────────────────────────────────────── */
@@ -77,7 +78,7 @@ export function TrendingSection() {
             location={item.location}
             forSale={item.forSale}
             forTrade={item.forTrade}
-            href={`/listings/${item.id}`}
+            href={resolveListingHref(item.id)}
             className="w-[220px] flex-shrink-0 md:w-[240px]"
           />
         ))}
@@ -158,7 +159,7 @@ export function JustListedSection() {
             location={item.location}
             forSale={item.forSale}
             forTrade={item.forTrade}
-            href={`/listings/${item.id}`}
+            href={resolveListingHref(item.id)}
             className="w-[220px] flex-shrink-0 md:w-[240px]"
           />
         ))}
@@ -268,7 +269,7 @@ export function FollowedItemsSection() {
             location={item.location}
             forSale={item.forSale}
             forTrade={item.forTrade}
-            href={`/listings/${item.id}`}
+            href={resolveListingHref(item.id)}
             className="w-[220px] flex-shrink-0 md:w-[240px]"
           />
         ))}

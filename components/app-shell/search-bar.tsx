@@ -8,6 +8,7 @@ import { Search, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { exploreItems } from "@/lib/explore-data"
+import { resolveListingHref } from "@/lib/mock-listing-detail"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 
 export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
@@ -128,7 +129,7 @@ export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
               {itemResults.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/listings/${item.id}`}
+                  href={resolveListingHref(item.id)}
                   onClick={close}
                   className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-foreground/5"
                 >

@@ -16,6 +16,7 @@ import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import { exploreItems, type ExploreItem } from "@/lib/explore-data"
+import { resolveListingHref } from "@/lib/mock-listing-detail"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 import { ItemCard } from "@/components/item-card"
 import {
@@ -388,7 +389,7 @@ export function MarketContent() {
                           }
                         : undefined
                     }
-                    href={`/listings/${item.id}`}
+                    href={resolveListingHref(item.id)}
                   />
                 ))}
               </div>

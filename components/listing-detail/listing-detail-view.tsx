@@ -122,7 +122,15 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
       initialMarkedAsSold={markedAsSold}
     />
   ) : (
-    <ViewerActions availability={availability} />
+    <ViewerActions
+      listingId={listing.id}
+      listingTitle={listing.title}
+      listingImage={listing.images?.[0]}
+      listingPrice={listing.price ?? null}
+      availability={availability}
+      markedAsSold={markedAsSold}
+      mutualMatch={mutualMatch}
+    />
   )
 
   const paymentBlock = showCommerceSections ? (
@@ -135,8 +143,8 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
     <ReturnPolicyBlock policy={returnPolicy} />
   ) : null
   const tradeBlockEl =
-    showCommerceSections && tradeInterest ? (
-      <TradeInterestView data={tradeInterest} />
+    tradeInterest ? (
+      <TradeInterestView data={tradeInterest} mutualMatch={mutualMatch} />
     ) : null
 
   return (
@@ -168,10 +176,10 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
           <div className="space-y-6">
             <PhotoGallery images={images} title={title} />
             {actionBar}
+            {tradeBlockEl}
             {paymentBlock}
             {shippingBlockEl}
             {returnBlockEl}
-            {tradeBlockEl}
           </div>
         </aside>
       </div>
@@ -181,6 +189,7 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
         <PhotoGallery images={images} title={title} />
         {titleBlock}
         {actionBar}
+        {tradeBlockEl}
         {sellerCard}
 
         {/* Collapsible accordion for the narrative + commerce sections.
@@ -228,9 +237,6 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
                     content: returnBlockEl,
                   },
                 ]
-              : []),
-            ...(tradeBlockEl
-              ? [{ id: "trade", label: "Open to trade for", content: tradeBlockEl }]
               : []),
           ]}
         />

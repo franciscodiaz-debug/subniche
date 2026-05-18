@@ -1,6 +1,7 @@
 import { Repeat2 } from 'lucide-react'
 import { ItemCard } from '@/components/item-card'
 import { HomeSectionHeader } from '@/components/home/home-section-header'
+import { resolveListingHref } from '@/lib/mock-listing-detail'
 import type { PerfectMatch } from '@/lib/types'
 
 const tradeMatches: PerfectMatch[] = [
@@ -168,7 +169,7 @@ export function TradeMatches({ showScoreOnboarding = false }: TradeMatchesProps)
               price={match.their_item.price}
               location={match.their_item.user?.location}
               forTrade
-              href={`/listings/${match.their_item.id}`}
+              href={resolveListingHref(match.their_item.id)}
               collections={match.their_item.published_groups?.map((g) => ({
                 id: g.id,
                 name: g.name,

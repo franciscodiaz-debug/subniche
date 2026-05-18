@@ -2,10 +2,11 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRightFromLine, Heart, MapPin, Repeat2 } from "lucide-react"
+import { ArrowRightFromLine, Eye, MapPin, Repeat2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { MatchFooter } from "@/components/trade-interest-card"
+import { useWatchlist } from "@/lib/watchlist-context"
 
 export interface ItemCardCollectionChip {
   id: string
@@ -50,37 +51,45 @@ export interface ItemCardProps {
 /* -------------------------------------------------------------------------- */
 /* WatchlistButton                                                            */
 /*                                                                            */
-/* Top-right overlay. Always visible on mobile (no hover available); fades in */
-/* on hover/focus on desktop. When watched, stays visible everywhere.         */
+/* Top-right overlay. "Watch" lets the viewer follow this listing — distinct */
+/* from Wishlist (items the user wants to own). Eye icon to avoid confusion  */
+/* with the heart, which reads as "love/want" in most marketplaces.          */
+/*                                                                            */
+/* If the caller doesn't pass isWatched/onToggle, we auto-wire to the global */
+/* WatchlistProvider so every card across the app stays in sync without each */
+/* call site repeating the boilerplate.                                       */
 /* -------------------------------------------------------------------------- */
 
 function WatchlistButton({
   id,
-  isWatched,
+  isWatched: isWatchedProp,
   onToggle,
 }: {
   id: string
   isWatched?: boolean
   onToggle?: (id: string) => void
 }) {
+  const { isWatched: isWatchedFromStore, toggleWatch } = useWatchlist()
+  const watched = isWatchedProp ?? isWatchedFromStore(id)
+  const handleToggle = onToggle ?? toggleWatch
+
   return (
     <button
       type="button"
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        onToggle?.(id)
+        handleToggle(id)
       }}
-      aria-label={isWatched ? "Remove from watchlist" : "Add to watchlist"}
-      aria-pressed={!!isWatched}
+      aria-label={watched ? "Remove from watchlist" : "Add to watchlist"}
+      aria-pressed={watched}
       className={cn(
         "absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-card/90 text-muted-foreground shadow-sm backdrop-blur transition-all hover:bg-card hover:text-foreground focus-visible:opacity-100",
         "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100",
-        isWatched &&
-          "text-rose-500 hover:text-rose-500 lg:opacity-100",
+        watched && "text-primary hover:text-primary lg:opacity-100",
       )}
     >
-      <Heart className={cn("h-4 w-4", isWatched && "fill-current")} />
+      <Eye className="h-4 w-4" />
     </button>
   )
 }

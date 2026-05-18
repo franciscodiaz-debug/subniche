@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { currentUser } from "@/lib/current-user"
+import { resolveListingHref } from "@/lib/mock-listing-detail"
 import { ownProfile, otherProfile, profilePageData } from "@/lib/profile-page-data"
 import type {
   ProfileActivityReference,
@@ -343,7 +344,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
                 price={item.price}
                 forSale={item.forSale}
                 forTrade={item.forTrade}
-                href={`/listings/${item.id}`}
+                href={resolveListingHref(item.id)}
               />
             ))}
           </div>
@@ -395,7 +396,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
                     image={item.imageUrl}
                     title={item.title}
                     subtitle={item.subtitle}
-                    href={`/listings/${item.id}`}
+                    href={resolveListingHref(item.id)}
                   />
                 ))}
               </div>

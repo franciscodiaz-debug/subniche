@@ -11,7 +11,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Repeat2 } from "lucide-react"
 
-import type { MockRelatedCard } from "@/lib/mock-listing-detail"
+import {
+  resolveListingHref,
+  type MockRelatedCard,
+} from "@/lib/mock-listing-detail"
 
 interface RelatedRowProps {
   title: string
@@ -47,9 +50,11 @@ export function RelatedRow({ title, items, trailingLink }: RelatedRowProps) {
 }
 
 function RelatedCard({ item }: { item: MockRelatedCard }) {
+  // Re-route to a real demo mock when item.href points at a prototype id
+  // that has no detail page (e.g. /listings/rel-1, /listings/jill-2).
   return (
     <Link
-      href={item.href}
+      href={resolveListingHref(item.id)}
       className="group flex w-[180px] flex-shrink-0 flex-col overflow-hidden rounded-card border border-border bg-card transition-colors hover:border-primary/50 md:w-[200px]"
     >
       <div className="relative aspect-[4/3] w-full bg-muted">

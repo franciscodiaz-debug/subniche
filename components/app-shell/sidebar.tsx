@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Heart,
+  Eye,
   Home,
   Inbox,
   Package,
@@ -217,10 +217,10 @@ export function Sidebar({
                 ? "bg-card text-foreground"
                 : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
             )}
-            title={collapsed ? "Following" : undefined}
+            title={collapsed ? "Favorites" : undefined}
           >
-            <Heart className="h-5 w-5 flex-shrink-0" />
-            {!collapsed ? <span className="flex-1 text-left">Following</span> : null}
+            <Eye className="h-5 w-5 flex-shrink-0" />
+            {!collapsed ? <span className="flex-1 text-left">Favorites</span> : null}
           </Link>
 
           <Link

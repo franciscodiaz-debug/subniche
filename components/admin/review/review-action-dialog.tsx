@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { resolveListingHref } from "@/lib/mock-listing-detail"
 import {
   Select,
   SelectContent,
@@ -111,7 +112,7 @@ export function ReviewActionDialog({
 
             {item.originatingListingId ? (
               <a
-                href={`/listings/${item.originatingListingId}`}
+                href={resolveListingHref(item.originatingListingId)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 flex items-center gap-1 text-xs text-primary hover:underline"

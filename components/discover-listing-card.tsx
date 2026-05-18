@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { resolveListingHref } from "@/lib/mock-listing-detail"
 import type { Community, DiscoverListing } from "@/lib/types"
 
 interface DiscoverListingCardProps {
@@ -89,7 +90,7 @@ export function DiscoverListingCard({
   const [groupsExpanded, setGroupsExpanded] = useState(false)
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
   const groups = listing.published_groups ?? []
-  const href = `/listings/${listing.id}`
+  const href = resolveListingHref(listing.id)
   const imageSrc = listing.images[0] || "/placeholder.svg"
 
   if (viewMode === "list") {

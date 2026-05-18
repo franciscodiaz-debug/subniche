@@ -123,6 +123,10 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
     />
   ) : (
     <ViewerActions
+      listingId={listing.id}
+      listingTitle={listing.title}
+      listingImage={listing.images?.[0]}
+      listingPrice={listing.price ?? null}
       availability={availability}
       markedAsSold={markedAsSold}
       mutualMatch={mutualMatch}

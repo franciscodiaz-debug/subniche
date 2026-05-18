@@ -17,10 +17,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import {
-  Bookmark,
-  Heart,
+  Eye,
   MessageCircle,
   Pencil,
   Repeat2,
@@ -30,17 +30,44 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import type { AvailabilityType, MockListing } from "@/lib/mock-listing-detail"
+import { useWatchlist } from "@/lib/watchlist-context"
+import { MakeOfferModal } from "./make-offer-modal"
 
 interface ViewerActionsProps {
+  listingId: string
+  listingTitle: string
+  listingImage?: string
+  listingPrice?: number | null
   availability: AvailabilityType[]
   markedAsSold?: boolean
   mutualMatch?: { matchScore: number; viewerListingTitle: string; viewerListingHref: string } | null
 }
 
-export function ViewerActions({ availability, markedAsSold, mutualMatch }: ViewerActionsProps) {
-  const [wishlisted, setWishlisted] = useState(false)
+export function ViewerActions({
+  listingId,
+  listingTitle,
+  listingImage,
+  listingPrice,
+  availability,
+  markedAsSold,
+  mutualMatch,
+}: ViewerActionsProps) {
+  const { isWatched, toggleWatch } = useWatchlist()
+  const watching = isWatched(listingId)
+  const [offerOpen, setOfferOpen] = useState(false)
 
   const isForSale = availability.includes("for-sale")
   const isForTrade = availability.includes("for-trade")
@@ -78,16 +105,18 @@ export function ViewerActions({ availability, markedAsSold, mutualMatch }: Viewe
         )}
 
         {isForTrade && (
-          <Link href="/inbox?propose=true" className="w-full">
-            <Button
-              size="lg"
-              variant={isForSale ? "outline" : "default"}
-              className={cn("w-full gap-2", !isForSale && "bg-primary text-primary-foreground hover:bg-primary/90")}
-            >
-              <Repeat2 className="h-4 w-4" />
-              Propose a Trade
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            variant={isForSale ? "quiet_outline" : "default"}
+            className={cn(
+              "w-full gap-2",
+              !isForSale && "bg-primary text-primary-foreground hover:bg-primary/90",
+            )}
+            onClick={() => setOfferOpen(true)}
+          >
+            <Repeat2 className="h-4 w-4" />
+            Propose a Trade
+          </Button>
         )}
 
         {isCollectionOnly && (
@@ -100,18 +129,28 @@ export function ViewerActions({ availability, markedAsSold, mutualMatch }: Viewe
         )}
       </div>
 
-      {/* Secondary icon row */}
+      {/* Secondary icon row — Watch (Eye, not Heart, to avoid Wishlist
+          confusion) + Share. Watch state is sourced from the global
+          WatchlistContext so it stays in sync with ItemCard toggles. */}
       <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-card/60 px-3 py-2">
         <IconAction
-          active={wishlisted}
-          onClick={() => setWishlisted((v) => !v)}
-          icon={wishlisted ? Bookmark : Heart}
-          label={wishlisted ? "Saved" : "Watchlist"}
+          active={watching}
+          onClick={() => toggleWatch(listingId)}
+          icon={Eye}
+          label={watching ? "Watching" : "Watch"}
         />
         <div className="h-5 w-px bg-border" aria-hidden="true" />
         <IconAction icon={Share2} label="Share" onClick={() => {}} />
       </div>
 
+      <MakeOfferModal
+        open={offerOpen}
+        onOpenChange={setOfferOpen}
+        targetListingId={listingId}
+        targetTitle={listingTitle}
+        targetImage={listingImage}
+        targetPrice={listingPrice}
+      />
     </div>
   )
 }
@@ -159,7 +198,17 @@ export function OwnerActions({
   stats,
   initialMarkedAsSold = false,
 }: OwnerActionsProps) {
+  const router = useRouter()
   const [markedAsSold, setMarkedAsSold] = useState(initialMarkedAsSold)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+
+  const handleConfirmDelete = () => {
+    // Prototype-only — there's no shared listings store in this branch, so
+    // we surface the delete intent by sending the user back to their
+    // listings tab. The back team wires this to the real API.
+    setDeleteOpen(false)
+    router.push("/my-stuff?tab=items")
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -174,14 +223,37 @@ export function OwnerActions({
           </Button>
         </Link>
 
-        <Button
-          size="lg"
-          variant="quiet_outline"
-          className="w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete
-        </Button>
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="lg"
+              variant="quiet_outline"
+              className="w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this listing?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This listing will be removed permanently. People watching it
+                won&apos;t see it on their watchlist anymore, and pending
+                offers will be cancelled.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete listing
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Mark as sold toggle. Styled as a toggleable row so it reads as

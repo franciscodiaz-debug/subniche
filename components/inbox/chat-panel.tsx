@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { resolveListingHref } from "@/lib/mock-listing-detail"
 import type { Conversation, Message, Offer } from "@/lib/inbox-types"
 
 interface ChatPanelProps {
@@ -342,7 +343,7 @@ export function ChatPanel({
         ) && (
         <div className="flex-shrink-0 border-b border-border px-4 py-1.5 lg:hidden">
           <Link
-            href={`/listings/${subject.id}`}
+            href={resolveListingHref(subject.id)}
             className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-card/50 px-2.5 py-1 text-xs transition-colors hover:border-primary/50"
           >
             <img
@@ -461,7 +462,7 @@ export function ChatPanel({
           <div className="hidden py-3 lg:block">
             <p className="mb-2 text-xs text-muted-foreground">Discussing:</p>
             <Link
-              href={`/listings/${subject.id}`}
+              href={resolveListingHref(subject.id)}
               className="group inline-flex items-center gap-2.5 rounded-lg border border-border bg-card/50 p-2.5 transition-colors hover:border-primary/50"
             >
               <img

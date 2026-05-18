@@ -144,7 +144,7 @@ const marcoSeller: MockSeller = {
   joinedYear: 2019,
   ratingAverage: 4.8,
   ratingCount: 89,
-  profileHref: "/u/marco_amp",
+  profileHref: "/profile/marco_amp",
 }
 
 const sashaSeller: MockSeller = {
@@ -156,7 +156,7 @@ const sashaSeller: MockSeller = {
   joinedYear: 2022,
   ratingAverage: 5.0,
   ratingCount: 34,
-  profileHref: "/u/sasha.keys",
+  profileHref: "/profile/sasha.keys",
 }
 
 /* -------------------------------------------------------------------------- */
@@ -634,6 +634,93 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
     ],
     youMightAlsoLike: buildRelated(),
   },
+
+  /* ------------------------------------------------------------------------ */
+  /* Mock #5 — Sold listing (visitor). Demonstrates the sold banner and the   */
+  /* single Send-a-Message CTA. No active commerce affordances.               */
+  /* ------------------------------------------------------------------------ */
+  "sold-prs-mccarty": {
+    id: "sold-prs-mccarty",
+    categoryPath: ["Guitars", "Electric"],
+    availability: ["for-sale"],
+    title: "2018 PRS McCarty 594",
+    subtitle: "McCarty Sunburst, 10-top, hardshell case",
+    description:
+      "Recently sold. Leaving the listing up as a reference — feel free to reach out if you have one for sale or want to chat about specs.",
+    price: 2950,
+    images: [
+      "https://images.unsplash.com/photo-1550985616-10810253b84d?w=900&h=1200&fit=crop",
+      "https://images.unsplash.com/photo-1516924357985-d921c87e79a0?w=900&h=1200&fit=crop",
+    ],
+    conditionLabel: "Used — Excellent",
+    conditionExplanation: null,
+    specs: [
+      { label: "Brand", value: "PRS" },
+      { label: "Year", value: "2018" },
+      { label: "Color", value: "McCarty Sunburst" },
+    ],
+    seller: marcoSeller,
+    paymentMethods: ["Cash", "PayPal — Goods & Services"],
+    shipping: null,
+    returnPolicy: null,
+    tradeInterest: null,
+    mutualMatch: null,
+    viewerIsOwner: false,
+    markedAsSold: true,
+    comments: [],
+    moreFromSeller: buildMarcoGear(),
+    youMightAlsoLike: buildRelated(),
+  },
+
+  /* ------------------------------------------------------------------------ */
+  /* Mock #6 — For Trade only (visitor). No sale price, just trade — exercises */
+  /* the Propose-a-Trade-as-primary-CTA branch of ViewerActions.              */
+  /* ------------------------------------------------------------------------ */
+  "trade-only-tele-thinline": {
+    id: "trade-only-tele-thinline",
+    categoryPath: ["Guitars", "Electric"],
+    availability: ["for-trade"],
+    title: "1972 Fender Telecaster Thinline",
+    subtitle: "Natural finish, Wide Range humbuckers, OHSC",
+    description:
+      "Not looking to sell — open to a trade for a vintage SG Standard ('68-'71) or an early-'60s ES-330. Cash on top either direction depending on the piece. Hit me with what you have.",
+    price: null,
+    images: [
+      "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=900&h=1200&fit=crop",
+      "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=900&h=1200&fit=crop",
+    ],
+    conditionLabel: "Used — Very Good",
+    conditionExplanation:
+      "Honest player wear, no breaks, no refinish. Frets are 80% original. All electronics original.",
+    specs: [
+      { label: "Brand", value: "Fender" },
+      { label: "Year", value: "1972" },
+      { label: "Color", value: "Natural" },
+      { label: "Body type", value: "Semi-Hollow" },
+      { label: "Pickups", value: "Wide Range humbuckers" },
+    ],
+    seller: marcoSeller,
+    paymentMethods: null,
+    shipping: {
+      shipsFrom: "Austin, TX",
+      handlingDays: "3 business days",
+      options: [
+        { label: "Insured ground shipping", price: 120 },
+        { label: "Local pickup", price: 0 },
+      ],
+      localPickup: true,
+    },
+    returnPolicy: "Trade as-described. Inspection window 48 hours after delivery.",
+    tradeInterest: {
+      mode: "simple",
+      text: "Vintage SG Standard ('68-'71), early-'60s ES-330, or a 50s Esquire. Cash on top is fine either direction.",
+    },
+    mutualMatch: null,
+    viewerIsOwner: false,
+    comments: [],
+    moreFromSeller: buildMarcoGear(),
+    youMightAlsoLike: buildRelated(),
+  },
 }
 
 /* -------------------------------------------------------------------------- */
@@ -642,6 +729,68 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
 
 export function getMockListing(id: string): MockListing | null {
   return MOCK_LISTINGS[id] ?? null
+}
+
+/**
+ * Map any prototype card id to a detail mock. Cards across the app
+ * (trade matches, market feed, related listings, profile tabs, search
+ * results, chat subjects) carry ids that don't have their own detail
+ * mocks. To keep the prototype navigable, we resolve them to one of the
+ * canonical demo listings.
+ *
+ * Resolution priority:
+ *   1. If the id already corresponds to a real mock, return it.
+ *   2. If the id is in the explicit override map, return that mapping.
+ *   3. Otherwise, deterministically hash the id and return one of the
+ *      visitor-viewable demo mocks so every card lands somewhere sensible
+ *      and the user sees variety across clicks.
+ *
+ * When the back team wires the real listings store, this entire helper
+ * (and `LISTING_FALLBACK_MAP`) disappears.
+ */
+export function resolveListingHref(rawId: string): string {
+  return `/listings/${resolveListingId(rawId)}`
+}
+
+function resolveListingId(rawId: string): string {
+  if (MOCK_LISTINGS[rawId]) return rawId
+  const explicit = LISTING_FALLBACK_MAP[rawId]
+  if (explicit) return explicit
+  return VISITOR_FALLBACK_IDS[hashString(rawId) % VISITOR_FALLBACK_IDS.length]
+}
+
+/** Visitor-viewable demo mocks. Excludes owner-demo so a stranger never
+ *  lands on "their own" page by accident. */
+const VISITOR_FALLBACK_IDS: string[] = [
+  "vintage-strat-1965",
+  "dumble-overdrive",
+  "les-paul-59",
+  "trade-only-tele-thinline",
+  "sold-prs-mccarty",
+]
+
+/** Stable, non-cryptographic string hash — good enough for routing variety. */
+function hashString(input: string): number {
+  let hash = 0
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) | 0
+  }
+  return Math.abs(hash)
+}
+
+/**
+ * Explicit overrides for id families where we want a specific mapping
+ * (e.g. trade matches that should always land on a For-Trade page).
+ */
+const LISTING_FALLBACK_MAP: Record<string, string> = {
+  // Trade matches grid — all are For Trade, so alternate between the two
+  // visitor-viewable mocks that have for-trade availability.
+  "tm-1-item": "vintage-strat-1965",
+  "tm-2-item": "trade-only-tele-thinline",
+  "tm-3-item": "vintage-strat-1965",
+  "tm-4-item": "trade-only-tele-thinline",
+  "tm-5-item": "vintage-strat-1965",
+  "tm-6-item": "trade-only-tele-thinline",
 }
 
 /**

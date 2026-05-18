@@ -37,7 +37,7 @@ const AVAILABILITY_CONFIG: Record<
     tone: "bg-info/10 text-info border-info/30",
   },
   collection: {
-    label: "In Collection",
+    label: "Keeping",
     icon: BookOpen,
     tone: "bg-secondary text-secondary-foreground border-border",
   },

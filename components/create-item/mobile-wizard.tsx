@@ -38,7 +38,6 @@ import {
   Tag,
   Truck,
   X,
-  Zap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -52,8 +51,9 @@ import {
 import { cn } from "@/lib/utils"
 import { StatusSelector } from "@/components/create-item/status-selector"
 import { CollectionFields } from "@/components/create-item/collection-fields"
+import { AcquisitionFields } from "@/components/create-item/acquisition-fields"
 import { WishlistFields } from "@/components/create-item/wishlist-fields"
-import { WishlistEntrySelector } from "@/components/create-item/wishlist-entry-selector"
+import { WishlistUrlImporter } from "@/components/create-item/wishlist-url-importer"
 import {
   emptyTradeInterest,
   summarizeInterest,
@@ -64,10 +64,9 @@ import {
   CategorySelector,
   ConditionGradePicker,
   PhotoUploadSection,
-  DEFAULT_SPEC_SCHEMA,
-  SPEC_SCHEMA,
-  type SpecField,
 } from "@/components/create-listing-inline"
+import { SpecsEditor } from "@/components/create-item/specs-editor"
+import { getSpecsFor, type SpecDefinition } from "@/lib/specs/catalog"
 import type {
   ItemCollectionStatus,
   ItemSaleStatus,
@@ -168,13 +167,6 @@ export interface MobileWizardProps {
    *  blocks re-entry. */
   publishing?: boolean
 
-  /**
-   * Prototype-only: fills every field with sample data in one tap. When
-   * supplied, the wizard surfaces a small "Autofill" pill in its header and
-   * on the intent screen. Optional — production builds simply omit it.
-   */
-  onAutofill?: () => void
-
   // Username for the review preview
   sellerUsername: string
   sellerAvatarUrl?: string | null
@@ -196,79 +188,6 @@ export interface MobileWizardProps {
  * in the component body instead of this constant for display.
  */
 const BASE_TOTAL_STEPS = 5
-
-/* -------------------------------------------------------------------------- */
-/* Spec data                                                                  */
-/*                                                                            */
-/* Preset options per spec key. When a spec is active and has entries here,   */
-/* the UI renders tap-to-select pills instead of a free-text input. Users can */
-/* always switch to a custom text value via the "Custom" pill.                */
-/* -------------------------------------------------------------------------- */
-const SPEC_OPTIONS: Record<string, string[]> = {
-  // Generic
-  bodyType: ["Solid", "Semi-Hollow", "Hollow", "Chambered"],
-  handedness: ["Right", "Left"],
-  strings: ["4", "5", "6", "7", "8", "12"],
-  color: ["Black", "White", "Natural", "Sunburst", "Red", "Blue", "Sparkle"],
-  finish: ["Gloss", "Satin", "Matte", "Relic"],
-  fretboard: ["Maple", "Rosewood", "Ebony", "Pau Ferro"],
-  material: ["Wood", "Metal", "Plastic", "Composite"],
-  actionType: ["Weighted", "Semi-weighted", "Synth-action"],
-  connectivity: ["USB", "XLR", '1/4"', "MIDI", "Bluetooth"],
-  shellMaterial: ["Maple", "Birch", "Mahogany", "Poplar"],
-  type: ["Studio", "Stage", "Touring", "Vintage"],
-  size: ["Small", "Medium", "Large"],
-  // Subcategory-specific
-  pickups: ["Single Coil", "Humbucker", "P90", "Active"],
-  pickupConfig: ["HSS", "HSH", "SSS", "HH", "SS"],
-  bridgeType: ["Tremolo", "Hardtail", "Floyd Rose", "Bigsby"],
-  topWood: ["Spruce", "Cedar", "Mahogany", "Koa"],
-  backWood: ["Rosewood", "Mahogany", "Maple", "Sapele"],
-  cutaway: ["Yes", "No"],
-  activePassive: ["Active", "Passive"],
-  hammerAction: ["Weighted", "Semi-weighted", "Synth-action"],
-  synthType: ["Analog", "Digital", "FM", "Wavetable", "Hybrid"],
-  effectType: ["Overdrive", "Distortion", "Delay", "Reverb", "Chorus", "Fuzz"],
-  powerSupply: ["9V", "12V", "18V", "Battery"],
-  micType: ["Dynamic", "Condenser", "Ribbon", "USB"],
-  polarPattern: ["Cardioid", "Omni", "Figure-8", "Shotgun"],
-}
-
-/**
- * Extra spec suggestions contributed by subcategory selection. These are
- * *optional* and appear as `+ Label` pills alongside the category's own
- * optional specs. Tapping a pill promotes the spec into an active field
- * complete with option pills (when available) or a plain text input.
- */
-const SUBCATEGORY_SPEC_ADDITIONS: Record<string, SpecField[]> = {
-  Electric: [
-    { key: "pickups", label: "Pickups" },
-    { key: "pickupConfig", label: "Pickup Config" },
-    { key: "bridgeType", label: "Bridge" },
-  ],
-  Acoustic: [
-    { key: "topWood", label: "Top Wood" },
-    { key: "backWood", label: "Back Wood" },
-    { key: "cutaway", label: "Cutaway" },
-  ],
-  Bass: [
-    { key: "strings", label: "Strings" },
-    { key: "activePassive", label: "Active/Passive" },
-  ],
-  "Stage Pianos": [{ key: "hammerAction", label: "Hammer Action" }],
-  Synths: [
-    { key: "synthType", label: "Synth Type" },
-    { key: "voices", label: "Voices" },
-  ],
-  Pedals: [
-    { key: "effectType", label: "Effect Type" },
-    { key: "powerSupply", label: "Power Supply" },
-  ],
-  Microphones: [
-    { key: "micType", label: "Mic Type" },
-    { key: "polarPattern", label: "Polar Pattern" },
-  ],
-}
 
 /* -------------------------------------------------------------------------- */
 /* Step validation                                                            */
@@ -303,31 +222,16 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
       issues.push({ fieldId: "status", message: "Pick a status to continue" })
     }
 
-    // Wishlist-by-URL still needs to pick an entry method before the rest of
-    // the fields are even rendered, so skip category/title/price checks here.
-    const wishlistAwaitingUrl =
-      props.isWishlistActive && props.wishlistEntryMethod === null
+    // 2. Category (+ subcategory when the category has them)
+    if (!props.category) {
+      issues.push({ fieldId: "category", message: "Pick a category" })
+    } else if (categoryHasSubcategories(props.category) && !props.subcategory) {
+      issues.push({ fieldId: "category", message: "Pick a subcategory" })
+    }
 
-    if (!wishlistAwaitingUrl) {
-      // 2. Category (+ subcategory when the category has them)
-      if (!props.category) {
-        issues.push({ fieldId: "category", message: "Pick a category" })
-      } else if (categoryHasSubcategories(props.category) && !props.subcategory) {
-        issues.push({ fieldId: "category", message: "Pick a subcategory" })
-      }
-
-      // 3. Title — non-empty after trim
-      if (!props.title.trim()) {
-        issues.push({ fieldId: "title", message: "Title is required" })
-      }
-
-      // 4. Price — numeric and > 0, only when the listing is For Sale
-      if (props.forSaleActive) {
-        const price = props.saleData.price
-        if (price === null || price === undefined || !(price > 0)) {
-          issues.push({ fieldId: "price", message: "Enter a price greater than $0" })
-        }
-      }
+    // 3. Title — non-empty after trim
+    if (!props.title.trim()) {
+      issues.push({ fieldId: "title", message: "Title is required" })
     }
   }
 
@@ -351,6 +255,10 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
 
   if (step === 4) {
     if (props.forSaleActive) {
+      const price = props.saleData.price
+      if (price === null || price === undefined || !(price > 0)) {
+        issues.push({ fieldId: "price", message: "Enter a price greater than $0" })
+      }
       if (props.saleData.paymentMethods.length === 0) {
         issues.push({ fieldId: "payment", message: "Pick a payment method" })
       }
@@ -361,8 +269,11 @@ function getStepIssues(step: number, props: MobileWizardProps): StepIssue[] {
         })
       }
     }
+    // Owned items (For Sale, For Trade, Keeping) all need a collection.
+    const isOwnedItem =
+      props.forSaleActive || props.forTradeActive || props.inCollectionActive
     if (
-      props.inCollectionActive &&
+      isOwnedItem &&
       !props.isWishlistActive &&
       !props.collectionData.collectionId
     ) {
@@ -401,12 +312,10 @@ export function MobileCreateListingWizard(props: MobileWizardProps) {
   // Condition only matters for items you own/list/trade — not pure wishlist entries.
   const showCondition = forSaleActive || forTradeActive || inCollectionActive
 
-  const specSchema =
-    (props.category && SPEC_SCHEMA[props.category]) || DEFAULT_SPEC_SCHEMA
-  const allSpecs: (SpecField & { required: boolean })[] = [
-    ...specSchema.required.map((s) => ({ ...s, required: true })),
-    ...specSchema.optional.map((s) => ({ ...s, required: false })),
-  ]
+  // Resolve specs from the unified catalog for the current category +
+  // subcategory. The catalog returns a flat list with required/options
+  // already annotated, so consumers don't need to merge anything.
+  const allSpecs = getSpecsFor(props.category, props.subcategory)
 
   /* --------------------------------------------------------------------- */
   /* Inline field validation                                               */
@@ -517,7 +426,6 @@ export function MobileCreateListingWizard(props: MobileWizardProps) {
   if (!props.hasSelectedStatus) {
     return (
       <MobileIntentScreen
-        onAutofill={props.onAutofill}
         onPickForSale={() => props.onForSaleChange(true)}
         onPickForTrade={() => props.onForTradeChange(true)}
         onPickCollection={() => props.onInCollectionChange(true)}
@@ -542,23 +450,8 @@ export function MobileCreateListingWizard(props: MobileWizardProps) {
           <div className="text-sm font-medium text-foreground">
             {stepLabels[step - 1]}
           </div>
-          <div className="flex items-center gap-2">
-            {/* Prototype-only autofill affordance. The dashed border signals
-                this is a demo action rather than a product feature. */}
-            {props.onAutofill && (
-              <button
-                type="button"
-                onClick={props.onAutofill}
-                className="flex items-center gap-1 h-8 px-2.5 rounded-md border border-dashed border-border text-[11px] font-medium text-muted-foreground hover:text-foreground active:bg-muted transition-colors"
-                aria-label="Fill all fields with sample data"
-              >
-                <Zap className="h-3 w-3" />
-                Autofill
-              </button>
-            )}
-            <div className="text-xs text-muted-foreground tabular-nums">
-              {step}/{totalSteps}
-            </div>
+          <div className="text-xs text-muted-foreground tabular-nums">
+            {step}/{totalSteps}
           </div>
         </div>
         <ProgressBar current={step} total={totalSteps} />
@@ -770,18 +663,22 @@ function StepBasics(
         </p>
       </FieldBlock>
 
-      {/* Wishlist URL/manual gate — matches desktop behaviour */}
-      {props.isWishlistActive && props.wishlistEntryMethod === null ? (
+      {/* Wishlist progressive disclosure — gates the rest of the form
+          behind a method choice (process a URL, or fill in manually). */}
+      {props.isWishlistActive && (
         <section>
-          <SectionLabel>Entry</SectionLabel>
-          <WishlistEntrySelector
-            onMethodSelected={(m) => {
-              props.setWishlistEntryMethod(m)
-            }}
+          <WishlistUrlImporter
+            entryMethod={props.wishlistEntryMethod}
+            onFillManually={() => props.setWishlistEntryMethod("manual")}
             onUrlProcessed={props.onWishlistUrlProcessed}
           />
         </section>
-      ) : (
+      )}
+
+      {/* The rest of the form stays hidden while the wishlist user hasn't
+          picked a method yet. For non-wishlist statuses (owned items) the
+          form is always visible. */}
+      {(!props.isWishlistActive || props.wishlistEntryMethod !== null) && (
         <>
           <FieldBlock
             id="category"
@@ -963,19 +860,19 @@ function StepPhotos(
 function StepDetails(
   props: MobileWizardProps & {
     showCondition: boolean
-    allSpecs: (SpecField & { required: boolean })[]
+    allSpecs: SpecDefinition[]
     fieldErrors: Record<string, string>
     registerField: (id: string) => (el: HTMLElement | null) => void
   },
 ) {
   // Required specs for the current category — used to mark fields with a "*"
   // and to decide which pills must stay pinned as active fields.
-  const specSchema =
-    (props.category && SPEC_SCHEMA[props.category]) || DEFAULT_SPEC_SCHEMA
-  const requiredSpecKeys = new Set(specSchema.required.map((s) => s.key))
+  const requiredSpecKeys = new Set(
+    props.allSpecs.filter((s) => s.required).map((s) => s.key),
+  )
 
   // Specs are always optional, so we never highlight them from validation
-  // state. The empty set keeps the prop contract stable for MobileSpecsEditor.
+  // state. The empty set keeps the prop contract stable for SpecsEditor.
   const specKeysToHighlight = new Set<string>()
   const conditionGradeError = props.fieldErrors.conditionGrade
 
@@ -1067,7 +964,7 @@ function StepDetails(
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-4 pb-4 pt-1">
-            <MobileSpecsEditor
+            <SpecsEditor
               category={props.category}
               subcategory={props.subcategory}
               getSpec={props.getSpec}
@@ -1085,7 +982,7 @@ function StepDetails(
 }
 
 function countFilledSpecs(
-  specs: (SpecField & { required: boolean })[],
+  specs: SpecDefinition[],
   getSpec: (k: string) => string,
 ) {
   return specs.filter((s) => !!getSpec(s.key)).length
@@ -1218,6 +1115,18 @@ function StepTerms(
       state: "done" as const,
       text: name ?? "Collection selected",
     }
+  })()
+
+  const acquisitionSummary = (() => {
+    const data = props.collectionData
+    const bits: string[] = []
+    if (data.dateAcquired) bits.push(data.dateAcquired)
+    if (data.acquisitionPrice) bits.push(`$${data.acquisitionPrice}`)
+    if (data.receiptUrl) bits.push("Receipt")
+    if (bits.length === 0) {
+      return { state: "empty" as const, text: "Optional details" }
+    }
+    return { state: "done" as const, text: bits.join(" · ") }
   })()
 
   const wishlistSummary = (() => {
@@ -1434,7 +1343,9 @@ function StepTerms(
           </>
         )}
 
-        {inCollectionActive && !isWishlistActive && (
+        {/* Collection — required for every owned item (For Sale, For
+            Trade, Keeping). Wishlist has its own selector elsewhere. */}
+        {!isWishlistActive && (forSaleActive || forTradeActive || inCollectionActive) && (
           <TermsCard
             value="collection"
             icon={FolderOpen}
@@ -1448,6 +1359,22 @@ function StepTerms(
               onChange={props.setCollectionData}
               isActive
               collections={props.userCollections}
+            />
+          </TermsCard>
+        )}
+
+        {/* Acquisition — optional provenance for any owned item. */}
+        {!isWishlistActive && (forSaleActive || forTradeActive || inCollectionActive) && (
+          <TermsCard
+            value="acquisition"
+            icon={Tag}
+            title="Acquisition"
+            summary={acquisitionSummary.text}
+            state={acquisitionSummary.state}
+          >
+            <AcquisitionFields
+              data={props.collectionData}
+              onChange={props.setCollectionData}
             />
           </TermsCard>
         )}
@@ -1632,7 +1559,7 @@ function StepReview(
   if (inCollectionActive) {
     statusChips.push({
       key: "collection",
-      label: "In Collection",
+      label: "Keeping",
       tone: "bg-primary/10 border-primary/40 text-primary",
       Icon: FolderOpen,
     })
@@ -1983,15 +1910,57 @@ function MobileIntentScreen({
   onPickForTrade,
   onPickCollection,
   onPickWishlist,
-  onAutofill,
 }: {
   onPickForSale: () => void
   onPickForTrade: () => void
   onPickCollection: () => void
   onPickWishlist: () => void
-  /** Prototype-only: see MobileWizardProps['onAutofill']. */
-  onAutofill?: () => void
 }) {
+  // Local multi-select state. We don't push to the parent until the user
+  // confirms via Continue, because the parent's status setters also flip
+  // `hasSelectedStatus`, which would unmount this screen on the first tap.
+  const [picked, setPicked] = useState<{
+    sale: boolean
+    trade: boolean
+    collection: boolean
+    wishlist: boolean
+  }>({ sale: false, trade: false, collection: false, wishlist: false })
+
+  // Exclusion rules applied at toggle time:
+  // - sale + trade combine freely
+  // - collection (Keeping) and wishlist are each exclusive with everything
+  // Picking an exclusive option clears the others; picking sale/trade while
+  // an exclusive is on clears that exclusive first.
+  const toggle = (key: "sale" | "trade" | "collection" | "wishlist") => {
+    setPicked((prev) => {
+      const next = { ...prev, [key]: !prev[key] }
+      if (!next[key]) return next
+      if (key === "collection") {
+        next.sale = false
+        next.trade = false
+        next.wishlist = false
+      } else if (key === "wishlist") {
+        next.sale = false
+        next.trade = false
+        next.collection = false
+      } else {
+        // sale or trade was just turned on — clear the exclusives.
+        next.collection = false
+        next.wishlist = false
+      }
+      return next
+    })
+  }
+
+  const hasAnyPicked = picked.sale || picked.trade || picked.collection || picked.wishlist
+
+  const handleContinue = () => {
+    if (picked.sale) onPickForSale()
+    if (picked.trade) onPickForTrade()
+    if (picked.collection) onPickCollection()
+    if (picked.wishlist) onPickWishlist()
+  }
+
   // One row of config keeps every option visually consistent while still
   // letting each status carry its own brand accent.
   const options: Array<{
@@ -1999,13 +1968,8 @@ function MobileIntentScreen({
     title: string
     description: string
     icon: React.ElementType
-    // Tailwind class fragments. Split out so we can tint the icon tile and
-    // the press/hover ring independently of the neutral card surface.
     iconBg: string
     iconColor: string
-    hoverBorder: string
-    activeRing: string
-    onSelect: () => void
   }> = [
     {
       key: "sale",
@@ -2014,9 +1978,6 @@ function MobileIntentScreen({
       icon: DollarSign,
       iconBg: "bg-emerald-500/10",
       iconColor: "text-emerald-400",
-      hoverBorder: "hover:border-emerald-500/60",
-      activeRing: "active:ring-emerald-500/40",
-      onSelect: onPickForSale,
     },
     {
       key: "trade",
@@ -2025,20 +1986,14 @@ function MobileIntentScreen({
       icon: ArrowLeftRight,
       iconBg: "bg-sky-500/10",
       iconColor: "text-sky-400",
-      hoverBorder: "hover:border-sky-500/60",
-      activeRing: "active:ring-sky-500/40",
-      onSelect: onPickForTrade,
     },
     {
       key: "collection",
-      title: "Collection",
-      description: "Add to your private catalog",
+      title: "Keeping",
+      description: "Something you own and want to track",
       icon: FolderOpen,
       iconBg: "bg-primary/10",
       iconColor: "text-primary",
-      hoverBorder: "hover:border-primary/60",
-      activeRing: "active:ring-primary/40",
-      onSelect: onPickCollection,
     },
     {
       key: "wishlist",
@@ -2047,9 +2002,6 @@ function MobileIntentScreen({
       icon: Heart,
       iconBg: "bg-rose-500/10",
       iconColor: "text-rose-400",
-      hoverBorder: "hover:border-rose-500/60",
-      activeRing: "active:ring-rose-500/40",
-      onSelect: onPickWishlist,
     },
   ]
 
@@ -2068,20 +2020,8 @@ function MobileIntentScreen({
             <X className="h-5 w-5" />
           </button>
           <div className="text-sm font-medium text-foreground">New Listing</div>
-          {onAutofill ? (
-            <button
-              type="button"
-              onClick={onAutofill}
-              className="flex items-center gap-1 h-8 px-2.5 rounded-md border border-dashed border-border text-[11px] font-medium text-muted-foreground hover:text-foreground active:bg-muted transition-colors"
-              aria-label="Fill all fields with sample data"
-            >
-              <Zap className="h-3 w-3" />
-              Autofill
-            </button>
-          ) : (
-            // Spacer keeps the title centered when autofill isn't supplied.
-            <div className="w-10" aria-hidden="true" />
-          )}
+          {/* Spacer keeps the title centered. */}
+          <div className="w-10" aria-hidden="true" />
         </div>
       </header>
 
@@ -2096,31 +2036,33 @@ function MobileIntentScreen({
               What do you want to do with this item?
             </h1>
             <p className="mt-2 text-sm text-muted-foreground text-pretty">
-              Pick one to get started. You can always add another later.
+              Pick one or more. You can always change this later.
             </p>
           </div>
 
-          {/* Option cards — stacked, one-tap-per-row. Radio-group semantics
-              give assistive tech a clear grouping even though tapping any
-              option advances the flow immediately. */}
-          <div className="flex flex-col gap-3" role="radiogroup" aria-label="Listing intent">
+          {/* Option cards — stacked, tap to toggle. Each card is a checkbox-style
+              control; the user confirms the picks via the sticky Continue
+              button below. */}
+          <div className="flex flex-col gap-3" role="group" aria-label="Listing intent">
             {options.map((opt) => {
               const Icon = opt.icon
+              const isSelected = picked[opt.key]
               return (
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={opt.onSelect}
-                  role="radio"
-                  aria-checked={false}
+                  onClick={() => toggle(opt.key)}
+                  role="checkbox"
+                  aria-checked={isSelected}
                   className={cn(
                     "group flex items-center gap-4 w-full text-left",
-                    "rounded-2xl border border-border bg-card",
+                    "rounded-2xl border-2 bg-card",
                     "px-4 py-4 min-h-[76px]",
                     "transition-[border-color,transform,box-shadow] duration-150",
-                    "active:scale-[0.99] active:ring-2",
-                    opt.hoverBorder,
-                    opt.activeRing,
+                    "active:scale-[0.99]",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/40"
+                      : "border-border",
                   )}
                 >
                   {/* Colored icon tile — the primary visual anchor for each
@@ -2143,10 +2085,20 @@ function MobileIntentScreen({
                       {opt.description}
                     </span>
                   </span>
-                  <ChevronRight
-                    className="h-5 w-5 text-muted-foreground/60 shrink-0 transition-transform group-active:translate-x-0.5"
+                  {/* Selection indicator — checkmark when selected, empty
+                      circle when not, so the toggle state is obvious without
+                      reading the border treatment. */}
+                  <span
+                    className={cn(
+                      "h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      isSelected
+                        ? "bg-foreground border-foreground"
+                        : "border-muted-foreground/40",
+                    )}
                     aria-hidden="true"
-                  />
+                  >
+                    {isSelected && <Check className="h-4 w-4 text-background" />}
+                  </span>
                 </button>
               )
             })}
@@ -2160,6 +2112,26 @@ function MobileIntentScreen({
           </p>
         </div>
       </main>
+
+      {/* Sticky action bar — Continue is enabled once at least one option
+          is picked. Matches the wizard's bottom-bar pattern so the user
+          recognizes the surface. */}
+      <footer
+        className="flex-shrink-0 border-t border-border bg-background"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="px-4 py-3">
+          <Button
+            type="button"
+            onClick={handleContinue}
+            disabled={!hasAnyPicked}
+            className="w-full h-12 text-base"
+          >
+            Continue
+            <ChevronRight className="ml-1 h-5 w-5" aria-hidden="true" />
+          </Button>
+        </div>
+      </footer>
     </div>
   )
 }
@@ -2305,367 +2277,4 @@ function labelForGrade(v: "new" | "used-as-new" | "used" | "used-as-is" | "") {
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/* MobileSpecsEditor                                                          */
-/*                                                                            */
-/* Pill-first, mobile-native replacement for the desktop InlineSpecInput grid.*/
-/* Active specs (required, already-filled, user-promoted, or AI-suggested)    */
-/* render as individual field rows with tap-to-select option pills. Remaining */
-/* suggested specs from the category + subcategory schemas render as compact  */
-/* `+ Label` pills below, plus a `+ Custom` pill for arbitrary user entries.  */
-/* -------------------------------------------------------------------------- */
-function MobileSpecsEditor({
-  category,
-  subcategory,
-  getSpec,
-  setSpec,
-  suggestions,
-  onAcceptSuggestion,
-  requiredKeys,
-  highlight,
-}: {
-  category: string
-  subcategory: string
-  getSpec: (k: string) => string
-  setSpec: (k: string, v: string) => void
-  suggestions: Record<string, Suggestion>
-  onAcceptSuggestion: (k: string) => void
-  requiredKeys: Set<string>
-  /** Keys to draw with a warning ring after a failed advance attempt. */
-  highlight: Set<string>
-}) {
-  const specSchema = (category && SPEC_SCHEMA[category]) || DEFAULT_SPEC_SCHEMA
-  const subcatAdditions = subcategory
-    ? SUBCATEGORY_SPEC_ADDITIONS[subcategory] ?? []
-    : []
-
-  // Deduped canonical list of known specs for this category+subcategory.
-  const knownSpecs: SpecField[] = useMemo(() => {
-    const seen = new Set<string>()
-    const result: SpecField[] = []
-    for (const s of [
-      ...specSchema.required,
-      ...specSchema.optional,
-      ...subcatAdditions,
-    ]) {
-      if (seen.has(s.key)) continue
-      seen.add(s.key)
-      result.push(s)
-    }
-    return result
-  }, [specSchema, subcatAdditions])
-
-  // Track which optional specs the user has explicitly tapped to add, so the
-  // field stays visible even if they clear the value.
-  const [promoted, setPromoted] = useState<Set<string>>(new Set())
-  // Custom specs created via the "+ Custom" pill — stored locally since they
-  // don't live in the canonical schema.
-  const [customSpecs, setCustomSpecs] = useState<SpecField[]>([])
-  const [customDraftLabel, setCustomDraftLabel] = useState<string | null>(null)
-
-  const isActive = (key: string) =>
-    requiredKeys.has(key) ||
-    !!getSpec(key) ||
-    promoted.has(key) ||
-    (suggestions[key] && !suggestions[key].accepted)
-
-  const activeSpecs: SpecField[] = [
-    ...knownSpecs.filter((s) => isActive(s.key)),
-    ...customSpecs,
-  ]
-  const suggestedSpecs = knownSpecs.filter((s) => !isActive(s.key))
-
-  const removeSpec = (key: string) => {
-    setSpec(key, "")
-    setPromoted((prev) => {
-      if (!prev.has(key)) return prev
-      const next = new Set(prev)
-      next.delete(key)
-      return next
-    })
-    setCustomSpecs((prev) => prev.filter((c) => c.key !== key))
-  }
-
-  const commitCustomDraft = () => {
-    const label = (customDraftLabel || "").trim()
-    if (!label) {
-      setCustomDraftLabel(null)
-      return
-    }
-    const key = `custom.${label.toLowerCase().replace(/\s+/g, "_")}`
-    // Avoid duplicate custom keys — if one exists, just focus it instead.
-    if (customSpecs.some((c) => c.key === key) || knownSpecs.some((c) => c.key === key)) {
-      setCustomDraftLabel(null)
-      return
-    }
-    setCustomSpecs((prev) => [...prev, { key, label }])
-    setCustomDraftLabel(null)
-  }
-
-  return (
-    <div className="space-y-4">
-      {activeSpecs.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">
-          No specs yet — tap a suggestion below to add one.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {activeSpecs.map((spec) => (
-            <SpecFieldRow
-              key={spec.key}
-              spec={spec}
-              value={getSpec(spec.key)}
-              onChange={(v) => setSpec(spec.key, v)}
-              isRequired={requiredKeys.has(spec.key)}
-              highlight={highlight.has(spec.key)}
-              suggestion={suggestions[spec.key]}
-              onAcceptSuggestion={() => onAcceptSuggestion(spec.key)}
-              onRemove={!requiredKeys.has(spec.key) ? () => removeSpec(spec.key) : undefined}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Suggestion pills + custom entry */}
-      <div className="pt-3 border-t border-border">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-            Add more
-          </p>
-          {subcategory && subcatAdditions.length > 0 && (
-            <span className="text-[11px] text-primary/80">
-              Relevant to {subcategory}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {suggestedSpecs.map((spec) => {
-            const isSubcatSpec = subcatAdditions.some((s) => s.key === spec.key)
-            return (
-              <button
-                key={spec.key}
-                type="button"
-                onClick={() =>
-                  setPromoted((p) => {
-                    const next = new Set(p)
-                    next.add(spec.key)
-                    return next
-                  })
-                }
-                className={cn(
-                  "inline-flex items-center gap-1.5 h-9 px-3 rounded-full border text-sm",
-                  "transition-colors active:scale-95",
-                  isSubcatSpec
-                    ? "border-primary/40 text-primary bg-primary/5 hover:bg-primary/10"
-                    : "border-border text-foreground bg-background hover:border-primary/40",
-                )}
-              >
-                <Plus className="h-3.5 w-3.5" />
-                {spec.label}
-              </button>
-            )
-          })}
-
-          {customDraftLabel === null ? (
-            <button
-              type="button"
-              onClick={() => setCustomDraftLabel("")}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-dashed border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors active:scale-95"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Custom
-            </button>
-          ) : null}
-        </div>
-
-        {customDraftLabel !== null && (
-          <div className="mt-3 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-            <Input
-              autoFocus
-              value={customDraftLabel}
-              onChange={(e) => setCustomDraftLabel(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault()
-                  commitCustomDraft()
-                } else if (e.key === "Escape") {
-                  setCustomDraftLabel(null)
-                }
-              }}
-              placeholder="Spec name (e.g. Serial Number)"
-              className="h-11 text-base flex-1"
-            />
-            <Button
-              size="sm"
-              onClick={commitCustomDraft}
-              disabled={!customDraftLabel.trim()}
-              className="h-11 px-4"
-            >
-              Add
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCustomDraftLabel(null)}
-              className="h-11 px-2 text-muted-foreground"
-              aria-label="Cancel custom spec"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* SpecFieldRow                                                               */
-/*                                                                            */
-/* Renders a single active spec. Behaviour depends on whether the spec key    */
-/* has preset options defined in SPEC_OPTIONS:                                */
-/*   - With presets: horizontal wrap of pill options + a "Custom" fallback    */
-/*     that toggles a text input, so users can always override.               */
-/*   - Without presets (or in custom mode): a plain text input.               */
-/* When the parent has a pending AI suggestion for this key, the row shows a  */
-/* compact suggestion banner with a one-tap Accept action.                    */
-/* -------------------------------------------------------------------------- */
-function SpecFieldRow({
-  spec,
-  value,
-  onChange,
-  isRequired,
-  highlight,
-  suggestion,
-  onAcceptSuggestion,
-  onRemove,
-}: {
-  spec: SpecField
-  value: string
-  onChange: (v: string) => void
-  isRequired: boolean
-  highlight: boolean
-  suggestion?: Suggestion
-  onAcceptSuggestion: () => void
-  onRemove?: () => void
-}) {
-  const options = SPEC_OPTIONS[spec.key] ?? []
-  const hasOptions = options.length > 0
-  const valueIsCustom = !!value && hasOptions && !options.includes(value)
-  const [showCustomInput, setShowCustomInput] = useState(false)
-  const showCustom = !hasOptions || showCustomInput || valueIsCustom
-
-  const pendingSuggestion = suggestion && !suggestion.accepted && !value
-
-  return (
-    <div
-      className={cn(
-        "rounded-xl border p-3 transition-colors",
-        highlight
-          ? "border-status-warning ring-2 ring-status-warning/30 bg-status-warning/5"
-          : "border-border bg-background",
-      )}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <label className="text-sm font-medium text-foreground truncate">
-            {spec.label}
-          </label>
-          {isRequired && (
-            <span
-              className="text-xs text-status-warning font-semibold"
-              aria-label="Required"
-            >
-              *
-            </span>
-          )}
-        </div>
-        {onRemove && (
-          <button
-            type="button"
-            onClick={onRemove}
-            className="shrink-0 -mr-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md"
-            aria-label={`Remove ${spec.label}`}
-          >
-            Remove
-          </button>
-        )}
-      </div>
-
-      {pendingSuggestion ? (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 min-w-0 bg-primary/5 rounded-md border border-primary/20 px-3 py-2 text-foreground/80 italic text-sm truncate">
-            {suggestion.value}
-          </div>
-          <button
-            type="button"
-            onClick={onAcceptSuggestion}
-            className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-md bg-primary/20 hover:bg-primary/30 text-primary font-medium text-xs"
-          >
-            <Check className="h-3.5 w-3.5" />
-            Accept
-          </button>
-        </div>
-      ) : hasOptions && !showCustom ? (
-        <div className="flex flex-wrap gap-2">
-          {options.map((opt) => {
-            const selected = value === opt
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => onChange(selected ? "" : opt)}
-                className={cn(
-                  "inline-flex items-center justify-center h-9 px-3 rounded-full border text-sm",
-                  "transition-colors active:scale-95",
-                  selected
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background border-border text-foreground hover:border-primary/40",
-                )}
-              >
-                {opt}
-              </button>
-            )
-          })}
-          <button
-            type="button"
-            onClick={() => setShowCustomInput(true)}
-            className="inline-flex items-center gap-1 h-9 px-3 rounded-full border border-dashed border-border text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Pencil className="h-3 w-3" />
-            Custom
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Input
-            // When the user taps "Custom" on a preset row, autoFocus drops the
-            // caret straight into the field so they can start typing with no
-            // extra tap. On initial mount for free-text specs we skip it so
-            // the keyboard doesn't pop up unexpectedly.
-            autoFocus={showCustomInput}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={`Enter ${spec.label.toLowerCase()}`}
-            className="h-11 text-base flex-1"
-          />
-          {hasOptions && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setShowCustomInput(false)
-                onChange("")
-              }}
-              className="h-11 px-3 text-xs text-muted-foreground"
-            >
-              Presets
-            </Button>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
 

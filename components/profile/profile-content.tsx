@@ -23,6 +23,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { currentUser } from "@/lib/current-user"
+import { useCollections } from "@/lib/collections-context"
+import { wishlistIdFor, type MyItem } from "@/lib/mock/my-stuff"
 import { ownProfile, otherProfile, profilePageData } from "@/lib/profile-page-data"
 import type {
   ProfileActivityReference,
@@ -33,6 +35,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { CollectionCard } from "@/components/collection-card"
 import { ItemCard } from "@/components/item-card"
+import { WishlistItemCard } from "./wishlist-item-card"
 import { ProfileEditView } from "./profile-edit-view"
 import { ProfileMobileSheet } from "./profile-mobile-sheet"
 import { ProfileNicheSwitcher } from "./profile-niche-switcher"
@@ -67,6 +70,26 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
 
   const isOwnProfile = viewMode === "own"
   const profile = isOwnProfile ? ownProfileState : otherProfileState
+
+  // Resolve the wishlist items for the profile being viewed. The Looking
+  // For tab pulls from the items store so it stays in sync with whatever
+  // the user adds via Create Listing → Wishlist. Visitors only see items
+  // marked isPublic — owners see everything.
+  const { items: storeItems, collections } = useCollections()
+  const profileOwnerUsername = isOwnProfile
+    ? currentUser.username
+    : profile.ownerHandle
+  const wishlistCollectionId = wishlistIdFor(profileOwnerUsername)
+  const wishlistCollection = collections.find(
+    (c) => c.id === wishlistCollectionId,
+  )
+  const wishlistIsVisibleToVisitor =
+    wishlistCollection?.visibility !== "private"
+  const wishlistItems: MyItem[] = storeItems.filter((item) => {
+    if (item.collection_id !== wishlistCollectionId) return false
+    if (isOwnProfile) return true
+    return item.wishlist?.isPublic ?? true
+  })
   const handleShareProfile = () => {
     if (typeof window === "undefined") return
     const url = `${window.location.origin}/profile/${profile.username}`
@@ -377,25 +400,33 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
           </CollapsibleSection>
 
           <CollapsibleSection
-            label={`${profilePageData.lookingForItems.length} wishlist items`}
+            label={`${wishlistItems.length} wishlist items`}
             defaultOpen
           >
-            {profilePageData.lookingForItems.length === 0 ? (
+            {!isOwnProfile && !wishlistIsVisibleToVisitor ? (
+              <EmptyState
+                icon={<Heart className="h-10 w-10 text-muted-foreground/50" />}
+                title="This wishlist is private"
+                body={`${profile.username} hasn't made their Looking For list public.`}
+              />
+            ) : wishlistItems.length === 0 ? (
               <EmptyState
                 icon={<Heart className="h-10 w-10 text-muted-foreground/50" />}
                 title="No wishlist items"
-                body="Add public wishlist items to show what this profile is looking for."
+                body={
+                  isOwnProfile
+                    ? "Add items to your Wishlist to show what you're looking for."
+                    : `${profile.username} isn't actively looking for anything right now.`
+                }
               />
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {profilePageData.lookingForItems.map((item) => (
-                  <ItemCard
+                {wishlistItems.map((item) => (
+                  <WishlistItemCard
                     key={item.id}
-                    id={item.id}
-                    image={item.imageUrl}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    href={`/listings/${item.id}`}
+                    item={item}
+                    viewer={isOwnProfile ? "owner" : "visitor"}
+                    ownerUsername={profileOwnerUsername}
                   />
                 ))}
               </div>

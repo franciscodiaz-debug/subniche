@@ -7,8 +7,27 @@ import type { Collection } from "@/lib/types"
  */
 export const wishlistIdFor = (username: string) => `wishlist-${username}`
 
+/**
+ * Wishlist-specific fields attached to a MyItem when it belongs to the
+ * user's Wishlist collection. These describe what the user WANTS, not
+ * what they have — target price they'd pay, where they found the item,
+ * etc. Only set when `collection_id === wishlistIdFor(owner)`.
+ */
+export interface WishlistItemData {
+  /** Price the user is willing to pay to acquire this item. */
+  targetPrice: number | null
+  /** Optional external link where the user found this item. */
+  sourceUrl: string | null
+  /** If false, the item only appears on the owner's own Looking For tab. */
+  isPublic: boolean
+}
+
 export interface MyItem {
   id: string
+  /** Owner of this item — needed when the store mixes items from multiple
+   *  users (e.g. for visitor profile views). Defaults to the current user
+   *  when omitted, matching the legacy fixtures. */
+  owner_id?: string
   title: string
   subtitle?: string
   price: number | null
@@ -22,6 +41,8 @@ export interface MyItem {
   updated_at: string
   collection_id: string | null
   location?: string
+  /** Only present when the item belongs to a Wishlist collection. */
+  wishlist?: WishlistItemData
 }
 
 export const myItemCollections: Array<{ id: string; name: string }> = [
@@ -97,19 +118,45 @@ export const myItems: MyItem[] = [
   },
   {
     id: "mi-5",
-    title: "Mystery Pickup Set",
-    subtitle: "Unmarked humbuckers",
+    title: "1959 Fender Stratocaster",
+    subtitle: "Slab board, any color — playability over originality",
     price: null,
-    images: ["https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=800&h=600&fit=crop"],
+    images: ["https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=800&h=600&fit=crop"],
     for_sale: false,
     for_trade: false,
     sold: false,
     views: 0,
     saves: 0,
     messages: 0,
-    updated_at: "Draft",
+    updated_at: "2w ago",
     collection_id: "wishlist-jek116",
     location: "Brooklyn, NY",
+    wishlist: {
+      targetPrice: 28000,
+      sourceUrl: "https://reverb.com/item/example-1959-strat",
+      isPublic: true,
+    },
+  },
+  {
+    id: "mi-7",
+    title: "Dumble Overdrive Special",
+    subtitle: "Any year, any cosmetic. Lifetime grail.",
+    price: null,
+    images: ["https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&h=600&fit=crop"],
+    for_sale: false,
+    for_trade: false,
+    sold: false,
+    views: 0,
+    saves: 0,
+    messages: 0,
+    updated_at: "1w ago",
+    collection_id: "wishlist-jek116",
+    location: "Brooklyn, NY",
+    wishlist: {
+      targetPrice: 90000,
+      sourceUrl: null,
+      isPublic: true,
+    },
   },
   {
     id: "mi-6",
@@ -244,6 +291,77 @@ export const myItems: MyItem[] = [
     collection_id: "collection-3",
     location: "Nashville, TN",
   },
+  /* -----------------------------------------------------------------------
+   * Wishlist items owned by guitar_collector — used to demo the Looking
+   * For tab on a visitor profile. All have isPublic=true so they show up
+   * for any visitor.
+   * --------------------------------------------------------------------- */
+  {
+    id: "gc-w1",
+    owner_id: "guitar_collector",
+    title: "1958 Gibson Flying V (Korina)",
+    subtitle: "Original — willing to wait years for the right one",
+    price: null,
+    images: ["https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=800&h=600&fit=crop"],
+    for_sale: false,
+    for_trade: false,
+    sold: false,
+    views: 0,
+    saves: 0,
+    messages: 0,
+    updated_at: "Added 4d ago",
+    collection_id: "wishlist-guitar_collector",
+    location: "Nashville, TN",
+    wishlist: {
+      targetPrice: 250000,
+      sourceUrl: null,
+      isPublic: true,
+    },
+  },
+  {
+    id: "gc-w2",
+    owner_id: "guitar_collector",
+    title: "Fender Tweed Bassman 5F6-A",
+    subtitle: "Original, working — any cosmetic condition",
+    price: null,
+    images: ["https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&h=600&fit=crop"],
+    for_sale: false,
+    for_trade: false,
+    sold: false,
+    views: 0,
+    saves: 0,
+    messages: 0,
+    updated_at: "Added 1w ago",
+    collection_id: "wishlist-guitar_collector",
+    location: "Nashville, TN",
+    wishlist: {
+      targetPrice: 6500,
+      sourceUrl: "https://reverb.com/item/example-bassman",
+      isPublic: true,
+    },
+  },
+  {
+    id: "gc-w3",
+    owner_id: "guitar_collector",
+    title: "Klon Centaur (Gold, original horsie)",
+    subtitle: "Original gold — not a reissue, not silver. Patient buyer.",
+    price: null,
+    images: ["https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=800&h=600&fit=crop"],
+    for_sale: false,
+    for_trade: false,
+    sold: false,
+    views: 0,
+    saves: 0,
+    messages: 0,
+    updated_at: "Added 2w ago",
+    collection_id: "wishlist-guitar_collector",
+    location: "Nashville, TN",
+    wishlist: {
+      targetPrice: 6000,
+      sourceUrl: null,
+      isPublic: true,
+    },
+  },
 ]
 
 export const myCollections: Collection[] = [
@@ -316,6 +434,17 @@ export const myCollections: Collection[] = [
     item_count: 12,
     total_user_value: 4800,
     total_ai_value: 5100,
+  },
+  {
+    id: "wishlist-guitar_collector",
+    owner_id: "guitar_collector",
+    name: "Wishlist",
+    description: "Items I'm hunting for.",
+    visibility: "public",
+    is_wishlist: true,
+    item_count: 3,
+    total_user_value: 0,
+    total_ai_value: 0,
   },
 ]
 

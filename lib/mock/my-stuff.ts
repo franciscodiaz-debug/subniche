@@ -1,5 +1,12 @@
 import type { Collection } from "@/lib/types"
 
+/**
+ * Each user has exactly one Wishlist collection, seeded by default. It can't
+ * be renamed, edited, or deleted. The id is namespaced by username so the
+ * collections-context can find or seed the right one per user.
+ */
+export const wishlistIdFor = (username: string) => `wishlist-${username}`
+
 export interface MyItem {
   id: string
   title: string
@@ -20,7 +27,7 @@ export interface MyItem {
 export const myItemCollections: Array<{ id: string; name: string }> = [
   { id: "col-guitars", name: "My Guitars" },
   { id: "col-pedalboard", name: "Pedal Board" },
-  { id: "col-dream", name: "Dream Guitars" },
+  { id: "wishlist-jek116", name: "Wishlist" },
 ]
 
 export const myItems: MyItem[] = [
@@ -85,7 +92,7 @@ export const myItems: MyItem[] = [
     saves: 3,
     messages: 0,
     updated_at: "2w ago",
-    collection_id: null,
+    collection_id: "col-guitars",
     location: "Brooklyn, NY",
   },
   {
@@ -101,7 +108,7 @@ export const myItems: MyItem[] = [
     saves: 0,
     messages: 0,
     updated_at: "Draft",
-    collection_id: "col-dream",
+    collection_id: "wishlist-jek116",
     location: "Brooklyn, NY",
   },
   {
@@ -261,10 +268,10 @@ export const myCollections: Collection[] = [
     total_ai_value: 9200,
   },
   {
-    id: "col-dream",
+    id: "wishlist-jek116",
     owner_id: "jek116",
-    name: "Dream Guitars",
-    description: "Guitars I'm hunting for.",
+    name: "Wishlist",
+    description: "Items you're hunting for.",
     visibility: "private",
     is_wishlist: true,
     item_count: 5,
@@ -326,7 +333,7 @@ export const collectionMeta: Record<
     subcategories: ["Drive", "Modulation"],
     followingCountLabel: "412 following",
   },
-  "col-dream": {
+  "wishlist-jek116": {
     categories: ["Guitars"],
     subcategories: ["Electric", "Amps"],
     followingCountLabel: "86 following",
@@ -346,7 +353,7 @@ export const collectionPreviewImages: Record<string, string[]> = {
     "https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=400&fit=crop",
     "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=400&h=400&fit=crop",
   ],
-  "col-dream": [
+  "wishlist-jek116": [
     "https://images.unsplash.com/photo-1519508234439-4f23643125c1?w=400&h=400&fit=crop",
   ],
 }

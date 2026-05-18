@@ -49,8 +49,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Collection, CollectionVisibility } from "@/lib/types"
 import { type MyItem } from "@/lib/mock/my-stuff"
-import { useCollections } from "@/lib/collections-context"
-import { MyItemGridCard } from "@/components/my-stuff/my-item-card"
+import { isUserWishlist, useCollections } from "@/lib/collections-context"
+import { currentUser } from "@/lib/current-user"
+import { ItemCard } from "@/components/item-card"
+import { ItemActionsMenu } from "@/components/my-stuff/owner-item-controls"
 
 interface CollectionOwnerViewProps {
   collection: Collection
@@ -105,6 +107,7 @@ export function CollectionOwnerView({
   const visibility = collection.visibility ?? "private"
   const vis = visibilityConfig[visibility]
   const VisibilityIcon = vis.icon
+  const isWishlist = isUserWishlist(collection, currentUser.username)
 
   const totalValue = useMemo(
     () =>
@@ -251,12 +254,14 @@ export function CollectionOwnerView({
               <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                 Manage collection
               </DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/collection/${collection.id}/edit`}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
+              {!isWishlist && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/collection/${collection.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onSelect={handleShare}>
                 {copied ? (
                   <Check className="mr-2 h-4 w-4 text-primary" />
@@ -265,17 +270,21 @@ export function CollectionOwnerView({
                 )}
                 {copied ? "Link copied" : "Share"}
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault()
-                  setDeleteOpen(true)
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete collection
-              </DropdownMenuItem>
+              {!isWishlist && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault()
+                      setDeleteOpen(true)
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete collection
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -325,11 +334,19 @@ export function CollectionOwnerView({
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {ownedItems.map((item) => (
-              <MyItemGridCard
+              <ItemCard
                 key={item.id}
-                item={item}
-                ownership="owner"
-                insideCollectionPage
+                id={item.id}
+                title={item.title}
+                subtitle={item.subtitle ?? undefined}
+                image={item.images[0] || "/placeholder.svg"}
+                href={`/listings/${item.id}`}
+                price={item.price ?? null}
+                forSale={item.for_sale}
+                forTrade={item.for_trade}
+                dimmed={item.sold}
+                alwaysShowPrice
+                actions={<ItemActionsMenu item={item} variant="overlay" />}
               />
             ))}
           </div>

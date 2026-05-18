@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRightFromLine, Heart, MapPin, Repeat2 } from "lucide-react"
@@ -45,6 +46,19 @@ export interface ItemCardProps {
   compact?: boolean
   className?: string
   priority?: boolean
+  /** Optional overlay node rendered in the top-right of the image area.
+   *  When provided, replaces the default WatchlistButton — used by owner
+   *  views (e.g. My Stuff) to show a three-dots actions menu instead. */
+  actions?: ReactNode
+  /** Optional content rendered directly under the title/subtitle, above
+   *  the collections row. Used by owner views to render a collection
+   *  picker chip without baking that logic into the unified card. */
+  belowTitle?: ReactNode
+  /** Visually de-emphasizes the card (e.g. sold items). */
+  dimmed?: boolean
+  /** Render price even when the item is not for sale/trade. Used by owner
+   *  views where the price represents the user's estimate, not a listing. */
+  alwaysShowPrice?: boolean
 }
 
 /* -------------------------------------------------------------------------- */
@@ -151,8 +165,12 @@ export function ItemCard({
   compact = false,
   className,
   priority = false,
+  actions,
+  belowTitle,
+  dimmed = false,
+  alwaysShowPrice = false,
 }: ItemCardProps) {
-  const hasPrice = (forSale || forTrade) && price != null
+  const hasPrice = (alwaysShowPrice || forSale || forTrade) && price != null
   const hasStatus = forSale || forTrade
   const hasCollections = collections && collections.length > 0
 
@@ -160,6 +178,7 @@ export function ItemCard({
     <div
       className={cn(
         "group rounded-lg border border-border bg-card transition-all hover:border-primary/50",
+        dimmed && "opacity-75",
         className,
       )}
     >
@@ -173,7 +192,18 @@ export function ItemCard({
             className="object-cover transition-transform group-hover:scale-105"
           />
         </Link>
-        <WatchlistButton id={id} isWatched={isWatched} onToggle={onToggleWatch} />
+        {actions ? (
+          <div
+            className={cn(
+              "absolute right-2 top-2 z-20 transition-opacity",
+              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100",
+            )}
+          >
+            {actions}
+          </div>
+        ) : (
+          <WatchlistButton id={id} isWatched={isWatched} onToggle={onToggleWatch} />
+        )}
       </div>
 
       <div className="space-y-1.5 p-3">
@@ -185,6 +215,8 @@ export function ItemCard({
             <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
           ) : null}
         </Link>
+
+        {belowTitle ? <div>{belowTitle}</div> : null}
 
         {hasCollections ? (
           <CollectionChips chips={collections!} />

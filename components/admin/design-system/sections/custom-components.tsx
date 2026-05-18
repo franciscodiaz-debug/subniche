@@ -12,7 +12,8 @@ import { SubnicheLogo } from "@/components/app-shell/subniche-logo"
 import { ItemCard } from "@/components/item-card"
 import { CollectionCard } from "@/components/collection-card"
 import { DiscoverListingCard } from "@/components/discover-listing-card"
-import { MyItemGridCard, MyItemRow, MyItemListHeader } from "@/components/my-stuff/my-item-card"
+import { MyItemRow, MyItemListHeader } from "@/components/my-stuff/my-item-card"
+import { ItemActionsMenu } from "@/components/my-stuff/owner-item-controls"
 import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist"
 import { GridDensitySelector } from "@/components/shared/grid-density-selector"
 import { MarketTabs } from "@/components/shared/market-tabs"
@@ -261,8 +262,8 @@ export function CustomSection() {
         </div>
       </DSSection>
 
-      {/* MyItemGridCard & MyItemRow */}
-      <DSSection id="custom-my-item-card" title="MyItemGridCard · MyItemRow" source="Custom">
+      {/* ItemCard (owner mode) & MyItemRow */}
+      <DSSection id="custom-my-item-card" title="ItemCard (owner) · MyItemRow" source="Custom">
         <div className="space-y-8">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -270,7 +271,20 @@ export function CustomSection() {
             </p>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {myItems.slice(0, 4).map((item) => (
-                <MyItemGridCard key={item.id} item={item} />
+                <ItemCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  subtitle={item.subtitle ?? undefined}
+                  image={item.images[0] || "/placeholder.svg"}
+                  href={`/listings/${item.id}`}
+                  price={item.price ?? null}
+                  forSale={item.for_sale}
+                  forTrade={item.for_trade}
+                  dimmed={item.sold}
+                  alwaysShowPrice
+                  actions={<ItemActionsMenu item={item} variant="overlay" />}
+                />
               ))}
             </div>
           </div>

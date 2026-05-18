@@ -5,8 +5,6 @@ import {
   ArrowUpDown,
   Check,
   ChevronDown,
-  Grid2x2,
-  Grid3x3,
   LayoutGrid,
   List,
   Plus,
@@ -37,25 +35,26 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import {
-  MyItemGridCard,
   MyItemListHeader,
   MyItemRow,
   type MyItem,
 } from "./my-item-card"
+import { ItemActionsMenu } from "@/components/my-stuff/owner-item-controls"
+import { ItemCard } from "@/components/item-card"
+import { GridDensitySelector } from "@/components/shared/grid-density-selector"
+import { gridDensityConfig, useGridDensity } from "@/hooks/use-grid-density"
 import { useCollections } from "@/lib/collections-context"
 import { currentUser } from "@/lib/current-user"
 
 type SortKey = "recent" | "price_desc" | "price_asc" | "views" | "value"
 type CollectionFilter =
   | "all"
-  | "uncategorized"
   | "unlisted"
   | "drafts"
   | "sold"
   | string
 type FilterState = "neutral" | "include" | "exclude"
 type View = "grid" | "list"
-type GridDensity = "comfortable" | "standard" | "compact"
 
 const sortLabels: Record<SortKey, string> = {
   recent: "Newest",
@@ -82,11 +81,10 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
 
 function DesktopStatsGrid({ items }: { items: MyItem[] }) {
   return (
-    <div className="hidden grid-cols-4 gap-3 @3xl/mystuff:grid">
+    <div className="hidden grid-cols-3 gap-3 @3xl/mystuff:grid">
       <StatCard label="Total" value={items.length} />
       <StatCard label="For Sale" value={items.filter((i) => i.for_sale).length} />
       <StatCard label="For Trade" value={items.filter((i) => i.for_trade).length} />
-      <StatCard label="Uncategorized" value={items.filter((i) => !i.collection_id).length} />
     </div>
   )
 }
@@ -96,7 +94,6 @@ function CompactStatsRow({ items }: { items: MyItem[] }) {
     { label: "items", value: items.length },
     { label: "for sale", value: items.filter((i) => i.for_sale).length },
     { label: "for trade", value: items.filter((i) => i.for_trade).length },
-    { label: "uncategorized", value: items.filter((i) => !i.collection_id).length },
   ]
   return (
     <p className={cn(
@@ -218,7 +215,6 @@ function FiltersButton({
           {myCollections.map((c) => (
             <DropdownMenuRadioItem key={c.id} value={c.id}>{c.name}</DropdownMenuRadioItem>
           ))}
-          <DropdownMenuRadioItem value="uncategorized">Uncategorized</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
 
         <DropdownMenuSeparator />
@@ -264,30 +260,25 @@ function SortDropdown({ value, onChange }: { value: SortKey; onChange: (v: SortK
 function ViewToggleSegment({
   view,
   setView,
-  gridDensity,
-  setGridDensity,
 }: {
   view: View
   setView: (v: View) => void
-  gridDensity: GridDensity
-  setGridDensity: (d: GridDensity) => void
 }) {
-  const DensityIcon = { comfortable: Grid2x2, standard: LayoutGrid, compact: Grid3x3 }[gridDensity]
-  const nextDensity: GridDensity = { comfortable: "standard", standard: "compact", compact: "comfortable" }[gridDensity] as GridDensity
-
   return (
     <div className="inline-flex h-9 shrink-0 items-center rounded-lg border border-border bg-card p-0.5">
       <button
         type="button"
-        onClick={() => view === "grid" ? setGridDensity(nextDensity) : setView("grid")}
+        onClick={() => setView("grid")}
         aria-pressed={view === "grid"}
         aria-label="Grid view"
         className={cn(
           "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-          view === "grid" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+          view === "grid"
+            ? "bg-primary/15 text-primary"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
-        <DensityIcon className="h-4 w-4" />
+        <LayoutGrid className="h-4 w-4" />
       </button>
       <button
         type="button"
@@ -296,7 +287,9 @@ function ViewToggleSegment({
         aria-label="List view"
         className={cn(
           "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-          view === "list" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+          view === "list"
+            ? "bg-primary/15 text-primary"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <List className="h-4 w-4" />
@@ -342,19 +335,13 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
   const [userView, setUserView] = useState<View | null>(null)
   const view: View = userView ?? (isMobile ? "list" : "grid")
   const setView = (v: View) => setUserView(v)
-  const [gridDensity, setGridDensity] = useState<GridDensity>("standard")
-
-  const gridClass = {
-    comfortable: "grid-cols-1 gap-x-6 gap-y-8 @3xl/mystuff:grid-cols-2",
-    standard: "grid-cols-1 gap-x-4 gap-y-6 @3xl/mystuff:grid-cols-3 @5xl/mystuff:grid-cols-4",
-    compact: "grid-cols-1 gap-x-2 gap-y-4 @3xl/mystuff:grid-cols-4 @5xl/mystuff:grid-cols-6 @7xl/mystuff:grid-cols-8",
-  }[gridDensity]
+  const { gridDensity } = useGridDensity()
+  const gridClass = gridDensityConfig[gridDensity].gridClass
 
   const filtered = useMemo(() => {
     let result = myItems
 
-    if (collectionFilter === "uncategorized") result = result.filter((i) => !i.collection_id)
-    else if (collectionFilter === "unlisted") result = result.filter((i) => !i.for_sale && !i.for_trade && !i.sold)
+    if (collectionFilter === "unlisted") result = result.filter((i) => !i.for_sale && !i.for_trade && !i.sold)
     else if (collectionFilter === "drafts") result = result.filter((i) => i.updated_at === "Draft")
     else if (collectionFilter === "sold") result = result.filter((i) => i.sold)
     else if (collectionFilter !== "all") result = result.filter((i) => i.collection_id === collectionFilter)
@@ -396,7 +383,8 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
           />
           <div className="ml-auto flex items-center gap-2">
             <SortDropdown value={sort} onChange={setSort} />
-            <ViewToggleSegment view={view} setView={setView} gridDensity={gridDensity} setGridDensity={setGridDensity} />
+            {view === "grid" ? <GridDensitySelector /> : null}
+            <ViewToggleSegment view={view} setView={setView} />
           </div>
         </div>
         <div className="relative">
@@ -441,7 +429,8 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
           />
         </div>
         <SortDropdown value={sort} onChange={setSort} />
-        <ViewToggleSegment view={view} setView={setView} gridDensity={gridDensity} setGridDensity={setGridDensity} />
+        {view === "grid" ? <GridDensitySelector /> : null}
+        <ViewToggleSegment view={view} setView={setView} />
       </div>
 
       {filtered.length === 0 ? (
@@ -473,8 +462,23 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
           </div>
         </div>
       ) : (
-        <div className={cn("grid", gridClass)}>
-          {filtered.map((item) => <MyItemGridCard key={item.id} item={item} />)}
+        <div className={gridClass}>
+          {filtered.map((item) => (
+            <ItemCard
+              key={item.id}
+              id={item.id}
+              title={item.title}
+              subtitle={item.subtitle ?? undefined}
+              image={item.images[0] || "/placeholder.svg"}
+              href={`/listings/${item.id}`}
+              price={item.price ?? null}
+              forSale={item.for_sale}
+              forTrade={item.for_trade}
+              dimmed={item.sold}
+              alwaysShowPrice
+              actions={<ItemActionsMenu item={item} variant="overlay" />}
+            />
+          ))}
         </div>
       )}
     </div>

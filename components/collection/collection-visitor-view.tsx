@@ -38,7 +38,7 @@ import {
 import type { Collection, CollectionVisibility } from "@/lib/types"
 import type { MyItem } from "@/lib/mock/my-stuff"
 import { useCollections } from "@/lib/collections-context"
-import { MyItemGridCard } from "@/components/my-stuff/my-item-card"
+import { ItemCard } from "@/components/item-card"
 
 const visibilityConfig: Record<
   CollectionVisibility,
@@ -166,11 +166,16 @@ export function CollectionVisitorView({
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ownedItems.map((item) => (
-            <MyItemGridCard
+            <ItemCard
               key={item.id}
-              item={item}
-              ownership="visitor"
-              insideCollectionPage
+              id={item.id}
+              title={item.title}
+              subtitle={item.subtitle ?? undefined}
+              image={item.images[0] || "/placeholder.svg"}
+              href={`/listings/${item.id}`}
+              price={item.price ?? null}
+              forSale={item.for_sale}
+              forTrade={item.for_trade}
             />
           ))}
         </div>

@@ -272,30 +272,32 @@ export function MarketContent() {
           )}
 
           {(!queryFromUrl || searchTab === "items") && (
-          <div className="mb-6 flex flex-wrap items-center gap-2">
+          <div className="mb-6 flex items-center gap-2 overflow-x-auto">
             {!sidebarOpen ? (
               <button
                 type="button"
                 onClick={() => !filtersDisabled && setSidebarOpen(true)}
                 disabled={filtersDisabled}
+                title="Filters"
+                aria-label={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
                 className={cn(
-                  "inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium transition-colors",
+                  "relative inline-flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-medium transition-colors sm:h-9 sm:w-auto sm:px-3",
                   filtersDisabled
                     ? "cursor-not-allowed opacity-40 text-muted-foreground"
                     : "text-foreground hover:bg-secondary",
                 )}
               >
-                <SlidersHorizontal className="h-4 w-4" />
-                Filters
+                <SlidersHorizontal className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Filters</span>
                 {activeFilterCount > 0 ? (
-                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground sm:static sm:h-4 sm:min-w-4">
                     {activeFilterCount}
                   </span>
                 ) : null}
               </button>
             ) : null}
 
-            <div className="scrollbar-hide flex gap-2 overflow-x-auto">
+            <div className="scrollbar-hide flex shrink-0 gap-2 overflow-x-auto">
               {sortPills.map(({ value, label, icon: Icon }) => {
                 const active = sort === value
                 return (
@@ -304,29 +306,35 @@ export function MarketContent() {
                     type="button"
                     onClick={() => updateSort(active ? "all" : value)}
                     aria-pressed={active}
+                    aria-label={label}
+                    title={label}
                     className={cn(
-                      "inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                      "inline-flex h-11 w-11 flex-shrink-0 items-center justify-center gap-1.5 rounded-full border text-xs font-medium transition-colors sm:h-auto sm:w-auto sm:px-3 sm:py-1.5",
                       active
                         ? "border-primary bg-primary/10 text-foreground"
                         : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
                     )}
                   >
-                    <Icon className={cn("h-3.5 w-3.5", active ? "text-primary" : "")} />
-                    {label}
+                    <Icon className={cn("h-5 w-5 sm:h-3.5 sm:w-3.5", active ? "text-primary" : "")} />
+                    <span className="hidden sm:inline">{label}</span>
                   </button>
                 )
               })}
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                    aria-label={`Sort: ${secondarySortOptions.find((o) => o.value === secondarySort)?.label ?? "Newest first"}`}
+                    title={`Sort: ${secondarySortOptions.find((o) => o.value === secondarySort)?.label ?? "Newest first"}`}
+                    className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:h-9 sm:w-auto sm:px-3"
                   >
-                    <ArrowUpDown className="h-4 w-4 shrink-0" />
-                    {secondarySortOptions.find((o) => o.value === secondarySort)?.label ?? "Newest first"}
+                    <ArrowUpDown className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">
+                      {secondarySortOptions.find((o) => o.value === secondarySort)?.label ?? "Newest first"}
+                    </span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -357,7 +365,7 @@ export function MarketContent() {
               </div>
             ) : (
               <div className={gridDensityConfig[gridDensity].gridClass}>
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <ItemCard
                     key={item.id}
                     id={item.id}
@@ -370,6 +378,7 @@ export function MarketContent() {
                     forTrade={item.forTrade}
                     collections={item.collections}
                     compact={gridDensity === "compact"}
+                    priority={index < 2}
                     match={
                       item.match
                         ? {
@@ -406,7 +415,7 @@ export function MarketContent() {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">{c.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {c.memberCount.toLocaleString()} members
+                        {c.memberCount.toLocaleString('en-US')} members
                       </p>
                     </div>
                   </Link>
@@ -449,4 +458,3 @@ export function MarketContent() {
     </div>
   )
 }
-

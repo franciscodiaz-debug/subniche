@@ -76,7 +76,7 @@ export function CompactSellerCard({ seller }: CompactSellerCardProps) {
           <span className="font-medium text-foreground">
             {seller.ratingAverage.toFixed(1)}
           </span>
-          <span>({seller.ratingCount.toLocaleString()} reviews)</span>
+          <span>({seller.ratingCount.toLocaleString('en-US')} reviews)</span>
         </Link>
       </div>
     </div>

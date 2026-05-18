@@ -285,7 +285,7 @@ export function CollectionOwnerView({
                   $
                   {totalValue >= 1000
                     ? `${Math.round(totalValue / 1000)}k`
-                    : totalValue.toLocaleString()}{" "}
+                    : totalValue.toLocaleString('en-US')}{" "}
                   value
                 </span>
               </>
@@ -363,7 +363,7 @@ export function CollectionOwnerView({
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto py-4">
+              <div className="flex-1 overflow-y-auto py-4 pb-[72px] lg:pb-4">
                 <div className="space-y-2">
                   {availableItems.map((item) => {
                     const selected = selectedIds.has(item.id)

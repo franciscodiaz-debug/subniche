@@ -44,6 +44,7 @@ export interface ItemCardProps {
   match?: ItemCardMatch
   compact?: boolean
   className?: string
+  priority?: boolean
 }
 
 /* -------------------------------------------------------------------------- */
@@ -149,6 +150,7 @@ export function ItemCard({
   match,
   compact = false,
   className,
+  priority = false,
 }: ItemCardProps) {
   const hasPrice = (forSale || forTrade) && price != null
   const hasStatus = forSale || forTrade
@@ -167,6 +169,7 @@ export function ItemCard({
             src={image || "/placeholder.svg"}
             alt={title}
             fill
+            priority={priority}
             className="object-cover transition-transform group-hover:scale-105"
           />
         </Link>
@@ -195,7 +198,7 @@ export function ItemCard({
                 <div className="flex items-center gap-1.5">
                   {hasPrice ? (
                     <p className="text-sm font-semibold text-primary">
-                      ${price!.toLocaleString()}
+                      ${price!.toLocaleString('en-US')}
                     </p>
                   ) : null}
                   {forTrade ? (

@@ -24,6 +24,13 @@ export function InboxContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileView, setMobileView] = useState<"list" | "chat" | "profile" | "offer-detail" | "counter" | "cash-counter">("list")
   const [desktopCounterActive, setDesktopCounterActive] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   const selectedConversation = conversations.find((c) => c.id === conversationId) ?? null
 
@@ -205,7 +212,7 @@ export function InboxContent() {
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0)
 
   return (
-    <div className="flex h-[calc(100vh-65px)] overflow-hidden">
+    <div className="flex overflow-hidden" style={{ height: isMobile ? 'calc(100dvh - 65px - 72px)' : 'calc(100vh - 65px)' }}>
       {/* Left rail */}
       <div
         className={cn(
@@ -228,7 +235,7 @@ export function InboxContent() {
       {/* Center chat */}
       <div
         className={cn(
-          "flex min-w-0 flex-1 flex-col bg-background lg:flex",
+          "flex min-w-0 flex-1 flex-col bg-background lg:flex overflow-hidden",
           mobileView === "chat" ? "flex" : "hidden lg:flex",
         )}
       >
@@ -301,7 +308,7 @@ export function InboxContent() {
           </div>
 
           {/* Scrollable body */}
-          <div className="flex-1 divide-y divide-border overflow-y-auto">
+          <div className="flex-1 divide-y divide-border overflow-y-auto pb-[72px] lg:pb-0">
             {/* Their offer */}
             {selectedConversation.active_offer.their_items.length > 0 ? (
               <div className="p-4">
@@ -321,7 +328,7 @@ export function InboxContent() {
                         <p className="truncate text-sm font-medium">{item.title}</p>
                         {item.price != null && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString()}
+                            ${item.price.toLocaleString('en-US')}
                           </p>
                         )}
                       </div>
@@ -329,7 +336,7 @@ export function InboxContent() {
                   ))}
                   {selectedConversation.active_offer.cash_adjustment > 0 && (
                     <p className="pl-[62px] text-sm font-medium text-primary">
-                      + ${selectedConversation.active_offer.cash_adjustment.toLocaleString()} cash
+                      + ${selectedConversation.active_offer.cash_adjustment.toLocaleString('en-US')} cash
                     </p>
                   )}
                 </div>
@@ -338,7 +345,7 @@ export function InboxContent() {
               <div className="p-4">
                 <p className="mb-1 text-xs text-muted-foreground">Their offer</p>
                 <p className="text-2xl font-bold text-primary">
-                  ${selectedConversation.active_offer.cash_adjustment.toLocaleString()}
+                  ${selectedConversation.active_offer.cash_adjustment.toLocaleString('en-US')}
                 </p>
               </div>
             )}
@@ -368,7 +375,7 @@ export function InboxContent() {
                       <p className="truncate text-sm font-medium">{item.title}</p>
                       {item.price != null && (
                         <p className="text-xs text-muted-foreground">
-                          ${item.price.toLocaleString()}
+                          ${item.price.toLocaleString('en-US')}
                         </p>
                       )}
                     </div>

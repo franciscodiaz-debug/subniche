@@ -1,8 +1,8 @@
 "use client"
 
+import type { MouseEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 import {
-  BadgeCheck,
   Check,
   ExternalLink,
   Globe,
@@ -13,7 +13,10 @@ import {
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { ProfileSummaryReference } from "@/lib/profile-page-types"
+import type {
+  ProfileLinkedAccountReference,
+  ProfileSummaryReference,
+} from "@/lib/profile-page-types"
 import { userNiches } from "./profile-niche-switcher"
 
 interface ProfileMobileSheetProps {
@@ -36,13 +39,17 @@ export function ProfileMobileSheet({
   const dragStartY = useRef<number | null>(null)
 
   useEffect(() => {
+    let id: number
+
     if (open) {
-      const id = requestAnimationFrame(() => setMounted(true))
+      id = requestAnimationFrame(() => setMounted(true))
       return () => cancelAnimationFrame(id)
     }
-    setMounted(false)
-    setDragOffset(0)
-    return undefined
+    id = requestAnimationFrame(() => {
+      setMounted(false)
+      setDragOffset(0)
+    })
+    return () => cancelAnimationFrame(id)
   }, [open])
 
   useEffect(() => {
@@ -166,14 +173,13 @@ export function ProfileMobileSheet({
                   >
                     <a
                       href="#"
+                      onClick={(event) => handleLinkedAccountClick(event, account)}
                       className="flex w-full items-center gap-3 px-3 py-3 transition-colors hover:bg-muted/30"
                     >
                       <span className="flex-1 text-sm capitalize text-foreground">
                         {account.platform}
                       </span>
-                      {account.verified ? (
-                        <BadgeCheck className="h-4 w-4 text-primary" aria-hidden />
-                      ) : null}
+                      {account.verified ? <Check className="h-4 w-4 text-primary" aria-hidden /> : null}
                       <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
                     </a>
                   </li>
@@ -249,6 +255,16 @@ export function ProfileMobileSheet({
       </div>
     </div>
   )
+}
+
+function handleLinkedAccountClick(
+  event: MouseEvent<HTMLAnchorElement>,
+  account: ProfileLinkedAccountReference,
+) {
+  if (account.verified) return
+
+  event.preventDefault()
+  window.alert("This account has not been verified by the user.")
 }
 
 function SheetSection({ title, children }: { title?: string; children: React.ReactNode }) {

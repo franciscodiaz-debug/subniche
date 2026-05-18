@@ -31,8 +31,8 @@ function CompactSummary({ offer }: { offer: Offer }) {
   const cash = offer.cash_adjustment
 
   let cashPart = ""
-  if (cash > 0) cashPart = ` · +$${cash.toLocaleString()} cash`
-  else if (cash < 0) cashPart = ` · −$${Math.abs(cash).toLocaleString()} cash`
+  if (cash > 0) cashPart = ` · +$${cash.toLocaleString('en-US')} cash`
+  else if (cash < 0) cashPart = ` · −$${Math.abs(cash).toLocaleString('en-US')} cash`
 
   return (
     <div className="flex-shrink-0 border-b border-border bg-card/40 px-4 py-2.5">
@@ -100,8 +100,8 @@ function CashControl({
           )}
         >
           {direction === "add"
-            ? `adding $${numericAmount.toLocaleString()} cash`
-            : `requesting $${numericAmount.toLocaleString()} cash`}
+            ? `adding $${numericAmount.toLocaleString('en-US')} cash`
+            : `requesting $${numericAmount.toLocaleString('en-US')} cash`}
         </p>
       )}
     </div>
@@ -284,7 +284,7 @@ export function CounterOfferModal({
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{item.title}</p>
                       <p className={cn("text-xs", isRequired ? "text-muted-foreground" : "text-primary")}>
-                        ${item.price.toLocaleString()}
+                        ${item.price.toLocaleString('en-US')}
                       </p>
                     </div>
                   </button>

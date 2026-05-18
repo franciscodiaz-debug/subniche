@@ -72,23 +72,26 @@ export function MarketFilterSidebar({
 
   return (
     <>
-      {isOpen ? (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={onClose}
-        />
-      ) : null}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-out motion-reduce:transition-none lg:hidden",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={onClose}
+        aria-hidden={!isOpen}
+      />
 
       <aside
         className={cn(
-          "fixed top-0 z-50 flex h-screen w-[280px] flex-col overflow-hidden border-r border-border bg-background will-change-transform motion-reduce:transition-none",
+          "fixed top-0 z-50 flex h-screen w-[280px] flex-col overflow-hidden border-r border-border bg-background shadow-xl will-change-[translate] motion-reduce:transition-none lg:shadow-none",
           "left-0",
           navCollapsed ? "lg:left-[72px]" : "lg:left-[220px]",
-          "transition-[transform,opacity,left] duration-300 ease-out",
+          "transition-[translate,left] duration-300 ease-out",
           isOpen
-            ? "translate-x-0 opacity-100"
-            : "-translate-x-full opacity-0 pointer-events-none",
+            ? "translate-x-0"
+            : "pointer-events-none -translate-x-[calc(100%+1px)]",
         )}
+        aria-hidden={!isOpen}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
@@ -176,7 +179,7 @@ export function MarketFilterSidebar({
                         : "text-muted-foreground",
                     )}
                   >
-                    {cat.count.toLocaleString()}
+                    {cat.count.toLocaleString('en-US')}
                   </span>
                 </button>
                 {filters.category === cat.id ? (

@@ -32,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="en"
       className={`dark bg-background ${inter.variable} ${geistMono.variable} ${sourceSerif.variable}`}
+      suppressHydrationWarning
     >
       <body className="font-sans antialiased bg-background text-foreground">
         <AdminSettingsProvider>

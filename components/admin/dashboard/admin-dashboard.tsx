@@ -85,7 +85,7 @@ export function AdminDashboard() {
               <li key={entry.id} className="flex items-start gap-3 px-4 py-3">
                 <span className="mt-0.5 flex-shrink-0">{activityIcon[entry.type]}</span>
                 <p className="flex-1 text-sm text-foreground">{entry.description}</p>
-                <span className="flex-shrink-0 text-xs text-muted-foreground/60">
+                <span suppressHydrationWarning className="flex-shrink-0 text-xs text-muted-foreground/60">
                   {timeAgo(entry.timestamp)}
                 </span>
               </li>

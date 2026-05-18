@@ -147,10 +147,10 @@ export function PriceHistogramSlider({
 
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium text-foreground">
-          ${localValue[0].toLocaleString()}
+          ${localValue[0].toLocaleString('en-US')}
         </span>
         <span className="font-medium text-foreground">
-          ${localValue[1].toLocaleString()}
+          ${localValue[1].toLocaleString('en-US')}
         </span>
       </div>
     </div>

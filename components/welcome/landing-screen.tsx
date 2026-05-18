@@ -702,7 +702,7 @@ export function LandingScreen() {
         </div>
         <div className="mx-auto mt-8 max-w-6xl border-t border-border pt-8">
           <p className="text-center text-xs text-foreground/40">
-            &copy; {new Date().getFullYear()} SubNiche. All rights reserved.
+            &copy; 2025 SubNiche. All rights reserved.
           </p>
         </div>
       </footer>

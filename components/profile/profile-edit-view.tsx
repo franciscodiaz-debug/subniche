@@ -2,7 +2,7 @@
 
 import type { LucideIcon } from "lucide-react"
 import type { ChangeEvent, ReactNode } from "react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import {
   ArrowLeft,
   BadgeCheck,
@@ -22,6 +22,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { currentUser } from "@/lib/current-user"
@@ -67,6 +72,8 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
   const [showAddAccount, setShowAddAccount] = useState(false)
   const [newPlatform, setNewPlatform] = useState<string>(platformOptions[0])
   const [newAccountUsername, setNewAccountUsername] = useState("")
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | undefined>(profile.avatarUrl)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const avatarLabel = (nicheName.slice(0, 2) || profile.avatarLabel).toUpperCase()
   const isDirty =
@@ -83,6 +90,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
       location,
       bio,
       avatarLabel,
+      avatarUrl: avatarPreviewUrl,
       linkedAccounts,
       verification,
     })
@@ -117,6 +125,23 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
     setShowAddAccount(false)
   }
 
+  const openAvatarDialog = () => {
+    avatarInputRef.current?.click()
+  }
+
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setAvatarPreviewUrl(reader.result)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
   return (
     <div className="@container">
       <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur @md:px-6">
@@ -137,41 +162,47 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
         {/* Avatar */}
         <section className="mb-2 flex flex-col items-start gap-4 @sm:flex-row @sm:items-center">
           <div className="relative">
-            <Avatar className="h-20 w-20 border-4 border-card @sm:h-24 @sm:w-24">
-              {profile.avatarUrl ? (
-                <AvatarImage
-                  src={profile.avatarUrl}
-                  alt={`${nicheName} avatar`}
-                  className="object-cover"
-                />
-              ) : null}
-              <AvatarFallback className="bg-secondary text-xl font-semibold text-foreground @sm:text-2xl">
-                {avatarLabel}
-              </AvatarFallback>
-            </Avatar>
             <button
               type="button"
+              onClick={openAvatarDialog}
+              className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-label="Change profile photo"
+            >
+              <Avatar className="h-20 w-20 border-4 border-card @sm:h-24 @sm:w-24">
+                {avatarPreviewUrl ? (
+                  <AvatarImage
+                    src={avatarPreviewUrl}
+                    alt={`${nicheName} avatar`}
+                    className="object-cover"
+                  />
+                ) : null}
+                <AvatarFallback className="bg-secondary text-xl font-semibold text-foreground @sm:text-2xl">
+                  {avatarLabel}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+            <button
+              type="button"
+              onClick={openAvatarDialog}
               className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
               aria-label="Change avatar"
             >
               <Camera className="h-3.5 w-3.5" />
             </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleAvatarFileChange}
+              aria-label="Upload profile photo"
+            />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground">Profile photo</p>
             <p className="text-xs text-muted-foreground">
               Upload an image to represent this niche profile.
             </p>
-            <Button
-              type="button"
-              variant="quiet_outline"
-              size="sm"
-              className="mt-2 gap-2"
-              aria-label="Upload new photo"
-            >
-              <Camera className="h-3.5 w-3.5" />
-              Upload photo
-            </Button>
           </div>
         </section>
 
@@ -190,14 +221,22 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
               <FieldHint>Per-niche display name. Each of your niches can use a different one.</FieldHint>
             </EditField>
             <EditField label="Username" htmlFor="edit-username">
-              <Input
-                id="edit-username"
-                value={`@${currentUser.username}`}
-                readOnly
-                aria-readonly
-                className="bg-secondary/50 text-muted-foreground"
-              />
-              <FieldHint icon={Info}>Your username is shared across all your niches.</FieldHint>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    id="edit-username"
+                    type="button"
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-md py-2 pr-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={`@${currentUser.username}. Show username details.`}
+                  >
+                    <span>@{currentUser.username}</span>
+                    <Info className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" side="top" className="w-72 text-xs leading-relaxed">
+                  Your username is shared across all your niches. This cannot be changed.
+                </PopoverContent>
+              </Popover>
             </EditField>
           </div>
           <EditField label="Bio" htmlFor="edit-bio">

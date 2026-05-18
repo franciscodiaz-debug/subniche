@@ -222,7 +222,7 @@ export function StaffPicksSection() {
               <p className="truncate text-sm font-semibold text-foreground">{pick.title}</p>
               <p className="truncate text-[10px] text-muted-foreground">{pick.subtitle}</p>
               <div className="mt-2 flex items-center justify-between">
-                <p className="text-sm font-bold text-primary">${pick.price.toLocaleString()}</p>
+                <p className="text-sm font-bold text-primary">${pick.price.toLocaleString('en-US')}</p>
                 <p className="text-[10px] text-muted-foreground">@{pick.seller}</p>
               </div>
             </div>

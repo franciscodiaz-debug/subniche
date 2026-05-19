@@ -10,6 +10,7 @@ import { ArrowLeft, Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { exploreItems } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 
 interface MobileSearchPanelProps {
   open: boolean
@@ -25,7 +26,10 @@ export function MobileSearchPanel({ open, onClose }: MobileSearchPanelProps) {
   const [mounted, setMounted] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
   const [panelVisible, setPanelVisible] = useState(false)
-  const needle = query.trim().toLowerCase()
+  // Filter runs on the debounced query so we don't rescan the mock data on
+  // every keystroke. See SearchBar for the same pattern.
+  const debouncedQuery = useDebouncedValue(query, 200)
+  const needle = debouncedQuery.trim().toLowerCase()
 
   useEffect(() => {
     setMounted(true)

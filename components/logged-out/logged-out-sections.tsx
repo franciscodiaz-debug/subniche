@@ -125,14 +125,14 @@ export function FeaturedCollectionsSection() {
       <HomeSectionHeader
         icon={<Layers className="h-5 w-5 text-primary" />}
         title="Featured Collections"
-        href="/communities"
+        href="/market"
         ctaLabel="See all"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {featuredCollections.map((col) => (
           <Link
             key={col.id}
-            href="/communities"
+            href="/market"
             className="group w-[180px] flex-shrink-0 overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40"
           >
             <div className="relative aspect-[4/3] w-full overflow-hidden">
@@ -162,8 +162,6 @@ export function FeaturedUsersSection() {
       <HomeSectionHeader
         icon={<Users className="h-5 w-5 text-primary" />}
         title="People to Follow"
-        href="/communities"
-        ctaLabel="Explore"
       />
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {featuredUsers.map((user) => (

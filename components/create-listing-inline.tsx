@@ -772,8 +772,6 @@ export function CreateListingInline({
       ? [{ id: initialCollectionId, name: initialCollectionName, itemCount: 0 }, ...baseCollections]
       : baseCollections
 
-  const userCommunities: { id: string; name: string }[] = []
-
   // AI enhancement (frontend-only mock)
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [suggestions, setSuggestions] = useState<Record<string, Suggestion>>({})
@@ -2026,18 +2024,6 @@ export function CreateListingInline({
                         </div>
                       </div>
 
-                      {userCommunities.length > 0 ? (
-                        userCommunities.map((community) => (
-                          <div key={community.id} className="flex items-center gap-3">
-                            <Checkbox />
-                            <span className="text-sm">{community.name}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground pl-7">
-                          Join communities to publish listings directly to them.
-                        </p>
-                      )}
                     </div>
                   </div>
                 </div>

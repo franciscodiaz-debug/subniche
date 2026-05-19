@@ -10,7 +10,6 @@ import {
   SavedSearchesSection,
   FollowedItemsSection,
   CollectionsSection,
-  CommunitiesSection,
   TrendingSection,
   JustListedSection,
 } from '@/components/feed-sections'
@@ -158,7 +157,6 @@ export default async function HomePage() {
           <SavedSearchesSection />
           <FollowedItemsSection />
           <CollectionsSection />
-          <CommunitiesSection />
           <TrendingSection />
           <JustListedSection />
 
@@ -184,7 +182,6 @@ export default async function HomePage() {
         <SavedSearchesSection />
         <FollowedItemsSection />
         <CollectionsSection />
-        <CommunitiesSection />
         <TrendingSection />
         <JustListedSection />
 

@@ -1,4 +1,4 @@
-import { Heart, Layers, Search, TrendingUp, Zap, Users } from 'lucide-react'
+import { Heart, Layers, Search, TrendingUp, Zap } from 'lucide-react'
 import { HomeSectionHeader } from '@/components/home/home-section-header'
 import { ItemCard } from '@/components/item-card'
 import { CollectionCard } from '@/components/collection-card'
@@ -353,40 +353,3 @@ export function CollectionsSection() {
 
 /* ─── Communities ───────────────────────────────────────────────────── */
 
-const myCommunities = [
-  { id: 'cm1', name: 'Fender Fans', icon: '🎸', members: 4821, slug: 'fender-fans' },
-  { id: 'cm2', name: 'Pedal Builders', icon: '🎛️', members: 2103, slug: 'pedal-builders' },
-  { id: 'cm3', name: 'Acoustic Corner', icon: '🪕', members: 1560, slug: 'acoustic-corner' },
-  { id: 'cm4', name: 'Shred Zone', icon: '⚡', members: 987, slug: 'shred-zone' },
-  { id: 'cm5', name: 'Vintage Vibes', icon: '📻', members: 3241, slug: 'vintage-vibes' },
-]
-
-export function CommunitiesSection() {
-  return (
-    <section className="mb-8">
-      <HomeSectionHeader
-        icon={<Users className="h-5 w-5 text-primary" />}
-        title="Your Communities"
-        href="/communities"
-        ctaLabel="Explore"
-      />
-      <div className="flex flex-wrap gap-3">
-        {myCommunities.map((community) => (
-          <a
-            key={community.id}
-            href="/communities"
-            className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 transition-colors hover:border-primary/40"
-          >
-            <span className="text-lg leading-none">{community.icon}</span>
-            <div>
-              <p className="text-sm font-medium text-foreground">{community.name}</p>
-              <p className="text-[10px] text-muted-foreground">
-                {community.members.toLocaleString('en-US')} members
-              </p>
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-  )
-}

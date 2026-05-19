@@ -1,10 +1,10 @@
+import { redirect } from "next/navigation"
+
+/**
+ * Communities is post-MVP. Any old bookmark or external link to
+ * /communities bounces back to home instead of showing a dead-end
+ * placeholder.
+ */
 export default function CommunitiesPage() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Communities</h1>
-        <p className="mt-2 text-muted-foreground">Coming soon</p>
-      </div>
-    </div>
-  )
+  redirect("/")
 }

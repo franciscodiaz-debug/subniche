@@ -28,6 +28,23 @@ import {
   ArrowUp,
   Zap,
 } from "lucide-react"
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -408,6 +425,104 @@ export function InlineSpecInput({
   )
 }
 
+/**
+ * Stable id assigned to each uploaded image. We can't use the image URL
+ * itself as the dnd-kit id (two uploads could pick the same blob URL,
+ * and Next's `placeholder.svg` repeats) — so the section maintains a
+ * parallel array of ids that lives only in component state.
+ */
+let photoIdCounter = 0
+function nextPhotoId() {
+  photoIdCounter += 1
+  return `photo-${photoIdCounter}`
+}
+
+interface SortablePhotoProps {
+  id: string
+  src: string
+  index: number
+  selected: boolean
+  onSelect: () => void
+  onRemove: () => void
+}
+
+function SortablePhotoThumb({
+  id,
+  src,
+  index,
+  selected,
+  onSelect,
+  onRemove,
+}: SortablePhotoProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    // Snap back instantly when the drag ends; the standard transition
+    // value from dnd-kit feels laggy when combined with our scale effect.
+    transition,
+    zIndex: isDragging ? 20 : undefined,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      // Each thumb is itself the drag handle so the user can "grab" it
+      // wherever they tap. attributes + listeners go on the outer wrapper.
+      {...attributes}
+      {...listeners}
+      className={cn(
+        "relative group touch-none select-none transition-[transform,box-shadow] duration-150",
+        // Visual cue that the thumb is grabbable; flips to grabbing while
+        // dragging. The lift + shadow give physical feedback when held.
+        isDragging
+          ? "cursor-grabbing scale-110 shadow-xl shadow-black/40 ring-2 ring-primary/60 rounded-md"
+          : "cursor-grab active:scale-105",
+      )}
+    >
+      <button
+        type="button"
+        onClick={onSelect}
+        className={cn(
+          "w-14 h-14 relative rounded-md overflow-hidden border transition-colors",
+          selected ? "border-primary" : "border-border hover:border-primary/50",
+        )}
+        aria-label={`Select photo ${index + 1}`}
+      >
+        <Image
+          src={src || "/placeholder.svg"}
+          alt={`Thumbnail ${index + 1}`}
+          fill
+          className="object-cover pointer-events-none"
+          unoptimized
+        />
+      </button>
+
+      {/* Remove button — stops pointer-down so tapping the × never gets
+          interpreted as the start of a drag. The select click below
+          doesn't need it: dnd-kit only consumes a tap once the movement
+          threshold (8px) is crossed, so quick clicks still fire onClick. */}
+      <button
+        type="button"
+        onClick={onRemove}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label={`Remove photo ${index + 1}`}
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </div>
+  )
+}
+
 export function PhotoUploadSection({
   images,
   onImagesChange,
@@ -420,6 +535,35 @@ export function PhotoUploadSection({
   const [selectedImage, setSelectedImage] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Parallel id array — one stable id per image, kept in sync with the
+  // images array on every change. dnd-kit needs unique ids; URLs alone
+  // aren't reliable because two uploads can share the same blob URL.
+  const [photoIds, setPhotoIds] = useState<string[]>(() => images.map(() => nextPhotoId()))
+
+  // Reconcile ids whenever images length changes from the outside (e.g.
+  // the parent resets the form on submit, or AI assist replaces the set).
+  useEffect(() => {
+    if (photoIds.length === images.length) return
+    if (images.length > photoIds.length) {
+      const added = images.length - photoIds.length
+      setPhotoIds((prev) => [
+        ...prev,
+        ...Array.from({ length: added }, () => nextPhotoId()),
+      ])
+    } else {
+      setPhotoIds((prev) => prev.slice(0, images.length))
+    }
+  }, [images.length, photoIds.length])
+
+  const sensors = useSensors(
+    // Unified pointer sensor — works for mouse and touch identically.
+    // 8px activation distance: a quick tap selects the thumb, vertical
+    // scroll-by-drag on the page keeps working, and a deliberate move
+    // (>8px in any direction) starts the drag without any delay.
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
@@ -431,8 +575,32 @@ export function PhotoUploadSection({
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     onImagesChange(newImages)
+    setPhotoIds((prev) => prev.filter((_, i) => i !== index))
     if (selectedImage >= newImages.length) {
       setSelectedImage(Math.max(0, newImages.length - 1))
+    }
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = photoIds.indexOf(active.id as string)
+    const newIndex = photoIds.indexOf(over.id as string)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reorderedImages = arrayMove(images, oldIndex, newIndex)
+    const reorderedIds = arrayMove(photoIds, oldIndex, newIndex)
+    onImagesChange(reorderedImages)
+    setPhotoIds(reorderedIds)
+
+    // Keep the preview pointing at the same image the user was viewing.
+    if (selectedImage === oldIndex) {
+      setSelectedImage(newIndex)
+    } else if (oldIndex < selectedImage && newIndex >= selectedImage) {
+      setSelectedImage(selectedImage - 1)
+    } else if (oldIndex > selectedImage && newIndex <= selectedImage) {
+      setSelectedImage(selectedImage + 1)
     }
   }
 
@@ -466,46 +634,37 @@ export function PhotoUploadSection({
       </div>
 
       {images.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
-          {images.map((image, index) => (
-            <div key={index} className="relative group">
-              <button
-                type="button"
-                onClick={() => setSelectedImage(index)}
-                className={cn(
-                  "w-14 h-14 relative rounded-md overflow-hidden border transition-colors",
-                  selectedImage === index ? "border-primary" : "border-border hover:border-primary/50",
-                )}
-              >
-                <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`Thumbnail ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  unoptimized
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={photoIds} strategy={horizontalListSortingStrategy}>
+            <div className="flex gap-2 flex-wrap">
+              {images.map((image, index) => (
+                <SortablePhotoThumb
+                  key={photoIds[index] ?? `fallback-${index}`}
+                  id={photoIds[index] ?? `fallback-${index}`}
+                  src={image}
+                  index={index}
+                  selected={selectedImage === index}
+                  onSelect={() => setSelectedImage(index)}
+                  onRemove={() => removeImage(index)}
                 />
-              </button>
-              <button
-                type="button"
-                onClick={() => removeImage(index)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Remove image"
-              >
-                <X className="h-2.5 w-2.5" />
-              </button>
+              ))}
+              {images.length < 6 && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-14 h-14 rounded-md border border-dashed border-border hover:border-primary flex items-center justify-center transition-colors"
+                  aria-label="Add more photos"
+                >
+                  <Plus className="h-5 w-5 text-muted-foreground" />
+                </button>
+              )}
             </div>
-          ))}
-          {images.length < 6 && (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-14 h-14 rounded-md border border-dashed border-border hover:border-primary flex items-center justify-center transition-colors"
-              aria-label="Add more photos"
-            >
-              <Plus className="h-5 w-5 text-muted-foreground" />
-            </button>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <input

@@ -28,6 +28,12 @@ export interface ProfileSummaryReference {
   }
   verification: ProfileVerificationReference
   linkedAccounts: ProfileLinkedAccountReference[]
+  /**
+   * Privacy: when false, the Activity tab is hidden from visitors. The
+   * owner always sees their own activity. Defaults to true when the
+   * field is omitted on legacy mocks.
+   */
+  showActivityOnPublicProfile?: boolean
 }
 
 export interface ProfileCollectionReference {
@@ -76,11 +82,35 @@ export interface ProfileTradeInterestReference {
   addedAt: string
 }
 
+/**
+ * Activity feed entry. Each `type` carries an icon and a click destination
+ * (when applicable) so a viewer can jump from the narrative line to the
+ * thing the activity refers to.
+ */
+export type ProfileActivityType =
+  | "listing_created"
+  | "listing_sold"
+  | "trade_completed"
+  | "collection_created"
+  | "item_added_to_collection"
+  | "wishlist_added"
+  | "wishlist_acquired"
+  | "verified"
+  /** Legacy generic types kept for backward compatibility with the
+   *  earlier mock shape. Prefer the specific types above for new data. */
+  | "listing"
+  | "trade"
+  | "collection"
+  | "offer"
+  | "follow"
+
 export interface ProfileActivityReference {
   id: string
-  type: "listing" | "trade" | "collection" | "offer" | "follow"
+  type: ProfileActivityType
   description: string
   timestamp: string
+  /** Optional click destination for the row. */
+  href?: string
 }
 
 export interface ProfilePageReferenceData {

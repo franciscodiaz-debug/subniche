@@ -1,13 +1,15 @@
 "use client"
 
 import type { ComponentType, MouseEvent, ReactNode } from "react"
-import { useLayoutEffect, useRef, useState } from "react"
+import { useLayoutEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
 import {
   Activity,
   CalendarDays,
   Check,
   ChevronDown,
   Clock,
+  DollarSign,
   ExternalLink,
   FolderOpen,
   Heart,
@@ -16,9 +18,11 @@ import {
   Package,
   Pencil,
   Phone,
+  Plus,
   Repeat2,
   Share2,
   ShieldCheck,
+  Sparkles,
   Tag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -41,6 +45,36 @@ import { TradeInterestRow } from "@/components/trade/trade-interest-row"
 type ProfileTab = "collections" | "for-sale" | "looking-for" | "activity"
 type ProfileViewMode = "own" | "other"
 
+type ActivityFilter = "all" | "listings" | "trades" | "collections" | "wishlist"
+
+const ACTIVITY_FILTER_OPTIONS: { value: ActivityFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "listings", label: "Listings" },
+  { value: "trades", label: "Trades" },
+  { value: "collections", label: "Collections" },
+  { value: "wishlist", label: "Wishlist" },
+]
+
+/** Maps activity types onto the filter chips above the feed. */
+function activityMatchesFilter(
+  type: ProfileActivityReference["type"],
+  filter: ActivityFilter,
+): boolean {
+  if (filter === "listings") {
+    return type === "listing_created" || type === "listing_sold" || type === "listing"
+  }
+  if (filter === "trades") {
+    return type === "trade_completed" || type === "trade" || type === "offer"
+  }
+  if (filter === "collections") {
+    return type === "collection_created" || type === "item_added_to_collection" || type === "collection"
+  }
+  if (filter === "wishlist") {
+    return type === "wishlist_added" || type === "wishlist_acquired"
+  }
+  return true
+}
+
 function money(value: number) {
   return `$${value.toLocaleString("en-US")}`
 }
@@ -60,13 +94,24 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
   const [ownProfileState, setOwnProfileState] = useState<ProfileSummaryReference>(ownProfile)
   const [otherProfileState] = useState<ProfileSummaryReference>(otherProfile)
   const [activeTab, setActiveTab] = useState<ProfileTab>("for-sale")
+  const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all")
   const [isEditing, setIsEditing] = useState(false)
   const [viewMode, setViewMode] = useState<ProfileViewMode>(initialViewMode)
   const [isFollowing, setIsFollowing] = useState(false)
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false)
 
+  const filteredActivity = useMemo(() => {
+    const items = profilePageData.activity
+    if (activityFilter === "all") return items
+    return items.filter((a) => activityMatchesFilter(a.type, activityFilter))
+  }, [activityFilter])
+
   const isOwnProfile = viewMode === "own"
   const profile = isOwnProfile ? ownProfileState : otherProfileState
+  /* Owner always sees their own Activity tab. Visitors only see it when
+   * the owner has opted in (default true on legacy profiles). */
+  const showActivityTab =
+    isOwnProfile || (profile.showActivityOnPublicProfile ?? true)
   const handleShareProfile = () => {
     if (typeof window === "undefined") return
     const url = `${window.location.origin}/profile/${profile.username}`
@@ -286,9 +331,11 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
           <TabButton active={activeTab === "looking-for"} onClick={() => setActiveTab("looking-for")}>
             Looking For
           </TabButton>
-          <TabButton active={activeTab === "activity"} onClick={() => setActiveTab("activity")}>
-            Activity
-          </TabButton>
+          {showActivityTab ? (
+            <TabButton active={activeTab === "activity"} onClick={() => setActiveTab("activity")}>
+              Activity
+            </TabButton>
+          ) : null}
         </div>
       </div>
 
@@ -404,7 +451,7 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
         </div>
       )}
 
-      {activeTab === "activity" && (
+      {activeTab === "activity" && showActivityTab && (
         profilePageData.activity.length === 0 ? (
           <EmptyState
             icon={<Activity className="h-10 w-10 text-muted-foreground/50" />}
@@ -412,10 +459,24 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
             body="Recent sales, follows, and collection actions will appear here."
           />
         ) : (
-          <div className="space-y-3">
-            {profilePageData.activity.map((item) => (
-              <ActivityRow key={item.id} item={item} />
-            ))}
+          <div className="flex flex-col gap-4">
+            <ActivityFilterChips
+              value={activityFilter}
+              onChange={setActivityFilter}
+            />
+            {filteredActivity.length === 0 ? (
+              <EmptyState
+                icon={<Activity className="h-10 w-10 text-muted-foreground/50" />}
+                title="No matching activity"
+                body="Nothing of this kind yet. Try a different filter."
+              />
+            ) : (
+              <div className="space-y-3">
+                {filteredActivity.map((item) => (
+                  <ActivityRow key={item.id} item={item} />
+                ))}
+              </div>
+            )}
           </div>
         )
       )}
@@ -705,18 +766,65 @@ const activityIconConfig: Record<
   ProfileActivityReference["type"],
   { icon: ComponentType<{ className?: string }>; bg: string; color: string }
 > = {
-  listing: { icon: Tag,        bg: "bg-amber-500/10",   color: "text-amber-500" },
-  trade:   { icon: Repeat2,    bg: "bg-primary/10",     color: "text-primary" },
-  collection: { icon: FolderOpen, bg: "bg-blue-500/10", color: "text-blue-400" },
-  offer:   { icon: Package,    bg: "bg-orange-500/10",  color: "text-orange-400" },
-  follow:  { icon: Heart,      bg: "bg-rose-500/10",    color: "text-rose-400" },
+  listing_created:           { icon: Plus,        bg: "bg-amber-500/10",  color: "text-amber-500" },
+  listing_sold:              { icon: DollarSign,  bg: "bg-emerald-500/10", color: "text-emerald-500" },
+  trade_completed:           { icon: Repeat2,     bg: "bg-primary/10",    color: "text-primary" },
+  collection_created:        { icon: FolderOpen,  bg: "bg-blue-500/10",   color: "text-blue-400" },
+  item_added_to_collection:  { icon: FolderOpen,  bg: "bg-blue-500/10",   color: "text-blue-400" },
+  wishlist_added:            { icon: Heart,       bg: "bg-chart-5/10",    color: "text-chart-5" },
+  wishlist_acquired:         { icon: Sparkles,    bg: "bg-chart-5/10",    color: "text-chart-5" },
+  verified:                  { icon: ShieldCheck, bg: "bg-status-success/10", color: "text-status-success" },
+  // Legacy types — kept so existing mock data still renders.
+  listing:    { icon: Tag,        bg: "bg-amber-500/10",  color: "text-amber-500" },
+  trade:      { icon: Repeat2,    bg: "bg-primary/10",    color: "text-primary" },
+  collection: { icon: FolderOpen, bg: "bg-blue-500/10",   color: "text-blue-400" },
+  offer:      { icon: Package,    bg: "bg-orange-500/10", color: "text-orange-400" },
+  follow:     { icon: Heart,      bg: "bg-rose-500/10",   color: "text-rose-400" },
+}
+
+function ActivityFilterChips({
+  value,
+  onChange,
+}: {
+  value: ActivityFilter
+  onChange: (v: ActivityFilter) => void
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Filter activity"
+      className="flex w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {ACTIVITY_FILTER_OPTIONS.map((opt) => {
+        const selected = value === opt.value
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-all",
+              selected
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground",
+            )}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 function ActivityRow({ item }: { item: ProfileActivityReference }) {
   const config = activityIconConfig[item.type] ?? { icon: Activity, bg: "bg-muted", color: "text-muted-foreground" }
   const Icon = config.icon
-  return (
-    <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3">
+
+  const body = (
+    <>
       <span className={cn("mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full", config.bg)}>
         <Icon className={cn("h-3.5 w-3.5", config.color)} aria-hidden />
       </span>
@@ -727,6 +835,26 @@ function ActivityRow({ item }: { item: ProfileActivityReference }) {
           {formatActivityTime(item.timestamp)}
         </p>
       </div>
+    </>
+  )
+
+  // When the activity has a click destination, render the row as a Link
+  // so the whole card is clickable and gets a hover treatment. Without a
+  // destination, the row stays as a passive informational item.
+  if (item.href) {
+    return (
+      <Link
+        href={item.href}
+        className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3 transition-colors hover:border-primary/40 hover:bg-card/60"
+      >
+        {body}
+      </Link>
+    )
+  }
+
+  return (
+    <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/40 px-4 py-3">
+      {body}
     </div>
   )
 }

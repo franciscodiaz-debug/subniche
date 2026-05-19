@@ -51,10 +51,24 @@ type CollectionFilter =
   | "all"
   | "unlisted"
   | "drafts"
-  | "sold"
   | string
 type FilterState = "neutral" | "include" | "exclude"
 type View = "grid" | "list"
+
+/**
+ * Top-level status filter: which slice of the inventory the user wants to
+ * see. "Active" hides sold + traded items so the day-to-day view stays
+ * focused; "Sold" and "Traded" show the historical record so the user
+ * can always look back at what's left their inventory.
+ */
+type StatusFilter = "active" | "sold" | "traded" | "all"
+
+const STATUS_FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: "active", label: "Active" },
+  { value: "sold", label: "Sold" },
+  { value: "traded", label: "Traded" },
+  { value: "all", label: "All" },
+]
 
 const sortLabels: Record<SortKey, string> = {
   recent: "Newest",
@@ -222,7 +236,6 @@ function FiltersButton({
         <DropdownMenuRadioGroup value={collectionFilter} onValueChange={(v) => setCollectionFilter(v as CollectionFilter)}>
           <DropdownMenuRadioItem value="unlisted">Unlisted</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="drafts">Drafts</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="sold">Sold</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
 
         {activeCount > 0 ? (
@@ -298,13 +311,89 @@ function ViewToggleSegment({
   )
 }
 
-export function MyItemsTab({ items }: { items: MyItem[] }) {
+/**
+ * Pill rendered over the image when an item has been Sold or Traded.
+ * Lives in this tab (rather than ItemCard) so the generic card stays
+ * agnostic to the inventory's own status vocabulary.
+ */
+function ItemStatusBadge({
+  label,
+  tone,
+}: {
+  label: string
+  tone: "success" | "info"
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm",
+        tone === "success"
+          ? "border-status-success/40 bg-status-success/15 text-status-success"
+          : "border-status-info/40 bg-status-info/15 text-status-info",
+      )}
+    >
+      {label}
+    </span>
+  )
+}
+
+function StatusFilterChips({
+  value,
+  onChange,
+  counts,
+}: {
+  value: StatusFilter
+  onChange: (v: StatusFilter) => void
+  counts: { active: number; sold: number; traded: number; all: number }
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Filter by status"
+      className="flex w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {STATUS_FILTER_OPTIONS.map((opt) => {
+        const selected = value === opt.value
+        const count = counts[opt.value]
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-all",
+              selected
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground",
+            )}
+          >
+            {opt.label}
+            <span
+              className={cn(
+                "inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] tabular-nums",
+                selected
+                  ? "bg-primary/15 text-primary"
+                  : "bg-secondary/80 text-muted-foreground",
+              )}
+            >
+              {count}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export function MyItemsTab(_props: { items?: MyItem[] } = {}) {
   const isMobile = useIsMobile()
 
   // Pull collections from the local store, scoped to the current user.
   // Used for the collection filter dropdown and to scope items by owner
   // (an item belongs to the current user when its collection does).
-  const { collections } = useCollections()
+  const { collections, items: storeItems } = useCollections()
   const myCollections = useMemo(
     () =>
       collections.filter(
@@ -319,15 +408,20 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
   // Only show items that belong to one of the current user's collections.
   // Items belonging to another user (e.g. seeded fixtures for the visitor
   // view demo) shouldn't surface inside My Stuff.
+  //
+  // Read from the store rather than the static `items` prop so action-menu
+  // mutations (mark sold, toggle for-sale/trade, move-to-collection) are
+  // reflected immediately without an upstream refetch.
   const myItems = useMemo(
     () =>
-      items.filter(
+      storeItems.filter(
         (item) => !item.collection_id || myCollectionIds.has(item.collection_id),
       ),
-    [items, myCollectionIds],
+    [storeItems, myCollectionIds],
   )
 
   const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>("all")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active")
   const [saleFilter, setSaleFilter] = useState<FilterState>("neutral")
   const [tradeFilter, setTradeFilter] = useState<FilterState>("neutral")
   const [query, setQuery] = useState("")
@@ -341,13 +435,23 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
   const filtered = useMemo(() => {
     let result = myItems
 
+    // Top-level status filter: which slice of the inventory the user
+    // is looking at. "Active" hides sold + traded; "Sold" and "Traded"
+    // surface the historical record.
+    if (statusFilter === "active") {
+      result = result.filter((i) => !i.sold && !i.traded)
+    } else if (statusFilter === "sold") {
+      result = result.filter((i) => i.sold)
+    } else if (statusFilter === "traded") {
+      result = result.filter((i) => i.traded)
+    }
+    // "all" — no status filter applied
+
     if (collectionFilter === "unlisted") result = result.filter((i) => !i.for_sale && !i.for_trade && !i.sold)
     else if (collectionFilter === "drafts") result = result.filter((i) => i.updated_at === "Draft")
-    else if (collectionFilter === "sold") result = result.filter((i) => i.sold)
     else if (collectionFilter !== "all") result = result.filter((i) => i.collection_id === collectionFilter)
 
     if (collectionFilter !== "drafts") result = result.filter((i) => i.updated_at !== "Draft")
-    if (collectionFilter !== "sold") result = result.filter((i) => !i.sold)
 
     if (saleFilter === "include") result = result.filter((i) => i.for_sale)
     else if (saleFilter === "exclude") result = result.filter((i) => !i.for_sale)
@@ -362,12 +466,28 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
     else if (sort === "price_asc") sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
     else if (sort === "views") sorted.sort((a, b) => b.views - a.views)
     return sorted
-  }, [items, collectionFilter, saleFilter, tradeFilter, query, sort])
+  }, [myItems, statusFilter, collectionFilter, saleFilter, tradeFilter, query, sort])
+
+  const statusCounts = useMemo(
+    () => ({
+      active: myItems.filter((i) => !i.sold && !i.traded).length,
+      sold: myItems.filter((i) => i.sold).length,
+      traded: myItems.filter((i) => i.traded).length,
+      all: myItems.length,
+    }),
+    [myItems],
+  )
 
   return (
     <div className="@container/mystuff flex flex-col gap-3 @3xl/mystuff:gap-5">
       <CompactStatsRow items={myItems} />
       <DesktopStatsGrid items={myItems} />
+
+      <StatusFilterChips
+        value={statusFilter}
+        onChange={setStatusFilter}
+        counts={statusCounts}
+      />
 
       {/* Mobile toolbar */}
       <div className="flex flex-col gap-2 @3xl/mystuff:hidden">
@@ -468,14 +588,25 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
               key={item.id}
               id={item.id}
               title={item.title}
-              subtitle={item.subtitle ?? undefined}
+              subtitle={
+                item.sold || item.traded
+                  ? item.updated_at
+                  : (item.subtitle ?? undefined)
+              }
               image={item.images[0] || "/placeholder.svg"}
               href={`/listings/${item.id}`}
               price={item.price ?? null}
               forSale={item.for_sale}
               forTrade={item.for_trade}
-              dimmed={item.sold}
+              dimmed={item.sold || item.traded}
               alwaysShowPrice
+              statusBadge={
+                item.sold ? (
+                  <ItemStatusBadge label="Sold" tone="success" />
+                ) : item.traded ? (
+                  <ItemStatusBadge label="Traded" tone="info" />
+                ) : null
+              }
               actions={<ItemActionsMenu item={item} variant="overlay" />}
             />
           ))}

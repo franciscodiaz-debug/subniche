@@ -97,7 +97,7 @@ export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={handleKeyDown}
-            placeholder="Search gear, musicians, communities..."
+            placeholder="Search gear, musicians, collections..."
             className="w-full rounded-lg border border-transparent bg-card/60 py-2 pl-4 pr-10 text-sm backdrop-blur placeholder:text-muted-foreground hover:bg-card/80 focus:border-border focus:bg-card focus:outline-none"
           />
           {query ? (

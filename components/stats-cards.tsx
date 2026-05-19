@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, Users, Heart } from "lucide-react"
+import { Package, Heart } from "lucide-react"
 import Link from "next/link"
 
 interface QuickStatProps {
@@ -33,13 +33,6 @@ export function StatsCards() {
         label="Items"
         value={12}
         href="/my-stuff"
-      />
-      <span className="text-border">·</span>
-      <QuickStat
-        icon={<Users className="h-3.5 w-3.5" />}
-        label="Communities"
-        value={3}
-        href="/communities"
       />
       <span className="text-border">·</span>
       <QuickStat

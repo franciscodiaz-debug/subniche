@@ -11,7 +11,6 @@ import {
   Plus,
   Repeat2,
   Telescope,
-  Users,
   X,
 } from "lucide-react";
 
@@ -47,8 +46,6 @@ export function Sidebar({
 
   const isMyStuffArea =
     pathname === "/my-stuff" || pathname.startsWith("/my-stuff/");
-  const isCommunitiesArea =
-    pathname === "/communities" || pathname.startsWith("/communities/");
   const isMarketArea = pathname === "/market" || pathname.startsWith("/market/");
   const isDiscoverArea = isMarketArea;
   const isTradeArea = pathname === "/trade" || pathname.startsWith("/trade/");
@@ -193,20 +190,6 @@ export function Sidebar({
           <div className="hidden lg:block">{renderNavItems(desktopNavItems)}</div>
           <div className="lg:hidden">{renderNavItems(mobileNavItems, true)}</div>
 
-          <Link
-            href="/communities"
-            className={cn(
-              "relative mb-1 flex items-center gap-3 rounded-lg transition-colors",
-              collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
-              isCommunitiesArea
-                ? "bg-card text-foreground"
-                : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
-            )}
-            title={collapsed ? "Communities" : undefined}
-          >
-            <Users className="h-5 w-5 flex-shrink-0" />
-            {!collapsed ? <span className="flex-1 text-left">Communities</span> : null}
-          </Link>
 
           <Link
             href={isAuthenticated ? "/favorites" : "/login"}

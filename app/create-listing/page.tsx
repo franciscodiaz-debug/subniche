@@ -6,6 +6,8 @@ interface CreateListingPageProps {
     status?: string
     collectionId?: string
     collectionName?: string
+    /** When present, the page operates in Edit mode for that listing id. */
+    edit?: string
   }>
 }
 
@@ -18,6 +20,7 @@ export default async function CreateListingPage({ searchParams }: CreateListingP
       initialStatus={params.status}
       initialCollectionId={params.collectionId}
       initialCollectionName={params.collectionName}
+      initialEditId={params.edit}
     />
   )
 }

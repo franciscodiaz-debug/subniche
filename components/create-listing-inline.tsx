@@ -55,6 +55,7 @@ import {
   type PublishConfirmListingSummary,
 } from "@/components/create-item/publish-confirm-screen"
 import { saveDraft } from "@/lib/draft-listing-storage"
+import { loadListingForEdit } from "@/lib/edit-listing-loader"
 import {
   OnboardingTooltip,
   type OnboardingStep,
@@ -71,6 +72,10 @@ interface CreateListingInlineProps {
   initialStatus?: string
   initialCollectionId?: string
   initialCollectionName?: string
+  /** When set, the page opens in Edit mode and the form hydrates from
+   *  the listing with this id. Falls back to Create mode if the id
+   *  resolves to nothing. */
+  initialEditId?: string
 }
 
 type Suggestion = { value: string; confidence: "high" | "medium" | "low"; accepted: boolean }
@@ -650,8 +655,16 @@ export function CreateListingInline({
   initialStatus,
   initialCollectionId,
   initialCollectionName,
+  initialEditId,
 }: CreateListingInlineProps) {
   const router = useRouter()
+  /* Edit mode — resolved once at mount from initialEditId. When the id
+   * matches a real listing we hydrate every useState below from the
+   * snapshot; if not, we silently fall back to Create mode. The boolean
+   * `isEditing` drives the UI affordances (heading, primary CTA, submit
+   * destination). */
+  const editSnapshot = initialEditId ? loadListingForEdit(initialEditId) : null
+  const isEditing = !!editSnapshot
   /* `publishStage` drives the separation between the main form and the
    * Publish Confirm Screen. Desktop "Add Item" sets it to `confirm`, which
    * mounts the full-screen preview + trade editor overlay. The actual
@@ -662,19 +675,19 @@ export function CreateListingInline({
    * AI structuring call is in flight, and drives the loading state on the
    * publish CTA across both breakpoints. */
   const [isPublishing, setIsPublishing] = useState(false)
-  const [images, setImages] = useState<string[]>([])
-  const [category, setCategory] = useState("")
-  const [subcategory, setSubcategory] = useState("")
-  const [title, setTitle] = useState("")
-  const [subtitle, setSubtitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [condition, setCondition] = useState("")
-  const [conditionGrade, setConditionGrade] = useState<"" | "new" | "used-as-new" | "used" | "used-as-is">("")
-  const [brand, setBrand] = useState("")
-  const [year, setYear] = useState("")
-  const [color, setColor] = useState("")
-  const [handedness, setHandedness] = useState("")
-  const [extraSpecs, setExtraSpecs] = useState<Record<string, string>>({})
+  const [images, setImages] = useState<string[]>(editSnapshot?.images ?? [])
+  const [category, setCategory] = useState(editSnapshot?.category ?? "")
+  const [subcategory, setSubcategory] = useState(editSnapshot?.subcategory ?? "")
+  const [title, setTitle] = useState(editSnapshot?.title ?? "")
+  const [subtitle, setSubtitle] = useState(editSnapshot?.subtitle ?? "")
+  const [description, setDescription] = useState(editSnapshot?.description ?? "")
+  const [condition, setCondition] = useState(editSnapshot?.condition ?? "")
+  const [conditionGrade, setConditionGrade] = useState<"" | "new" | "used-as-new" | "used" | "used-as-is">(editSnapshot?.conditionGrade ?? "")
+  const [brand, setBrand] = useState(editSnapshot?.brand ?? "")
+  const [year, setYear] = useState(editSnapshot?.year ?? "")
+  const [color, setColor] = useState(editSnapshot?.color ?? "")
+  const [handedness, setHandedness] = useState(editSnapshot?.handedness ?? "")
+  const [extraSpecs, setExtraSpecs] = useState<Record<string, string>>(editSnapshot?.extraSpecs ?? {})
 
   const getSpec = (key: string) => {
     if (key === "brand") return brand
@@ -699,13 +712,13 @@ export function CreateListingInline({
 
   const [activeSection, setActiveSection] = useState<string | null>(null)
 
-  const [forSaleActive, setForSaleActive] = useState(initialStatus === "sale")
-  const [forTradeActive, setForTradeActive] = useState(initialStatus === "trade")
+  const [forSaleActive, setForSaleActive] = useState(editSnapshot?.forSaleActive ?? initialStatus === "sale")
+  const [forTradeActive, setForTradeActive] = useState(editSnapshot?.forTradeActive ?? initialStatus === "trade")
   const [inCollectionActive, setInCollectionActive] = useState(
-    initialStatus === "collection" || !!initialCollectionId,
+    editSnapshot?.inCollectionActive ?? (initialStatus === "collection" || !!initialCollectionId),
   )
-  const [isWishlistActive, setIsWishlistActive] = useState(initialStatus === "wishlist")
-  const [hasSelectedStatus, setHasSelectedStatus] = useState(!!initialStatus || !!initialCollectionId)
+  const [isWishlistActive, setIsWishlistActive] = useState(editSnapshot?.isWishlistActive ?? initialStatus === "wishlist")
+  const [hasSelectedStatus, setHasSelectedStatus] = useState(isEditing || !!initialStatus || !!initialCollectionId)
   const [statusFieldsAdded, setStatusFieldsAdded] = useState<string | null>(null)
   const [tradeNoticeVisible, setTradeNoticeVisible] = useState(false)
   // Only surface the "still needed" requirement list after a user attempts to publish
@@ -719,7 +732,7 @@ export function CreateListingInline({
     statusTimerRef.current = setTimeout(() => setStatusFieldsAdded(null), 2500)
   }
 
-  const [saleData, setSaleData] = useState<ItemSaleStatus>({
+  const [saleData, setSaleData] = useState<ItemSaleStatus>(editSnapshot?.saleData ?? {
     active: initialStatus === "sale",
     price: null,
     paymentMethods: [],
@@ -731,7 +744,7 @@ export function CreateListingInline({
     publishTo: ["marketplace"],
   })
 
-  const [tradeData, setTradeData] = useState<ItemTradeStatus>({
+  const [tradeData, setTradeData] = useState<ItemTradeStatus>(editSnapshot?.tradeData ?? {
     active: initialStatus === "trade",
     estimatedValue: null,
     interests: null,
@@ -745,7 +758,7 @@ export function CreateListingInline({
     publishTo: ["marketplace"],
   })
 
-  const [collectionData, setCollectionData] = useState<ItemCollectionStatus>({
+  const [collectionData, setCollectionData] = useState<ItemCollectionStatus>(editSnapshot?.collectionData ?? {
     active: inCollectionActive,
     collectionId: initialCollectionId || null,
     notes: null,
@@ -754,7 +767,7 @@ export function CreateListingInline({
     receiptUrl: null,
   })
 
-  const [wishlistData, setWishlistData] = useState<WishlistItemData>({
+  const [wishlistData, setWishlistData] = useState<WishlistItemData>(editSnapshot?.wishlistData ?? {
     sourceUrl: null,
     isPublic: true,
     targetPrice: null,
@@ -1218,6 +1231,13 @@ export function CreateListingInline({
       savedAt: Date.now(),
     })
 
+    // Edit mode lands back on the existing listing detail; create mode
+    // takes the user to the success page that reads the just-saved draft.
+    if (isEditing && editSnapshot) {
+      router.push(`/listings/${editSnapshot.editingListingId}?updated=1`)
+      return
+    }
+
     router.push("/listings/just-published")
   }
 
@@ -1439,13 +1459,14 @@ export function CreateListingInline({
         onAutofill={handleAutofill}
         sellerUsername={currentUser.displayName}
         sellerAvatarUrl={currentUser.avatarUrl}
+        isEditing={isEditing}
       />
 
       <div id="create-listing-top" className="hidden md:block px-4 py-6 md:px-6 lg:px-8">
         <div className="flex flex-col gap-4 mb-4">
           {/* Row 1: page title + action buttons */}
           <div className="flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-bold text-foreground">Add Item</h1>
+            <h1 className="text-2xl font-bold text-foreground">{isEditing ? "Edit Listing" : "Add Item"}</h1>
             <div className="flex gap-2 sm:gap-3">
               <div data-onboarding="ai-assist">
                 <Tooltip>
@@ -1504,7 +1525,7 @@ export function CreateListingInline({
                 onClick={handleOpenPublishConfirm}
                 className="hidden lg:inline-flex group"
               >
-                {getPublishStatus().label}
+                {isEditing ? "Save changes" : getPublishStatus().label}
                 <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Button>
             </div>
@@ -2127,7 +2148,7 @@ export function CreateListingInline({
                     Save Draft
                   </Button>
                   <Button onClick={handleOpenPublishConfirm} className="flex-1">
-                    {status.label}
+                    {isEditing ? "Save changes" : status.label}
                   </Button>
                 </div>
                 {showMissingError && missing.length > 0 && (

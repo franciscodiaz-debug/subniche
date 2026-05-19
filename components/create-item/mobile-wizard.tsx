@@ -178,6 +178,10 @@ export interface MobileWizardProps {
   // Username for the review preview
   sellerUsername: string
   sellerAvatarUrl?: string | null
+
+  /** When true, the wizard is editing an existing listing rather than
+   *  authoring a new one. Switches terminal CTA copy to "Save changes". */
+  isEditing?: boolean
 }
 
 /**
@@ -668,8 +672,10 @@ export function MobileCreateListingWizard(props: MobileWizardProps) {
               {props.publishing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Indexing…
+                  {props.isEditing ? "Saving…" : "Indexing…"}
                 </>
+              ) : props.isEditing ? (
+                "Save changes"
               ) : (
                 "Add Item"
               )}

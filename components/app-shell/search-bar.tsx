@@ -9,6 +9,7 @@ import { Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { exploreItems } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 
 export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
   const router = useRouter()
@@ -17,7 +18,11 @@ export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const needle = query.trim().toLowerCase()
+  // The filter runs against the debounced query so we don't re-scan the
+  // mock data on every keystroke. Submitting (Enter) still uses the raw
+  // query so the user never has to wait for the debounce.
+  const debouncedQuery = useDebouncedValue(query, 200)
+  const needle = debouncedQuery.trim().toLowerCase()
 
   const itemResults = needle
     ? exploreItems

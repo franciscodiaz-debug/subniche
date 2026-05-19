@@ -279,10 +279,17 @@ export function FollowedItemsSection() {
 
 /* ─── Collections ───────────────────────────────────────────────────── */
 
+/**
+ * IDs here MUST match the canonical Collection ids in lib/mock/my-stuff.ts
+ * (col-guitars, col-pedalboard, wishlist-<username>) so the CollectionCard
+ * `href={/collection/${col.id}}` resolves once the Collections store
+ * (PR #6 — feat/collections-crud) lands on main. Until then the page
+ * 404s on click; that's the expected transition state.
+ */
 const myCollectionsData: Array<Collection & { previewImages: string[] }> = [
   {
-    id: 'mc1',
-    name: 'My Wishlist',
+    id: 'wishlist-jek116',
+    name: 'Wishlist',
     item_count: 8,
     is_wishlist: true,
     visibility: 'private',
@@ -292,36 +299,26 @@ const myCollectionsData: Array<Collection & { previewImages: string[] }> = [
     ],
   },
   {
-    id: 'mc2',
-    name: 'Pedalboard 2025',
+    id: 'col-guitars',
+    name: 'My Guitars',
+    item_count: 8,
+    visibility: 'public',
+    previewImages: [
+      'https://images.unsplash.com/photo-1550985616-10810253b84d?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=200&h=200&fit=crop',
+    ],
+  },
+  {
+    id: 'col-pedalboard',
+    name: 'Pedal Board',
     item_count: 12,
     visibility: 'public',
     previewImages: [
       'https://images.unsplash.com/photo-1558098329-a11cff621064?w=200&h=200&fit=crop',
       'https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=200&h=200&fit=crop',
       'https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=200&h=200&fit=crop',
-    ],
-  },
-  {
-    id: 'mc3',
-    name: 'Dream Guitars',
-    item_count: 5,
-    visibility: 'private',
-    previewImages: [
-      'https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=200&h=200&fit=crop',
-    ],
-  },
-  {
-    id: 'mc4',
-    name: 'Vintage Stuff',
-    item_count: 9,
-    visibility: 'public',
-    previewImages: [
-      'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1550985616-10810253b84d?w=200&h=200&fit=crop',
     ],
   },
 ]
@@ -342,7 +339,7 @@ export function CollectionsSection() {
             collection={col}
             view="grid"
             itemImages={col.previewImages}
-            href="/my-stuff?tab=collections"
+            href={`/collection/${col.id}`}
             className="w-[180px] flex-shrink-0"
           />
         ))}

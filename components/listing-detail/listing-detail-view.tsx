@@ -18,6 +18,10 @@
  * collection-only listing) simply return null.
  */
 
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { Check } from "lucide-react"
+
 import { TopStrip } from "./top-strip"
 import { PhotoGallery } from "./photo-gallery"
 import { CompactSellerCard } from "./compact-seller-card"
@@ -44,6 +48,32 @@ import type { MockListing } from "@/lib/mock-listing-detail"
 
 interface ListingDetailViewProps {
   listing: MockListing
+}
+
+/**
+ * Shown briefly when the user lands here from the Edit Listing flow.
+ * The query param is just a signal — we render the toast for a moment
+ * and let it fade. Nothing else in the page depends on it.
+ */
+function UpdatedBanner() {
+  const params = useSearchParams()
+  const justUpdated = params.get("updated") === "1"
+  const [visible, setVisible] = useState(justUpdated)
+
+  useEffect(() => {
+    if (!justUpdated) return
+    const timer = window.setTimeout(() => setVisible(false), 4000)
+    return () => window.clearTimeout(timer)
+  }, [justUpdated])
+
+  if (!visible) return null
+
+  return (
+    <div className="mb-4 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground">
+      <Check className="h-4 w-4 shrink-0 text-primary" />
+      <span>Listing updated. Your changes are live.</span>
+    </div>
+  )
 }
 
 export function ListingDetailView({ listing }: ListingDetailViewProps) {
@@ -149,6 +179,7 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
 
   return (
     <div className="mx-auto w-full max-w-[1280px] px-4 pb-16 pt-4 md:px-6 md:pt-6 lg:px-8">
+      <UpdatedBanner />
       <div className="mb-6 md:mb-8">
         <TopStrip
           categoryPath={categoryPath}

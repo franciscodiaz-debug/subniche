@@ -62,6 +62,9 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
   const [nicheName, setNicheName] = useState(profile.username)
   const [location, setLocation] = useState(profile.location)
   const [bio, setBio] = useState(profile.bio)
+  const [showActivityOnPublicProfile, setShowActivityOnPublicProfile] = useState<boolean>(
+    profile.showActivityOnPublicProfile ?? true,
+  )
   const [linkedAccounts, setLinkedAccounts] = useState<ProfileLinkedAccountReference[]>(
     profile.linkedAccounts,
   )
@@ -80,6 +83,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
     nicheName !== profile.username ||
     location !== profile.location ||
     bio !== profile.bio ||
+    showActivityOnPublicProfile !== (profile.showActivityOnPublicProfile ?? true) ||
     JSON.stringify(linkedAccounts) !== JSON.stringify(profile.linkedAccounts) ||
     JSON.stringify(verification) !== JSON.stringify(profile.verification)
 
@@ -93,6 +97,7 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
       avatarUrl: avatarPreviewUrl,
       linkedAccounts,
       verification,
+      showActivityOnPublicProfile,
     })
   }
 
@@ -442,11 +447,9 @@ export function ProfileEditView({ profile, onSave, onBack }: ProfileEditViewProp
             <SettingRow
               icon={Eye}
               label="Show activity feed"
-              description="Display your recent listings and trades publicly."
-              active={settings.showActivity}
-              onToggle={() =>
-                setSettings((prev) => ({ ...prev, showActivity: !prev.showActivity }))
-              }
+              description="Display your recent listings, trades, and collection actions on your public profile."
+              active={showActivityOnPublicProfile}
+              onToggle={() => setShowActivityOnPublicProfile((v) => !v)}
             />
             <SettingRow
               icon={Globe}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   BarChart3,
   CheckCircle2,
@@ -111,6 +112,10 @@ export function CollectionChip({
  * Owner-only actions menu — the three-dots overlay shown on top-right of
  * each owned card. Per product decision, deleting an item from inventory
  * isn't allowed; the destructive action is moving to another collection.
+ *
+ * Actions write to the local CollectionsContext so changes are reflected
+ * in the UI immediately. The back team will swap these for real API
+ * calls — the surface (which actions, which icons, which copy) stays.
  */
 export function ItemActionsMenu({
   item,
@@ -119,12 +124,46 @@ export function ItemActionsMenu({
   item: MyItem
   variant?: "default" | "overlay"
 }) {
-  const log = (action: string) =>
-    console.log("[stub] my-stuff action:", action, item.id)
-  const { collections, moveItemsToCollection } = useCollections()
+  const router = useRouter()
+  const { collections, moveItemsToCollection, updateItem } = useCollections()
   const myCollections = collections.filter(
     (c) => !c.owner_id || c.owner_id === currentUser.username,
   )
+
+  const handleMarkSold = () =>
+    updateItem(item.id, { sold: true, for_sale: false, for_trade: false })
+  const handleMarkTraded = () =>
+    updateItem(item.id, { traded: true, for_sale: false, for_trade: false })
+  const handleToggleSale = () =>
+    updateItem(item.id, { for_sale: !item.for_sale })
+  const handleToggleTrade = () =>
+    updateItem(item.id, { for_trade: !item.for_trade })
+
+  const handleEdit = () => {
+    router.push(`/create-listing?edit=${item.id}`)
+  }
+
+  const handleShare = async () => {
+    // Prototype: copy the public listing URL to the clipboard. The page
+    // doesn't render confirmation chrome — the back team can swap this
+    // for a real share sheet later. We silently swallow errors so the
+    // menu doesn't get stuck mid-action.
+    if (typeof window === "undefined") return
+    const url = `${window.location.origin}/listings/${item.id}`
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+      }
+    } catch {
+      // ignore — clipboard can fail on insecure origins
+    }
+  }
+
+  const handleViewStats = () => {
+    // Stats live behind a future analytics surface; until then the menu
+    // entry stays so reviewers see the intent. No-op on click.
+    console.log("[future] view stats:", item.id)
+  }
 
   return (
     <DropdownMenu>
@@ -148,33 +187,39 @@ export function ItemActionsMenu({
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
           Manage listing
         </DropdownMenuLabel>
-        <DropdownMenuItem onSelect={() => log("edit")}>
+        <DropdownMenuItem onSelect={handleEdit}>
           <Pencil className="mr-2 h-4 w-4" />
           Edit listing
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => log("stats")}>
+        <DropdownMenuItem onSelect={handleViewStats}>
           <BarChart3 className="mr-2 h-4 w-4" />
           View stats
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {!item.sold && (
-          <DropdownMenuItem onSelect={() => log("mark_sold")}>
+        {!item.sold && !item.traded && (
+          <DropdownMenuItem onSelect={handleMarkSold}>
             <CheckCircle2 className="mr-2 h-4 w-4" />
             Mark as sold
           </DropdownMenuItem>
         )}
+        {!item.sold && !item.traded && (
+          <DropdownMenuItem onSelect={handleMarkTraded}>
+            <Repeat2 className="mr-2 h-4 w-4" />
+            Mark as traded
+          </DropdownMenuItem>
+        )}
         {item.for_sale ? (
-          <DropdownMenuItem onSelect={() => log("unlist_sale")}>
+          <DropdownMenuItem onSelect={handleToggleSale}>
             <DollarSignOffIcon className="mr-2 h-4 w-4" />
             Unlist
           </DropdownMenuItem>
         ) : (
-          <DropdownMenuItem onSelect={() => log("list_sale")}>
+          <DropdownMenuItem onSelect={handleToggleSale}>
             <DollarSign className="mr-2 h-4 w-4" />
             List for sale
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={() => log("toggle_trade")}>
+        <DropdownMenuItem onSelect={handleToggleTrade}>
           <Repeat2 className="mr-2 h-4 w-4" />
           {item.for_trade ? "Remove from trade" : "Open to trades"}
         </DropdownMenuItem>
@@ -192,7 +237,7 @@ export function ItemActionsMenu({
           </DropdownMenuCheckboxItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => log("share")}>
+        <DropdownMenuItem onSelect={handleShare}>
           <Share2 className="mr-2 h-4 w-4" />
           Share link
         </DropdownMenuItem>

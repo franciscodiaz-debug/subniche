@@ -59,6 +59,9 @@ export interface ItemCardProps {
   /** Render price even when the item is not for sale/trade. Used by owner
    *  views where the price represents the user's estimate, not a listing. */
   alwaysShowPrice?: boolean
+  /** Optional pill rendered over the image, top-left. Used to surface a
+   *  state the viewer needs to read first ("Sold", "Traded", "Draft"). */
+  statusBadge?: ReactNode
 }
 
 /* -------------------------------------------------------------------------- */
@@ -169,6 +172,7 @@ export function ItemCard({
   belowTitle,
   dimmed = false,
   alwaysShowPrice = false,
+  statusBadge,
 }: ItemCardProps) {
   const hasPrice = (alwaysShowPrice || forSale || forTrade) && price != null
   const hasStatus = forSale || forTrade
@@ -192,6 +196,11 @@ export function ItemCard({
             className="object-cover transition-transform group-hover:scale-105"
           />
         </Link>
+        {statusBadge ? (
+          <div className="absolute left-2 top-2 z-20 pointer-events-none">
+            {statusBadge}
+          </div>
+        ) : null}
         {actions ? (
           <div
             className={cn(

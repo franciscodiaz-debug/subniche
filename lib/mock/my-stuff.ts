@@ -16,6 +16,14 @@ export interface MyItem {
   for_sale: boolean
   for_trade: boolean
   sold: boolean
+  /**
+   * Item was given away in a trade and no longer belongs to the user.
+   * Like `sold`, it removes the item from the active inventory but keeps
+   * it visible under the "Traded" status filter so the user has a record
+   * of past trades. The matching wiring (offer accepted in inbox →
+   * traded:true) is owned by the inbox flow — flag it manually for now.
+   */
+  traded?: boolean
   views: number
   saves: number
   messages: number
@@ -124,6 +132,23 @@ export const myItems: MyItem[] = [
     saves: 19,
     messages: 6,
     updated_at: "Sold 3w ago",
+    collection_id: "col-pedalboard",
+    location: "Brooklyn, NY",
+  },
+  {
+    id: "mi-7",
+    title: "Boss DS-1 Distortion",
+    subtitle: "Made in Japan, black label",
+    price: 180,
+    images: ["https://images.unsplash.com/photo-1558098329-a11cff621064?w=800&h=600&fit=crop"],
+    for_sale: false,
+    for_trade: false,
+    sold: false,
+    traded: true,
+    views: 87,
+    saves: 4,
+    messages: 2,
+    updated_at: "Traded 2w ago",
     collection_id: "col-pedalboard",
     location: "Brooklyn, NY",
   },

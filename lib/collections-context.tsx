@@ -129,6 +129,12 @@ interface CollectionsContextValue {
   moveItemsToCollection: (collectionId: string, itemIds: string[]) => void
   /** Remove a single item from a collection (sets `collection_id` to null). */
   removeItemFromCollection: (itemId: string) => void
+  /**
+   * Patch arbitrary fields on a single item. Used by the My Stuff action
+   * menu to flip flags (sold, for_sale, for_trade, etc.) without each
+   * caller redoing the immutable update plumbing.
+   */
+  updateItem: (itemId: string, patch: Partial<MyItem>) => void
   /** Is the current user following this collection? */
   isFollowingCollection: (collectionId: string) => boolean
   /** Toggle follow state for a collection. */
@@ -337,6 +343,12 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const updateItem = useCallback((itemId: string, patch: Partial<MyItem>) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, ...patch } : item)),
+    )
+  }, [])
+
   const isFollowingCollection = useCallback(
     (collectionId: string) => followedCollectionIds.includes(collectionId),
     [followedCollectionIds],
@@ -369,6 +381,7 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
       deleteCollection,
       moveItemsToCollection,
       removeItemFromCollection,
+      updateItem,
       isFollowingCollection,
       toggleFollowCollection,
     }),
@@ -383,6 +396,7 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
       deleteCollection,
       moveItemsToCollection,
       removeItemFromCollection,
+      updateItem,
       isFollowingCollection,
       toggleFollowCollection,
     ],

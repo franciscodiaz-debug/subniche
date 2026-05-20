@@ -1,0 +1,87 @@
+name: Notification to Google Chat
+
+on:
+  pull_request:
+    types: [opened, closed]
+  pull_request_review:
+    types: [submitted]
+  deployment_status:
+
+jobs:
+  notify-opened:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message to Google Chat
+        run: |
+          curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "*[${{ github.repository }}] New Pull Request created!* 🚀\nPR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}\nAuthor: ${{ github.event.pull_request.user.login }}\nURL: ${{ github.event.pull_request.html_url }}"
+            }' \
+            "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
+
+  notify-merged:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message to Google Chat
+        run: |
+          curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "*[${{ github.repository }}] Pull Request merged!* ✅\nPR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}\nMerged by: ${{ github.event.pull_request.merged_by.login }}\nURL: ${{ github.event.pull_request.html_url }}"
+            }' \
+            "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
+
+  notify-review:
+    if: >
+      github.event_name == 'pull_request_review' &&
+      (github.event.review.state == 'approved' || github.event.review.state == 'changes_requested')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set review context
+        id: ctx
+        run: |
+          if [ "${{ github.event.review.state }}" = "approved" ]; then
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "status=Approved" >> $GITHUB_OUTPUT
+          else
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "status=Changes requested" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send message to Google Chat
+        run: |
+          curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "*[${{ github.repository }}] PR Review: ${{ steps.ctx.outputs.status }}* ${{ steps.ctx.outputs.emoji }}\nPR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}\nReviewer: ${{ github.event.review.user.login }}\nURL: ${{ github.event.review.html_url }}"
+            }' \
+            "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
+
+  notify-deployed:
+    if: >
+      github.event_name == 'deployment_status' &&
+      (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set deployment context
+        id: ctx
+        run: |
+          if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
+            echo "emoji=🚀" >> $GITHUB_OUTPUT
+            echo "status=Deployed successfully" >> $GITHUB_OUTPUT
+          else
+            echo "emoji=💥" >> $GITHUB_OUTPUT
+            echo "status=Deployment failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send message to Google Chat
+        run: |
+          curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "*[${{ github.repository }}] Deployment: ${{ steps.ctx.outputs.status }}* ${{ steps.ctx.outputs.emoji }}\nEnvironment: ${{ github.event.deployment.environment }}\nBranch: ${{ github.event.deployment.ref }}\nDeployed by: ${{ github.event.sender.login }}\nURL: ${{ github.event.deployment_status.target_url }}"
+            }' \
+            "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"

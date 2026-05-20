@@ -162,7 +162,7 @@ export function CollectionVisitorView({
 
       {/* Items grid — read-only, watchlist-mode cards. */}
       {ownedItems.length === 0 ? (
-        <EmptyState isWishlist={!!collection.is_wishlist} />
+        <EmptyState />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ownedItems.map((item) => (
@@ -286,13 +286,11 @@ function PrivateCollectionNotice() {
   )
 }
 
-function EmptyState({ isWishlist }: { isWishlist: boolean }) {
+function EmptyState() {
   return (
     <div className="rounded-lg border border-dashed border-border bg-secondary/20 p-8 text-center">
       <p className="text-sm text-muted-foreground">
-        {isWishlist
-          ? "Nothing on this wishlist yet."
-          : "No items in this collection yet."}
+        No items in this collection yet.
       </p>
     </div>
   )

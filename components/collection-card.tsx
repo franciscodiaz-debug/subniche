@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { FolderOpen, Globe, Heart, Link2, Lock } from "lucide-react"
+import { FolderOpen, Globe, Link2, Lock } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { Collection } from "@/lib/types"
@@ -61,32 +61,16 @@ export function CollectionCard({
             alt={collection.name}
             className="h-full w-full object-cover"
           />
-        ) : collection.is_wishlist ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <Heart className="h-6 w-6 text-chart-5" />
-          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <FolderOpen className="h-6 w-6 text-primary" />
           </div>
         )}
-
-        {collection.is_wishlist ? (
-          <div className="absolute left-1 top-1 flex items-center gap-0.5 rounded bg-background/80 px-1 py-0.5 backdrop-blur-sm">
-            <Heart className="h-2 w-2 fill-current text-chart-5" />
-          </div>
-        ) : null}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="truncate font-medium text-foreground">{collection.name}</h3>
-          {collection.is_wishlist ? (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-chart-5/25 bg-chart-5/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-chart-5">
-              <Heart className="h-2.5 w-2.5 fill-current" />
-              Wishlist
-            </span>
-          ) : null}
           <div className="ml-auto flex-shrink-0 text-right" title={visibilityLabel}>
             <VisibilityIcon className={cn("h-4 w-4", visibilityColor)} />
           </div>
@@ -165,19 +149,8 @@ export function CollectionCard({
               ))}
             </div>
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div
-                className={cn(
-                  "inline-flex items-center justify-center rounded-full p-3",
-                  collection.is_wishlist
-                    ? "bg-chart-5/10 text-chart-5"
-                    : "bg-primary/10 text-primary",
-                )}
-              >
-                {collection.is_wishlist ? (
-                  <Heart className="h-5 w-5" />
-                ) : (
-                  <FolderOpen className="h-5 w-5" />
-                )}
+              <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-3 text-primary">
+                <FolderOpen className="h-5 w-5" />
               </div>
             </div>
           </div>
@@ -186,16 +159,6 @@ export function CollectionCard({
 
       {/* Info section */}
       <div className="px-3 pb-3 pt-2">
-        {/* Badges row — only renders when there's something to show */}
-        {collection.is_wishlist ? (
-          <div className="mb-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full border border-chart-5/25 bg-chart-5/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-chart-5">
-              <Heart className="h-2.5 w-2.5 fill-current" />
-              Wishlist
-            </span>
-          </div>
-        ) : null}
-
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-sm font-semibold md:text-base text-foreground">{collection.name}</h3>
@@ -253,10 +216,7 @@ export function CollectionCard({
     className,
   )
   const gridClassName = cn(
-    "group block overflow-hidden rounded-xl border bg-card text-left transition-colors",
-    collection.is_wishlist
-      ? "border-chart-5/20 hover:border-chart-5/50"
-      : "border-border hover:border-primary/40",
+    "group block overflow-hidden rounded-xl border border-border bg-card text-left transition-colors hover:border-primary/40",
     className,
   )
 

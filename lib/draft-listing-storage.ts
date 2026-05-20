@@ -33,7 +33,6 @@ export interface PublishedListingDraft {
   forSaleActive: boolean
   forTradeActive: boolean
   inCollectionActive: boolean
-  isWishlistActive: boolean
   price: number | null
   estimatedTradeValue: number | null
   paymentMethods: string[]
@@ -108,7 +107,7 @@ export function draftToMockListing(draft: PublishedListingDraft): MockListing {
   const availability: MockListing["availability"] = []
   if (draft.forSaleActive) availability.push("for-sale")
   if (draft.forTradeActive) availability.push("for-trade")
-  if (draft.inCollectionActive || draft.isWishlistActive) availability.push("collection")
+  if (draft.inCollectionActive) availability.push("collection")
 
   const specs: MockSpec[] = draft.specs.filter((s) => s.value.trim().length > 0)
 
@@ -170,7 +169,7 @@ export function draftToMockListing(draft: PublishedListingDraft): MockListing {
     viewerIsOwner: true,
     ownerStats: {
       views: 0,
-      wishlistAdds: 0,
+      saves: 0,
       messages: 0,
       daysListed: 0,
     },

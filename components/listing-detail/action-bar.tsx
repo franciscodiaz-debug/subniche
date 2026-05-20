@@ -6,7 +6,7 @@
  * Two rendering modes depending on whether the current viewer is the owner:
  *
  *   - Viewer: "Buy — Contact Seller" / "Propose a Trade" / "Message Owner"
- *     per the availability flags, plus a secondary icon row for wishlist
+ *     per the availability flags, plus a secondary icon row for save
  *     and share.
  *   - Owner: "Edit Listing" (primary gold), "Delete" (outlined destructive),
  *     and a "Mark as Sold" switch — followed by the stats grid.
@@ -19,7 +19,6 @@ import { useState } from "react"
 import Link from "next/link"
 import {
   Bookmark,
-  Heart,
   MessageCircle,
   Pencil,
   Repeat2,
@@ -37,7 +36,7 @@ interface ViewerActionsProps {
 }
 
 export function ViewerActions({ availability }: ViewerActionsProps) {
-  const [wishlisted, setWishlisted] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const isForSale = availability.includes("for-sale")
   const isForTrade = availability.includes("for-trade")
@@ -93,10 +92,10 @@ export function ViewerActions({ availability }: ViewerActionsProps) {
       {/* Secondary icon row. Kept quiet so it doesn't compete with primary CTAs. */}
       <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-card/60 px-3 py-2">
         <IconAction
-          active={wishlisted}
-          onClick={() => setWishlisted((v) => !v)}
-          icon={wishlisted ? Bookmark : Heart}
-          label={wishlisted ? "Saved" : "Wishlist"}
+          active={saved}
+          onClick={() => setSaved((v) => !v)}
+          icon={Bookmark}
+          label={saved ? "Saved" : "Save"}
         />
         <div className="h-5 w-px bg-border" aria-hidden="true" />
         <IconAction icon={Share2} label="Share" onClick={() => {}} />
@@ -222,7 +221,7 @@ function OwnerStatsGrid({
 }) {
   const items: Array<{ label: string; value: string }> = [
     { label: "Views", value: stats.views.toLocaleString('en-US') },
-    { label: "Wishlist adds", value: stats.wishlistAdds.toLocaleString('en-US') },
+    { label: "Saves", value: stats.saves.toLocaleString('en-US') },
     { label: "Messages", value: stats.messages.toLocaleString('en-US') },
     { label: "Days listed", value: stats.daysListed.toLocaleString('en-US') },
   ]

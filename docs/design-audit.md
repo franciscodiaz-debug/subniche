@@ -1,6 +1,6 @@
 # SubNiche — Design Audit (Living)
 
-**Last updated:** 2026-05-20
+**Last updated:** 2026-05-20 (sidebar audit closed via #20)
 **Owner:** Francisco
 **Branch audited:** `main`
 **Supersedes:** `docs/design-audit-2026-05-14.md` (PR #5) and `docs/design-audit-2026-05-19-addendum.md` (PR #17)
@@ -210,7 +210,7 @@ Two threads from the original audit have been resolved by product decision:
 | 69 | Mobile search panel | OK | 2026-05-14 | — | Portal overlay with quick searches + results |
 | 70 | Niche switcher | OK | 2026-05-14 | — | Two variants wired to context |
 | 71 | App shell client layout | OK | 2026-05-14 | — | Scroll detection, Suspense fallback |
-| **NEW-F** | Sidebar audit after Communities removal | Unfinished | 2026-05-19 | — | Sanity check for stale entries, copy mismatches, dead routes |
+| **NEW-F** | Sidebar audit after Communities removal | OK | 2026-05-20 | #8, #11, #20 | Most cleanup already covered by #8 (Heart→Eye, "Following"→"Favorites") and #11 (remove Communities item, redirect `/communities`). #20 fixes a leftover bottom-nav `/niche/` → `/n/` check. Bottom-nav icon/missing-Trade decisions intentionally left to the product team. |
 
 ---
 
@@ -264,10 +264,19 @@ When the seller marks an item Sold, what happens on the buyer's side? Three opti
 
 ### NEW-F — Sidebar audit after Communities removal
 
-**Status:** Unfinished
-**Last reviewed:** 2026-05-19
+**Status:** OK (closed)
+**Last reviewed:** 2026-05-20
+**PRs:** #8, #11, #20
 
-With Communities hidden (PR #11) and Favorites repurposed (PR #8), the sidebar should be sanity-checked end-to-end for stale entries, copy mismatches, or routes that no longer exist. Small scope.
+Audited the sidebar and mobile bottom-nav end-to-end. Findings:
+
+- **Already fixed in PR #8:** sidebar Heart → Eye icon, label "Following" → "Favorites" (matches the new tabbed `/favorites` page).
+- **Already fixed in PR #11:** Communities item + active-state check removed; `/communities` route returns a redirect to `/`.
+- **New fix in PR #20:** mobile bottom-nav `pathname.startsWith("/niche/")` corrected to `/n/` — Home now lights up on niche routes.
+- **Intentionally left for the product team to decide later (not bugs):**
+  - Mobile bottom-nav `Inbox` uses the `Send` icon (chosen for visual punch + action affinity); desktop uses `Inbox`. Product decision pending whether to unify or accept the divergence.
+  - Mobile bottom-nav has no `Trade` entry; desktop does.
+  - Mobile bottom-nav `Market` uses the `Repeat2` icon (same as `Trade`'s icon).
 
 ---
 
@@ -276,8 +285,8 @@ With Communities hidden (PR #11) and Favorites repurposed (PR #8), the sidebar s
 | Status | Count |
 |--------|-------|
 | Missing | 4 |
-| Unfinished | 6 |
-| OK | 58 |
+| Unfinished | 5 |
+| OK | 59 |
 | Perfect | 3 |
 | Out of scope (post-MVP) | 3 |
 
@@ -287,12 +296,11 @@ With Communities hidden (PR #11) and Favorites repurposed (PR #8), the sidebar s
 
 Refreshed each time something closes. Items blocked on Kyle are listed at the bottom — they don't pull priority over actionable work.
 
-1. **NEW-F — Sidebar audit.** Smallest scope, ~30 min. Clean cleanup pass.
-2. **#42 — Counter-offer modal polish.** Self-contained, 30–60 min. Adds % presets + diff view.
-3. **#20 — Loading & empty states across feeds.** Wide but mechanical. Skeletons + `Suspense`.
-4. **#36 — Trade interests promoted to a route.** Mid-size, touches navigation.
-5. **#2, #3, #10 — Auth side-branch flows.** Sign up via niche link, Verify email, Find niche. Need to merge the side branch or rebuild on main.
-6. **#20-admin — Admin tables loading/empty polish.** Polish only, low priority.
+1. **#42 — Counter-offer modal polish.** Self-contained, 30–60 min. Adds % presets + diff view.
+2. **#20 — Loading & empty states across feeds.** Wide but mechanical. Skeletons + `Suspense`.
+3. **#36 — Trade interests promoted to a route.** Mid-size, touches navigation.
+4. **#2, #3, #10 — Auth side-branch flows.** Sign up via niche link, Verify email, Find niche. Need to merge the side branch or rebuild on main.
+5. **#20-admin — Admin tables loading/empty polish.** Polish only, low priority.
 
 **Blocked on Kyle:**
 
@@ -308,7 +316,7 @@ This list is informational and goes stale fast. Use `gh pr list --state open` fo
 | PR | Title | Base | Status |
 |----|-------|------|--------|
 | #4  | feat(create-listing): mobile fixes, Keeping state, Wishlist redesign, specs editor refactor | main | Open — superseded in part by #18 |
-| #5  | docs: add design audit and MVP priority list (2026-05-14) | main | **Closes when this doc lands** |
+| #5  | docs: add design audit and MVP priority list (2026-05-14) | main | Closed — superseded by this document |
 | #6  | feat(collections): end-to-end CRUD, visitor view, and unified card modes | main | Open |
 | #8  | feat(listings): listing detail CTAs, Watchlist concept, Make an Offer flow | main | Open |
 | #9  | feat(profile): Looking For tab with dedicated WishlistItemCard | #6 | Open — partially superseded by #18 |
@@ -318,5 +326,7 @@ This list is informational and goes stale fast. Use `gh pr list --state open` fo
 | #14 | feat(profile): activity tab | main | Open |
 | #15 | feat(create-listing): drag-and-drop photo reordering | main | Open |
 | #16 | feat(my-stuff): wire item action menu + Active/Sold/Traded status filter | #6 | Open |
-| #17 | docs: 2026-05-19 audit addendum | main | **Closes when this doc lands** |
+| #17 | docs: 2026-05-19 audit addendum | main | Closed — superseded by this document |
 | #18 | feat(mvp): remove Wishlist concept end-to-end | #6 | Open |
+| #19 | docs(audit): single living audit document | main | This document |
+| #20 | fix(bottom-nav): mark Home active on niche routes | main | Open |

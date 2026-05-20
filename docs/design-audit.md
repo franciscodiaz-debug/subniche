@@ -1,6 +1,6 @@
 # SubNiche — Design Audit (Living)
 
-**Last updated:** 2026-05-20 (sidebar audit closed via #20)
+**Last updated:** 2026-05-20 (NEW-G closed via #21, NEW-H added)
 **Owner:** Francisco
 **Branch audited:** `main`
 **Supersedes:** `docs/design-audit-2026-05-14.md` (PR #5) and `docs/design-audit-2026-05-19-addendum.md` (PR #17)
@@ -153,7 +153,7 @@ Two threads from the original audit have been resolved by product decision:
 |---|------|--------|---------------|----|-------|
 | 40 | Inbox | OK | 2026-05-14 | — | Three-panel layout, responsive |
 | 41 | Chat panel | OK | 2026-05-14 | — | All message types render |
-| 42 | Cash counter-offer modal | Unfinished | 2026-05-14 | — | Functional; UI could be richer (% presets, diff view) |
+| 42 | Cash counter-offer modal | OK | 2026-05-20 | #21 | Superseded by the unified `ProposalSheet` shipped in NEW-G. The dedicated cash modal was removed; counter offers now use the same sheet as trade proposals. |
 | 43 | Trade offer in chat | OK | 2026-05-14 | — | Inline cards + sticky header |
 
 ### Profile
@@ -278,6 +278,39 @@ Audited the sidebar and mobile bottom-nav end-to-end. Findings:
   - Mobile bottom-nav has no `Trade` entry; desktop does.
   - Mobile bottom-nav `Market` uses the `Repeat2` icon (same as `Trade`'s icon).
 
+### NEW-G — Trade flow coherence (Propose / Receive / Counter)
+
+**Status:** OK (closed)
+**Last reviewed:** 2026-05-20
+**PRs:** #21
+**Design notes:** [`docs/trade-flow-design-notes.md`](./trade-flow-design-notes.md)
+
+The trade flow used three different modals (`MakeOfferModal`, `CounterOfferModal`, `CashCounterOfferModal`) — visually inconsistent, hard to read, with the cash-only counter only reachable on mobile in a specific corner case. The chat-side card was framed "they offer / for your", which never made the current user's side obvious.
+
+Unified into a single `ProposalSheet` driven by a `mode` prop (`initiate` / `counter`), and a single `ProposalCard` for the chat-side render. Both are explicit about "You give / You get" from the current user's perspective.
+
+Highlights:
+
+- One source of truth for building proposals (init from listing OR counter from inbox).
+- Cash can be **added or requested** by either party at any stage.
+- Chat-side card is collapsed by default (~90px) with the action buttons always visible; expanding reveals item details and the negotiation history.
+- Trade proposals require at least one item on each side. Cash-only is a Purchase Offer (see NEW-H, future scope).
+- `expires_at` dropped from the UI — proposals don't expire.
+- Optional message field on the proposal travels with the offer object and renders in the expanded card.
+
+### NEW-H — Purchase offer (Buy) flow redesign
+
+**Status:** Open
+**Last reviewed:** 2026-05-20
+
+Today's "Buy — Contact Seller" button on listing detail is a dead button (no `onClick`). When NEW-A wires the inbox handoff, the Buy flow needs a coherent companion to the trade `ProposalSheet`:
+
+- Buyer offers a cash amount on a listing → seller receives it as a "Purchase offer" card in the inbox.
+- Same shape as the trade proposal card so the inbox is uniform, but the building UI is simpler (no items to pick — just amount + message).
+- Counter flow on a purchase offer is amount-only, same paradigm.
+
+This is **distinct from a trade**. Per product decision (NEW-G review): a trade requires at least one item on each side; pure cash is a purchase. The current `ProposalCard` already renders both as separate kinds (`Trade proposal` vs `Purchase offer`) — only the **building** UI is missing.
+
 ---
 
 ## Counts at a glance
@@ -286,7 +319,7 @@ Audited the sidebar and mobile bottom-nav end-to-end. Findings:
 |--------|-------|
 | Missing | 4 |
 | Unfinished | 5 |
-| OK | 59 |
+| OK | 60 |
 | Perfect | 3 |
 | Out of scope (post-MVP) | 3 |
 
@@ -296,11 +329,13 @@ Audited the sidebar and mobile bottom-nav end-to-end. Findings:
 
 Refreshed each time something closes. Items blocked on Kyle are listed at the bottom — they don't pull priority over actionable work.
 
-1. **#42 — Counter-offer modal polish.** Self-contained, 30–60 min. Adds % presets + diff view.
-2. **#20 — Loading & empty states across feeds.** Wide but mechanical. Skeletons + `Suspense`.
-3. **#36 — Trade interests promoted to a route.** Mid-size, touches navigation.
+1. **#20 — Loading & empty states across feeds.** Wide but mechanical. Skeletons + `Suspense`.
+2. **#36 — Trade interests promoted to a route.** Mid-size, touches navigation.
+3. **NEW-H — Buy / Purchase offer flow.** Companion to the trade flow shipped in NEW-G; amount-only proposal sheet, same card shape.
 4. **#2, #3, #10 — Auth side-branch flows.** Sign up via niche link, Verify email, Find niche. Need to merge the side branch or rebuild on main.
 5. **#20-admin — Admin tables loading/empty polish.** Polish only, low priority.
+
+**Closed in NEW-G:** #42 (counter-offer modal polish) was superseded by the full trade flow redesign — % presets and balance dropped in favor of clearer "You give / You get" framing and live picker.
 
 **Blocked on Kyle:**
 
@@ -328,5 +363,6 @@ This list is informational and goes stale fast. Use `gh pr list --state open` fo
 | #16 | feat(my-stuff): wire item action menu + Active/Sold/Traded status filter | #6 | Open |
 | #17 | docs: 2026-05-19 audit addendum | main | Closed — superseded by this document |
 | #18 | feat(mvp): remove Wishlist concept end-to-end | #6 | Open |
-| #19 | docs(audit): single living audit document | main | This document |
+| #19 | docs(audit): single living audit document | main | Merged — this document |
 | #20 | fix(bottom-nav): mark Home active on niche routes | main | Open |
+| #21 | feat(proposal): unified trade flow (Propose / Counter) | main | Open — closes NEW-G |

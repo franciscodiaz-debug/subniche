@@ -36,6 +36,8 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { ItemCardGridSkeleton, RowListSkeleton } from "@/components/loading/skeletons"
+import { SimWrapper } from "@/components/loading/sim-wrapper"
 import {
   MyItemGridCard,
   MyItemListHeader,
@@ -413,39 +415,63 @@ export function MyItemsTab({ items }: { items: MyItem[] }) {
         <ViewToggleSegment view={view} setView={setView} gridDensity={gridDensity} setGridDensity={setGridDensity} />
       </div>
 
-      {filtered.length === 0 ? (
-        <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
-          <EmptyHeader>
-            <EmptyTitle>No items match</EmptyTitle>
-            <EmptyDescription>
-              {query || collectionFilter !== "all" || saleFilter !== "neutral" || tradeFilter !== "neutral"
-                ? "Try adjusting your search or clearing filters."
-                : "Listings you create will show up here. Start by adding your first item."}
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button
-              size="sm"
-              onClick={() => console.log("[stub] add item")}
-              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              Add item
-            </Button>
-          </EmptyContent>
-        </Empty>
-      ) : view === "list" ? (
-        <div className="@container/list flex flex-col">
-          <MyItemListHeader />
-          <div className="flex flex-col gap-2">
-            {filtered.map((item) => <MyItemRow key={item.id} item={item} />)}
+      <SimWrapper
+        skeleton={view === "list" ? <RowListSkeleton count={4} /> : <ItemCardGridSkeleton count={6} />}
+        empty={
+          <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
+            <EmptyHeader>
+              <EmptyTitle>No items yet</EmptyTitle>
+              <EmptyDescription>
+                Listings you create will show up here. Start by adding your first item.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button
+                size="sm"
+                onClick={() => console.log("[stub] add item")}
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Add item
+              </Button>
+            </EmptyContent>
+          </Empty>
+        }
+      >
+        {filtered.length === 0 ? (
+          <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
+            <EmptyHeader>
+              <EmptyTitle>No items match</EmptyTitle>
+              <EmptyDescription>
+                {query || collectionFilter !== "all" || saleFilter !== "neutral" || tradeFilter !== "neutral"
+                  ? "Try adjusting your search or clearing filters."
+                  : "Listings you create will show up here. Start by adding your first item."}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button
+                size="sm"
+                onClick={() => console.log("[stub] add item")}
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Add item
+              </Button>
+            </EmptyContent>
+          </Empty>
+        ) : view === "list" ? (
+          <div className="@container/list flex flex-col">
+            <MyItemListHeader />
+            <div className="flex flex-col gap-2">
+              {filtered.map((item) => <MyItemRow key={item.id} item={item} />)}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className={cn("grid", gridClass)}>
-          {filtered.map((item) => <MyItemGridCard key={item.id} item={item} />)}
-        </div>
-      )}
+        ) : (
+          <div className={cn("grid", gridClass)}>
+            {filtered.map((item) => <MyItemGridCard key={item.id} item={item} />)}
+          </div>
+        )}
+      </SimWrapper>
     </div>
   )
 }

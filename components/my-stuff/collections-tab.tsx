@@ -23,6 +23,11 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  CollectionCardGridSkeleton,
+  RowListSkeleton,
+} from "@/components/loading/skeletons"
+import { SimWrapper } from "@/components/loading/sim-wrapper"
 import { CollectionCard } from "@/components/collection-card"
 import { NEW_COLLECTION_DRAFT_KEY } from "@/components/my-stuff/new-collection-form"
 import type { Collection } from "@/lib/types"
@@ -251,33 +256,50 @@ export function CollectionsTab({ collections, previewImages = {} }: CollectionsT
         <ViewToggleSegment view={view} setView={setView} />
       </div>
 
-      {filtered.length === 0 ? (
-        <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
-          <EmptyHeader>
-            <EmptyTitle>No collections yet</EmptyTitle>
-            <EmptyDescription>
-              {query
-                ? "Nothing matches your search. Try a different term."
-                : "Group your items into collections to showcase them or track wishlists."}
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <NewCollectionButton />
-          </EmptyContent>
-        </Empty>
-      ) : view === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 @3xl/mystuff:grid-cols-2 @5xl/mystuff:grid-cols-3 @7xl/mystuff:grid-cols-4">
-          {filtered.map((c) => (
-            <CollectionCard key={c.id} collection={c} view="grid" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {filtered.map((c) => (
-            <CollectionCard key={c.id} collection={c} view="list" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
-          ))}
-        </div>
-      )}
+      <SimWrapper
+        skeleton={view === "list" ? <RowListSkeleton count={4} /> : <CollectionCardGridSkeleton count={4} />}
+        empty={
+          <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
+            <EmptyHeader>
+              <EmptyTitle>No collections yet</EmptyTitle>
+              <EmptyDescription>
+                Group your items into collections to organize them and share them publicly.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <NewCollectionButton />
+            </EmptyContent>
+          </Empty>
+        }
+      >
+        {filtered.length === 0 ? (
+          <Empty className="rounded-lg border border-dashed border-border bg-card py-12">
+            <EmptyHeader>
+              <EmptyTitle>No collections yet</EmptyTitle>
+              <EmptyDescription>
+                {query
+                  ? "Nothing matches your search. Try a different term."
+                  : "Group your items into collections to showcase them or track wishlists."}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <NewCollectionButton />
+            </EmptyContent>
+          </Empty>
+        ) : view === "grid" ? (
+          <div className="grid grid-cols-1 gap-4 @3xl/mystuff:grid-cols-2 @5xl/mystuff:grid-cols-3 @7xl/mystuff:grid-cols-4">
+            {filtered.map((c) => (
+              <CollectionCard key={c.id} collection={c} view="grid" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {filtered.map((c) => (
+              <CollectionCard key={c.id} collection={c} view="list" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
+            ))}
+          </div>
+        )}
+      </SimWrapper>
     </div>
   )
 }

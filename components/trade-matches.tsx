@@ -1,6 +1,9 @@
 import { Repeat2 } from 'lucide-react'
 import { ItemCard } from '@/components/item-card'
 import { HomeSectionHeader } from '@/components/home/home-section-header'
+import { ItemCardScrollerSkeleton } from '@/components/loading/skeletons'
+import { SimWrapper } from '@/components/loading/sim-wrapper'
+import { EmptyView } from '@/components/ui/empty'
 import type { PerfectMatch } from '@/lib/types'
 
 const tradeMatches: PerfectMatch[] = [
@@ -152,6 +155,16 @@ export function TradeMatches({ showScoreOnboarding = false }: TradeMatchesProps)
         href="/trade"
         ctaLabel="See more"
       />
+      <SimWrapper
+        skeleton={<ItemCardScrollerSkeleton />}
+        empty={
+          <EmptyView
+            icon={<Repeat2 className="h-6 w-6" />}
+            title="No trade matches yet"
+            description="Add a trade interest to start seeing matches from items other users have listed for trade."
+          />
+        }
+      >
       <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
         {tradeMatches.map((match) => {
           const matchedItems =
@@ -185,6 +198,7 @@ export function TradeMatches({ showScoreOnboarding = false }: TradeMatchesProps)
           )
         })}
       </div>
+      </SimWrapper>
     </section>
   )
 }

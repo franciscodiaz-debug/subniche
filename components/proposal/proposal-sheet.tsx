@@ -176,8 +176,9 @@ export function ProposalSheet({
       their_items: yourItems.map(toOfferItem), // from chat POV, sender's items are "their_items" later
       your_items: initialTheirItems.map(toOfferItem), // receiver's items
       cash_adjustment: cashAdjustment,
-      expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+      expires_at: null,
       created_at: new Date().toISOString(),
+      message: message.trim() || undefined,
     }
     onSend(next)
   }

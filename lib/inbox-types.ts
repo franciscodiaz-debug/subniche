@@ -35,6 +35,8 @@ export interface Offer {
   cash_adjustment: number
   expires_at: string | null
   created_at: string
+  /** Optional note the sender added when building this proposal. */
+  message?: string
 }
 
 export interface ConversationParticipant {

@@ -1,6 +1,6 @@
 # SubNiche — Design Audit (Living)
 
-**Last updated:** 2026-05-20 (NEW-G closed via #21, NEW-H added)
+**Last updated:** 2026-05-20 (#20 partial via #22 — home + market done)
 **Owner:** Francisco
 **Branch audited:** `main`
 **Supersedes:** `docs/design-audit-2026-05-14.md` (PR #5) and `docs/design-audit-2026-05-19-addendum.md` (PR #17)
@@ -116,7 +116,7 @@ Two threads from the original audit have been resolved by product decision:
 | 17 | Communities page | Out of scope (post-MVP) | 2026-05-19 | #11 | Sidebar removed, feed section removed, profile quick-stat removed, `/communities` redirects to `/` |
 | 18 | ItemCard component | Perfect | 2026-05-14 | — | Consistent `/listings/{id}` links |
 | 19 | CollectionCard `href` | OK | 2026-05-19 | #12 | Feed-section CollectionCards link to `/collection/{id}`; mock ids aligned |
-| 20 | Empty / loading states across feeds | Unfinished | 2026-05-19 | — | No skeletons, no `Suspense` wrappers; planned next |
+| 20 | Empty / loading states across feeds | Unfinished (partial) | 2026-05-20 | #22 | PR #22 ships reusable `Skeleton` + `EmptyState` primitives, applies to home (Trending, Just Listed, Your Collections) + market. Preview with `?sim-loading=1` or `?sim-empty=1`. Pending: trade matches, my-stuff, profile tabs. |
 
 ### Listings (Create, View, Edit)
 
@@ -329,7 +329,7 @@ This is **distinct from a trade**. Per product decision (NEW-G review): a trade 
 
 Refreshed each time something closes. Items blocked on Kyle are listed at the bottom — they don't pull priority over actionable work.
 
-1. **#20 — Loading & empty states across feeds.** Wide but mechanical. Skeletons + `Suspense`.
+1. **#20 — Loading & empty states (continuation).** PR #22 covered home + market. Remaining: trade matches, my-stuff items/collections tabs, profile tabs. Primitives are ready; only `SimWrapper` wraps needed at the call sites.
 2. **#36 — Trade interests promoted to a route.** Mid-size, touches navigation.
 3. **NEW-H — Buy / Purchase offer flow.** Companion to the trade flow shipped in NEW-G; amount-only proposal sheet, same card shape.
 4. **#2, #3, #10 — Auth side-branch flows.** Sign up via niche link, Verify email, Find niche. Need to merge the side branch or rebuild on main.
@@ -366,3 +366,4 @@ This list is informational and goes stale fast. Use `gh pr list --state open` fo
 | #19 | docs(audit): single living audit document | main | Merged — this document |
 | #20 | fix(bottom-nav): mark Home active on niche routes | main | Open |
 | #21 | feat(proposal): unified trade flow (Propose / Counter) | main | Open — closes NEW-G |
+| #22 | feat(loading): reusable skeletons + empty states | main | Open — #20 partial |

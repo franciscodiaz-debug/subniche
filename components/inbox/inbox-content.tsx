@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils"
 import { MessageList } from "./message-list"
 import { ChatPanel } from "./chat-panel"
 import { UserProfilePanel } from "./user-profile-panel"
-import { CounterOfferModal } from "./counter-offer-modal"
-import { CashCounterOfferModal } from "./cash-counter-offer-modal"
+import { ProposalSheet, type ProposalListingPreview } from "@/components/proposal/proposal-sheet"
+import { myItems } from "@/lib/mock/my-stuff"
 import { demoConversations, demoMessages } from "@/lib/inbox-demo-data"
 import type { Conversation, Message, Offer } from "@/lib/inbox-types"
 
@@ -22,8 +22,8 @@ export function InboxContent() {
   const [messages, setMessages] = useState<Record<string, Message[]>>(demoMessages)
   const [filter, setFilter] = useState<"all" | "received" | "sent">("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [mobileView, setMobileView] = useState<"list" | "chat" | "profile" | "offer-detail" | "counter" | "cash-counter">("list")
-  const [desktopCounterActive, setDesktopCounterActive] = useState(false)
+  const [mobileView, setMobileView] = useState<"list" | "chat" | "profile" | "offer-detail">("list")
+  const [counterOpen, setCounterOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 1024)
@@ -51,7 +51,6 @@ export function InboxContent() {
 
   const handleViewProfile = () => setMobileView("profile")
   const handleBackToChat = () => setMobileView("chat")
-  const handleBackFromCounter = () => setMobileView("chat")
   const handleViewOfferDetail = () => setMobileView("offer-detail")
   const handleBackFromOfferDetail = () => setMobileView("chat")
 
@@ -165,13 +164,7 @@ export function InboxContent() {
         ),
       )
     } else if (action === "counter") {
-      const isCashOnlyOffer =
-        offer.their_items.length === 0 && (offer.cash_adjustment || 0) > 0
-      if (typeof window !== "undefined" && window.innerWidth < 1024) {
-        setMobileView(isCashOnlyOffer ? "cash-counter" : "counter")
-      } else {
-        setDesktopCounterActive(true)
-      }
+      setCounterOpen(true)
     }
   }
 
@@ -197,6 +190,16 @@ export function InboxContent() {
       ),
     )
   }
+
+  const availableForTrade: ProposalListingPreview[] = myItems
+    .filter((it) => it.for_trade && !it.sold)
+    .map((it) => ({
+      id: it.id,
+      title: it.title,
+      image: it.images[0] ?? "/placeholder.svg",
+      price: it.price,
+      subtitle: it.subtitle,
+    }))
 
   const filteredConversations = conversations.filter((c) => {
     if (searchQuery) {
@@ -239,17 +242,7 @@ export function InboxContent() {
           mobileView === "chat" ? "flex" : "hidden lg:flex",
         )}
       >
-        {selectedConversation && desktopCounterActive && selectedConversation.active_offer ? (
-          <CounterOfferModal
-            originalOffer={selectedConversation.active_offer}
-            otherPartyUsername={selectedConversation.participant.username}
-            onClose={() => setDesktopCounterActive(false)}
-            onCounterSent={(o) => {
-              handleCounterSent(o)
-              setDesktopCounterActive(false)
-            }}
-          />
-        ) : selectedConversation ? (
+        {selectedConversation ? (
           <ChatPanel
             conversation={selectedConversation}
             messages={messages[selectedConversation.id] || []}
@@ -421,34 +414,25 @@ export function InboxContent() {
         </div>
       )}
 
-      {/* Mobile counter panels — full-screen, hidden on desktop */}
-      {selectedConversation?.active_offer && mobileView === "counter" && (
-        <div className="fixed inset-0 z-50 bg-background lg:hidden">
-          <CounterOfferModal
-            originalOffer={selectedConversation.active_offer}
-            otherPartyUsername={selectedConversation.participant.username}
-            onClose={handleBackFromCounter}
-            onCounterSent={(o) => {
-              handleCounterSent(o)
-              handleBackFromCounter()
-            }}
-          />
-        </div>
-      )}
-      {selectedConversation?.active_offer && mobileView === "cash-counter" && (
-        <div className="fixed inset-0 z-50 bg-background lg:hidden">
-          <CashCounterOfferModal
-            open={true}
-            onClose={handleBackFromCounter}
-            originalOffer={selectedConversation.active_offer}
-            otherPartyUsername={selectedConversation.participant.username}
-            onCounterSent={(o) => {
-              handleCounterSent(o)
-              handleBackFromCounter()
-            }}
-          />
-        </div>
-      )}
+      {/* Unified counter offer flow — same sheet on mobile and desktop */}
+      {selectedConversation?.active_offer ? (
+        <ProposalSheet
+          open={counterOpen}
+          onClose={() => setCounterOpen(false)}
+          mode="counter"
+          otherParty={{
+            username: selectedConversation.participant.username,
+            avatarUrl: selectedConversation.participant.avatar_url,
+          }}
+          originalOffer={selectedConversation.active_offer}
+          history={[]}
+          availableItems={availableForTrade}
+          onSend={(counter) => {
+            handleCounterSent(counter)
+            setCounterOpen(false)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

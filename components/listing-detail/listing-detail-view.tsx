@@ -122,7 +122,16 @@ export function ListingDetailView({ listing }: ListingDetailViewProps) {
       initialMarkedAsSold={markedAsSold}
     />
   ) : (
-    <ViewerActions availability={availability} />
+    <ViewerActions
+      availability={availability}
+      listingId={listing.id}
+      listingTitle={title}
+      listingSubtitle={subtitle}
+      listingImage={images[0] ?? "/placeholder.svg"}
+      listingPrice={typeof price === "number" ? price : null}
+      sellerUsername={seller.username}
+      sellerAvatarUrl={seller.avatarUrl}
+    />
   )
 
   const paymentBlock = showCommerceSections ? (

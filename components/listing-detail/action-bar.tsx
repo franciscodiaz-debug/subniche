@@ -15,7 +15,7 @@
  * this because no data is actually persisted.
  */
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import {
   Bookmark,
@@ -30,19 +30,59 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { ProposalSheet, type ProposalListingPreview } from "@/components/proposal/proposal-sheet"
+import { myItems } from "@/lib/mock/my-stuff"
 import type { AvailabilityType, MockListing } from "@/lib/mock-listing-detail"
 
 interface ViewerActionsProps {
   availability: AvailabilityType[]
+  listingId: string
+  listingTitle: string
+  listingSubtitle?: string
+  listingImage: string
+  listingPrice: number | null
+  sellerUsername: string
+  sellerAvatarUrl?: string
 }
 
-export function ViewerActions({ availability }: ViewerActionsProps) {
+export function ViewerActions({
+  availability,
+  listingId,
+  listingTitle,
+  listingSubtitle,
+  listingImage,
+  listingPrice,
+  sellerUsername,
+  sellerAvatarUrl,
+}: ViewerActionsProps) {
   const [wishlisted, setWishlisted] = useState(false)
+  const [proposalOpen, setProposalOpen] = useState(false)
 
   const isForSale = availability.includes("for-sale")
   const isForTrade = availability.includes("for-trade")
   const isCollectionOnly =
     availability.includes("collection") && !isForSale && !isForTrade
+
+  const targetListing: ProposalListingPreview = {
+    id: listingId,
+    title: listingTitle,
+    image: listingImage,
+    price: listingPrice,
+    subtitle: listingSubtitle,
+  }
+  const availableForTrade = useMemo<ProposalListingPreview[]>(
+    () =>
+      myItems
+        .filter((it) => it.for_trade && !it.sold)
+        .map((it) => ({
+          id: it.id,
+          title: it.title,
+          image: it.images[0] ?? "/placeholder.svg",
+          price: it.price,
+          subtitle: it.subtitle,
+        })),
+    [],
+  )
 
   return (
     <div className="flex flex-col gap-3">
@@ -62,6 +102,7 @@ export function ViewerActions({ availability }: ViewerActionsProps) {
           <Button
             size="lg"
             variant={isForSale ? "outline" : "default"}
+            onClick={() => setProposalOpen(true)}
             className={cn(
               "w-full gap-2",
               !isForSale && "bg-primary text-primary-foreground hover:bg-primary/90",
@@ -101,6 +142,21 @@ export function ViewerActions({ availability }: ViewerActionsProps) {
         <div className="h-5 w-px bg-border" aria-hidden="true" />
         <IconAction icon={Share2} label="Share" onClick={() => {}} />
       </div>
+
+      <ProposalSheet
+        open={proposalOpen}
+        onClose={() => setProposalOpen(false)}
+        mode="initiate"
+        otherParty={{ username: sellerUsername, avatarUrl: sellerAvatarUrl }}
+        targetListing={targetListing}
+        availableItems={availableForTrade}
+        onSend={() => {
+          setProposalOpen(false)
+          // Persist nothing — the local store doesn't exist on this prototype branch.
+          // The user lands on /inbox where outbound offers will be wired in a follow-up.
+          if (typeof window !== "undefined") window.location.href = "/inbox"
+        }}
+      />
     </div>
   )
 }

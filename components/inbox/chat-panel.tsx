@@ -7,23 +7,19 @@ import {
   ArrowLeft,
   ArrowLeftRight,
   Info,
-  CalendarDays,
   ChevronRight,
   FolderOpen,
   MapPin,
   Package,
   Send,
-  Clock,
-  Check,
   CheckCircle,
   X,
-  RepeatIcon,
-  RefreshCw,
   ExternalLink,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { ProposalCard } from "@/components/proposal/proposal-card"
 import type { Conversation, Message, Offer } from "@/lib/inbox-types"
 
 interface ChatPanelProps {
@@ -81,217 +77,15 @@ export function ChatPanel({
   const formatTime = (dateString: string) =>
     new Date(dateString).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
 
-  const formatExpiry = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = date.getTime() - now.getTime()
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffHours / 24)
-
-    if (diffHours < 0) return "Expired"
-    if (diffHours < 24) return `${diffHours}h remaining`
-    return `${diffDays}d remaining`
-  }
-
-  const renderOfferCard = (offer: Offer, isSticky = false) => {
-    const isExpired = offer.status === "expired"
-    const isPending = offer.status === "pending"
-    const isAccepted = offer.status === "accepted"
-    const isDeclined = offer.status === "declined"
-    const isCashOnlyOffer = offer.their_items.length === 0 && offer.cash_adjustment > 0
-
-    return (
-      <div
-        className={cn(
-          "@container",
-          isSticky ? "border-b" : "rounded-lg border",
-          "overflow-hidden",
-          isSticky && "sticky top-0 z-10",
-          isExpired && "opacity-50",
-          isPending && "border-primary/50 bg-primary/5",
-          isAccepted && "border-green-500/50 bg-green-500/10",
-          isDeclined && "border-destructive/50 bg-destructive/10",
-          !isPending && !isAccepted && !isDeclined && "border-border bg-card",
-        )}
-      >
-        <div className={cn(isSticky ? "px-4 py-3" : "p-4")}>
-          {isCashOnlyOffer ? (
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold">You&apos;ve received an offer!</h3>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-muted-foreground">
-                  <span className="font-medium text-foreground">{participant.username}</span>
-                  {" offered "}
-                  <span className="font-bold text-green-600">
-                    ${offer.cash_adjustment.toLocaleString('en-US')}
-                  </span>
-                  {" for your"}
-                </span>
-              </div>
-              {offer.your_items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-3 rounded-lg border border-border/50 bg-card/50 p-2.5"
-                >
-                  <img
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.title}
-                    className="h-14 w-14 flex-shrink-0 rounded-md object-cover"
-                  />
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{item.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      ${item.price?.toLocaleString('en-US')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 @[400px]:flex-row @[400px]:items-start @[400px]:justify-start @[400px]:gap-9">
-              <div className="w-full @[400px]:w-auto @[400px]:flex-shrink-0">
-                <p className="mb-1.5 text-left text-sm text-muted-foreground">They offer:</p>
-                <div className="flex flex-col gap-2">
-                  {offer.their_items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex w-full items-center gap-3 rounded-lg bg-card/50 px-2.5 py-2"
-                    >
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.title}
-                        className="h-16 w-16 flex-shrink-0 rounded-md object-cover"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{item.title}</p>
-                        {item.price && (
-                          <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString('en-US')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {offer.cash_adjustment !== 0 && (
-                    <div className="flex items-center gap-2 text-sm @[400px]:pl-[88px]">
-                      <span className="font-medium text-primary">
-                        {offer.cash_adjustment > 0
-                          ? `plus $${offer.cash_adjustment.toLocaleString('en-US')} cash`
-                          : `minus $${Math.abs(offer.cash_adjustment).toLocaleString('en-US')} cash`}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-center @[400px]:flex-shrink-0 @[400px]:flex-col @[400px]:items-center @[400px]:gap-1 @[400px]:self-center @[400px]:pt-3">
-                <RepeatIcon className="h-8 w-8 text-muted-foreground" />
-              </div>
-
-              <div className="w-full @[400px]:w-auto @[400px]:flex-shrink-0">
-                <p className="mb-1.5 text-left text-sm text-muted-foreground">For your:</p>
-                <div className="flex flex-col gap-2">
-                  {offer.your_items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex w-full items-center gap-3 rounded-lg bg-card/50 px-2.5 py-2"
-                    >
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.title}
-                        className="h-16 w-16 flex-shrink-0 rounded-md object-cover"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{item.title}</p>
-                        {item.price && (
-                          <p className="text-xs text-muted-foreground">
-                            ${item.price.toLocaleString('en-US')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isPending && isSticky && (
-            <div className="mt-4 flex flex-col gap-2 border-t border-border/50 pt-3">
-              {offer.expires_at && (
-                <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  {formatExpiry(offer.expires_at)}
-                </span>
-              )}
-              <div className="flex w-full gap-2">
-                <Button
-                  variant="quiet_outline"
-                  className="min-h-[48px] flex-1 border bg-transparent text-sm font-medium hover:border-green-500"
-                  onClick={() => onOfferAction("accept")}
-                >
-                  Accept
-                </Button>
-                <Button
-                  variant="quiet_outline"
-                  className="min-h-[48px] flex-1 bg-transparent text-sm font-medium hover:border-primary"
-                  onClick={() => onOfferAction("counter")}
-                >
-                  Counter
-                </Button>
-                <Button
-                  variant="quiet_outline"
-                  className="min-h-[48px] flex-1 bg-transparent text-sm font-medium text-foreground hover:border-destructive"
-                  onClick={() => onOfferAction("decline")}
-                >
-                  Decline
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {isPending && !isSticky && (
-            <div className="mt-3 flex items-center justify-end gap-3">
-              {offer.expires_at && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  {formatExpiry(offer.expires_at)}
-                </span>
-              )}
-              <div className="flex items-center gap-1.5">
-                <Button
-                  size="sm"
-                  className="h-7 bg-green-600 px-2.5 text-xs text-white hover:bg-green-600/90"
-                  onClick={() => onOfferAction("accept")}
-                >
-                  <Check className="mr-1 h-3 w-3" />
-                  Accept
-                </Button>
-                <Button
-                  size="sm"
-                  variant="quiet_outline"
-                  className="h-7 bg-transparent px-2.5 text-xs"
-                  onClick={() => onOfferAction("counter")}
-                >
-                  <RefreshCw className="mr-1 h-3 w-3" />
-                  Counter
-                </Button>
-                <Button
-                  size="sm"
-                  variant="quiet_outline"
-                  className="h-7 bg-transparent px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  onClick={() => onOfferAction("decline")}
-                >
-                  <X className="mr-1 h-3 w-3" />
-                  Decline
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
+  const renderOfferCard = (offer: Offer) => (
+    <ProposalCard
+      offer={offer}
+      otherPartyUsername={participant.username}
+      onAccept={() => onOfferAction("accept")}
+      onCounter={() => onOfferAction("counter")}
+      onDecline={() => onOfferAction("decline")}
+    />
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -310,7 +104,7 @@ export function ChatPanel({
             className="flex-shrink-0 xl:pointer-events-none"
             aria-label="View profile"
           >
-            <Avatar className="h-7 w-7">
+            <Avatar className="h-10 w-10 lg:h-7 lg:w-7">
               <AvatarImage src={participant.avatar_url || "/placeholder.svg"} />
               <AvatarFallback className="text-xs">
                 {participant.username.charAt(0).toUpperCase()}
@@ -324,6 +118,23 @@ export function ChatPanel({
             >
               {participant.username}
             </Link>
+            {/* Inline mini-profile shown only on mobile (the right-side profile panel covers this on desktop) */}
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-muted-foreground lg:hidden">
+              {participant.location && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate">{participant.location}</span>
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Package className="h-3 w-3" />
+                {participant.stats.items}
+              </span>
+              <span className="flex items-center gap-1">
+                <FolderOpen className="h-3 w-3" />
+                {participant.stats.collections}
+              </span>
+            </div>
           </div>
           <button
             onClick={onViewProfile}
@@ -338,7 +149,9 @@ export function ChatPanel({
       {subject &&
         !(
           active_offer?.status === "pending" &&
-          active_offer.your_items.some((i) => i.id === subject.id)
+          [...active_offer.your_items, ...active_offer.their_items].some(
+            (i) => i.id === subject.id,
+          )
         ) && (
         <div className="flex-shrink-0 border-b border-border px-4 py-1.5 lg:hidden">
           <Link
@@ -405,82 +218,45 @@ export function ChatPanel({
               <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             </button>
           </div>
-          {/* Desktop: full sticky banner — hidden at narrow containers */}
-          <div className="hidden @[480px]:block">
-            {renderOfferCard(active_offer, true)}
+          {/* Desktop: card banner — hidden at narrow containers */}
+          <div className="hidden border-t border-border/40 px-4 py-3 @[480px]:block">
+            {renderOfferCard(active_offer)}
           </div>
         </div>
       )}
 
       {/* Scrolling body */}
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-        {/* Participant info header */}
-        <div className="flex items-start gap-4 pb-2">
-          <Avatar className="h-16 w-16 flex-shrink-0">
-            <AvatarImage src={participant.avatar_url || "/placeholder.svg"} />
-            <AvatarFallback className="text-lg font-semibold">
-              {participant.username.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
+        {subject &&
+          !(
+            active_offer?.status === "pending" &&
+            [...active_offer.your_items, ...active_offer.their_items].some(
+              (i) => i.id === subject.id,
+            )
+          ) && (
+            <div className="hidden py-3 lg:block">
+              <p className="mb-2 text-xs text-muted-foreground">Discussing:</p>
               <Link
-                href={`/profile/${participant.username}`}
-                className="text-lg font-bold text-foreground hover:underline"
+                href={`/listings/${subject.id}`}
+                className="group inline-flex items-center gap-2.5 rounded-lg border border-border bg-card/50 p-2.5 transition-colors hover:border-primary/50"
               >
-                {participant.username}
+                <img
+                  src={subject.image || "/placeholder.svg"}
+                  alt={subject.title}
+                  className="h-10 w-10 flex-shrink-0 rounded-md object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{subject.title}</p>
+                  {subject.price && (
+                    <p className="text-xs text-muted-foreground">
+                      ${subject.price.toLocaleString('en-US')}
+                    </p>
+                  )}
+                </div>
+                <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
               </Link>
-              <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-              {participant.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {participant.location}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <CalendarDays className="h-3.5 w-3.5" />
-                Joined {new Date(participant.joined_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-              </span>
-            </div>
-            <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Package className="h-3.5 w-3.5" />
-                {participant.stats.items} items
-              </span>
-              <span className="flex items-center gap-1">
-                <FolderOpen className="h-3.5 w-3.5" />
-                {participant.stats.collections} collections
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {subject && (
-          <div className="hidden py-3 lg:block">
-            <p className="mb-2 text-xs text-muted-foreground">Discussing:</p>
-            <Link
-              href={`/listings/${subject.id}`}
-              className="group inline-flex items-center gap-2.5 rounded-lg border border-border bg-card/50 p-2.5 transition-colors hover:border-primary/50"
-            >
-              <img
-                src={subject.image || "/placeholder.svg"}
-                alt={subject.title}
-                className="h-10 w-10 flex-shrink-0 rounded-md object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{subject.title}</p>
-                {subject.price && (
-                  <p className="text-xs text-muted-foreground">
-                    ${subject.price.toLocaleString('en-US')}
-                  </p>
-                )}
-              </div>
-              <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-            </Link>
-          </div>
-        )}
+          )}
 
         {messages.map((message) => {
           const isOwn = message.sender_id === "current-user"

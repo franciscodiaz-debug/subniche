@@ -2,6 +2,12 @@ import { Heart, Layers, Search, TrendingUp, Zap, Users } from 'lucide-react'
 import { HomeSectionHeader } from '@/components/home/home-section-header'
 import { ItemCard } from '@/components/item-card'
 import { CollectionCard } from '@/components/collection-card'
+import {
+  CollectionCardScrollerSkeleton,
+  ItemCardScrollerSkeleton,
+} from '@/components/loading/skeletons'
+import { SimWrapper } from '@/components/loading/sim-wrapper'
+import { EmptyView } from '@/components/ui/empty'
 import type { Collection } from '@/lib/types'
 
 /* ─── Trending Section ───────────────────────────────────────────────── */
@@ -65,23 +71,34 @@ export function TrendingSection() {
         href="/market?sort=trending"
         ctaLabel="See all"
       />
-      <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
-        {trendingListings.map((item) => (
-          <ItemCard
-            key={item.id}
-            id={item.id}
-            image={item.image}
-            title={item.title}
-            subtitle={item.subtitle}
-            price={item.price}
-            location={item.location}
-            forSale={item.forSale}
-            forTrade={item.forTrade}
-            href={`/listings/${item.id}`}
-            className="w-[220px] flex-shrink-0 md:w-[240px]"
+      <SimWrapper
+        skeleton={<ItemCardScrollerSkeleton />}
+        empty={
+          <EmptyView
+            icon={<TrendingUp className="h-6 w-6" />}
+            title="Nothing trending right now"
+            description="Check back later — items pick up steam as people view, save, and trade them."
           />
-        ))}
-      </div>
+        }
+      >
+        <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
+          {trendingListings.map((item) => (
+            <ItemCard
+              key={item.id}
+              id={item.id}
+              image={item.image}
+              title={item.title}
+              subtitle={item.subtitle}
+              price={item.price}
+              location={item.location}
+              forSale={item.forSale}
+              forTrade={item.forTrade}
+              href={`/listings/${item.id}`}
+              className="w-[220px] flex-shrink-0 md:w-[240px]"
+            />
+          ))}
+        </div>
+      </SimWrapper>
     </section>
   )
 }
@@ -146,23 +163,34 @@ export function JustListedSection() {
         href="/market?sort=just-listed"
         ctaLabel="See all"
       />
-      <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
-        {justListedItems.map((item) => (
-          <ItemCard
-            key={item.id}
-            id={item.id}
-            image={item.image}
-            title={item.title}
-            subtitle={item.subtitle}
-            price={item.price}
-            location={item.location}
-            forSale={item.forSale}
-            forTrade={item.forTrade}
-            href={`/listings/${item.id}`}
-            className="w-[220px] flex-shrink-0 md:w-[240px]"
+      <SimWrapper
+        skeleton={<ItemCardScrollerSkeleton />}
+        empty={
+          <EmptyView
+            icon={<Zap className="h-6 w-6" />}
+            title="No new listings yet"
+            description="Fresh listings from your niches will land here as soon as they're posted."
           />
-        ))}
-      </div>
+        }
+      >
+        <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
+          {justListedItems.map((item) => (
+            <ItemCard
+              key={item.id}
+              id={item.id}
+              image={item.image}
+              title={item.title}
+              subtitle={item.subtitle}
+              price={item.price}
+              location={item.location}
+              forSale={item.forSale}
+              forTrade={item.forTrade}
+              href={`/listings/${item.id}`}
+              className="w-[220px] flex-shrink-0 md:w-[240px]"
+            />
+          ))}
+        </div>
+      </SimWrapper>
     </section>
   )
 }
@@ -335,18 +363,29 @@ export function CollectionsSection() {
         href="/my-stuff?tab=collections"
         ctaLabel="Manage"
       />
-      <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
-        {myCollectionsData.map((col) => (
-          <CollectionCard
-            key={col.id}
-            collection={col}
-            view="grid"
-            itemImages={col.previewImages}
-            href="/my-stuff?tab=collections"
-            className="w-[180px] flex-shrink-0"
+      <SimWrapper
+        skeleton={<CollectionCardScrollerSkeleton />}
+        empty={
+          <EmptyView
+            icon={<Layers className="h-6 w-6" />}
+            title="No collections yet"
+            description="Group your items into collections to organize them and share them publicly."
           />
-        ))}
-      </div>
+        }
+      >
+        <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
+          {myCollectionsData.map((col) => (
+            <CollectionCard
+              key={col.id}
+              collection={col}
+              view="grid"
+              itemImages={col.previewImages}
+              href="/my-stuff?tab=collections"
+              className="w-[180px] flex-shrink-0"
+            />
+          ))}
+        </div>
+      </SimWrapper>
     </section>
   )
 }

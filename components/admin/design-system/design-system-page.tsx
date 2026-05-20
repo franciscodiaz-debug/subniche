@@ -3,6 +3,7 @@
 import { TokensSection } from "./sections/tokens"
 import { ShadcnSection } from "./sections/shadcn-components"
 import { CustomSection } from "./sections/custom-components"
+import { LoadingEmptySection } from "./sections/loading-empty"
 
 const nav = [
   {
@@ -52,6 +53,14 @@ const nav = [
       { id: "custom-home-utils", label: "Home Utilities" },
       { id: "custom-onboarding", label: "OnboardingChecklist" },
       { id: "custom-shared", label: "MarketTabs · GridDensity" },
+    ],
+  },
+  {
+    group: "Feedback States",
+    id: "feedback-root",
+    items: [
+      { id: "custom-skeletons", label: "Skeletons" },
+      { id: "custom-empty-states", label: "Empty States" },
     ],
   },
 ]
@@ -131,6 +140,13 @@ export function DesignSystemPage() {
               Custom Components
             </h2>
             <CustomSection />
+          </div>
+
+          <div>
+            <h2 className="mb-6 text-xs font-bold uppercase tracking-widest text-muted-foreground/60">
+              Feedback States
+            </h2>
+            <LoadingEmptySection />
           </div>
         </div>
       </div>

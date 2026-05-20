@@ -24,7 +24,10 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { CollectionCard } from "@/components/collection-card"
-import { NEW_COLLECTION_DRAFT_KEY } from "@/components/my-stuff/new-collection-form"
+import { GridDensitySelector } from "@/components/shared/grid-density-selector"
+import { gridDensityConfig, useGridDensity } from "@/hooks/use-grid-density"
+import { useCollections } from "@/lib/collections-context"
+import { currentUser } from "@/lib/current-user"
 import type { Collection } from "@/lib/types"
 
 type SortKey = "recent" | "name" | "items" | "value"
@@ -47,22 +50,31 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
 }
 
 function buildStats(collections: Collection[]) {
+  const ownedValue = collections.reduce(
+    (sum, c) => sum + (c.total_user_value || 0),
+    0,
+  )
   return {
-    total: collections.length,
+    collections: collections.length,
     items: collections.reduce((sum, c) => sum + (c.item_count || 0), 0),
-    public: collections.filter((c) => c.visibility === "public").length,
-    wishlists: collections.filter((c) => c.is_wishlist).length,
+    totalValue: ownedValue,
   }
+}
+
+function formatCurrencyShort(value: number) {
+  if (value <= 0) return "$0"
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 10_000) return `$${Math.round(value / 1000)}K`
+  return `$${value.toLocaleString("en-US")}`
 }
 
 function DesktopStatsGrid({ collections }: { collections: Collection[] }) {
   const stats = buildStats(collections)
   return (
-    <div className="hidden grid-cols-4 gap-3 @3xl/mystuff:grid">
-      <StatCard label="Total" value={stats.total} />
+    <div className="hidden grid-cols-3 gap-3 @3xl/mystuff:grid">
+      <StatCard label="Collections" value={stats.collections} />
       <StatCard label="Items" value={stats.items} />
-      <StatCard label="Public" value={stats.public} />
-      <StatCard label="Wishlists" value={stats.wishlists} />
+      <StatCard label="Total value" value={formatCurrencyShort(stats.totalValue)} />
     </div>
   )
 }
@@ -70,10 +82,9 @@ function DesktopStatsGrid({ collections }: { collections: Collection[] }) {
 function CompactStatsRow({ collections }: { collections: Collection[] }) {
   const s = buildStats(collections)
   const stats = [
-    { label: s.total === 1 ? "collection" : "collections", value: s.total },
+    { label: s.collections === 1 ? "collection" : "collections", value: s.collections },
     { label: s.items === 1 ? "item" : "items", value: s.items },
-    { label: "public", value: s.public },
-    { label: s.wishlists === 1 ? "wishlist" : "wishlists", value: s.wishlists },
+    { label: "total", value: formatCurrencyShort(s.totalValue) },
   ]
   return (
     <p className={cn(
@@ -155,32 +166,32 @@ function ViewToggleSegment({ view, setView }: { view: View; setView: (v: View) =
 }
 
 interface CollectionsTabProps {
-  collections: Collection[]
+  /** Optional preview images keyed by collection id. The page-level mock
+   *  supplies these so cards have artwork before items are wired in. */
   previewImages?: Record<string, string[]>
 }
 
-export function CollectionsTab({ collections, previewImages = {} }: CollectionsTabProps) {
+export function CollectionsTab({ previewImages = {} }: CollectionsTabProps) {
   const isMobile = useIsMobile()
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<SortKey>("recent")
   const [userView, setUserView] = useState<View | null>(null)
   const view: View = userView ?? (isMobile ? "list" : "grid")
+  const { gridDensity } = useGridDensity()
   const setView = (v: View) => setUserView(v)
-  const [drafts, setDrafts] = useState<Collection[]>([])
+  // Read directly from the local store so newly-created collections appear
+  // here immediately (no page reload required). The store also holds other
+  // users' collections (used by the visitor view); we filter to just the
+  // current user's so My Stuff stays scoped to "mine".
+  const { collections } = useCollections()
 
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(NEW_COLLECTION_DRAFT_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw) as Collection[]
-        if (Array.isArray(parsed) && parsed.length) setDrafts(parsed)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  const allCollections = useMemo(() => [...drafts, ...collections], [drafts, collections])
+  const allCollections = useMemo(
+    () =>
+      collections.filter(
+        (c) => !c.owner_id || c.owner_id === currentUser.username,
+      ),
+    [collections],
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -193,11 +204,17 @@ export function CollectionsTab({ collections, previewImages = {} }: CollectionsT
         )
       : allCollections
 
-    const sorted = [...bySearch]
-    if (sort === "name") sorted.sort((a, b) => a.name.localeCompare(b.name))
-    else if (sort === "items") sorted.sort((a, b) => (b.item_count || 0) - (a.item_count || 0))
-    else if (sort === "value") sorted.sort((a, b) => (b.total_user_value || 0) - (a.total_user_value || 0))
-    return sorted
+    const rest = [...bySearch]
+
+    if (sort === "name") rest.sort((a, b) => a.name.localeCompare(b.name))
+    else if (sort === "items")
+      rest.sort((a, b) => (b.item_count || 0) - (a.item_count || 0))
+    else if (sort === "value")
+      rest.sort(
+        (a, b) => (b.total_user_value || 0) - (a.total_user_value || 0),
+      )
+
+    return rest
   }, [allCollections, query, sort])
 
   return (
@@ -211,6 +228,7 @@ export function CollectionsTab({ collections, previewImages = {} }: CollectionsT
           <NewCollectionButton />
           <div className="ml-auto flex items-center gap-2">
             <SortDropdown value={sort} onChange={setSort} />
+            {view === "grid" ? <GridDensitySelector /> : null}
             <ViewToggleSegment view={view} setView={setView} />
           </div>
         </div>
@@ -248,6 +266,7 @@ export function CollectionsTab({ collections, previewImages = {} }: CollectionsT
           />
         </div>
         <SortDropdown value={sort} onChange={setSort} />
+        {view === "grid" ? <GridDensitySelector /> : null}
         <ViewToggleSegment view={view} setView={setView} />
       </div>
 
@@ -258,7 +277,7 @@ export function CollectionsTab({ collections, previewImages = {} }: CollectionsT
             <EmptyDescription>
               {query
                 ? "Nothing matches your search. Try a different term."
-                : "Group your items into collections to showcase them or track wishlists."}
+                : "Group your items into collections to showcase them or track items you're hunting for."}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
@@ -266,7 +285,7 @@ export function CollectionsTab({ collections, previewImages = {} }: CollectionsT
           </EmptyContent>
         </Empty>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 @3xl/mystuff:grid-cols-2 @5xl/mystuff:grid-cols-3 @7xl/mystuff:grid-cols-4">
+        <div className={gridDensityConfig[gridDensity].gridClass}>
           {filtered.map((c) => (
             <CollectionCard key={c.id} collection={c} view="grid" itemImages={previewImages[c.id]} href={`/collection/${c.id}`} />
           ))}

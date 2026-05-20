@@ -3,7 +3,7 @@
 import type React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import {
   ImagePlus,
@@ -38,11 +38,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import {
+  AutoGrowTextarea,
+  InlineInput,
+  scrollSectionIntoView,
+  useAutoGrowTextarea,
+  type Suggestion,
+} from "@/components/ui/inline-input"
 import { currentUser } from "@/lib/current-user"
 import { StatusSelector } from "@/components/create-item/status-selector"
 import { CollectionFields } from "@/components/create-item/collection-fields"
-import { WishlistFields } from "@/components/create-item/wishlist-fields"
-import { WishlistEntrySelector } from "@/components/create-item/wishlist-entry-selector"
 import { SellerProfilePreview } from "@/components/create-item/seller-profile-preview"
 import { MobileCreateListingWizard } from "@/components/create-item/mobile-wizard"
 import {
@@ -63,7 +68,6 @@ import type {
   ItemCollectionStatus,
   ItemSaleStatus,
   ItemTradeStatus,
-  WishlistItemData,
 } from "@/lib/types/item-status"
 
 interface CreateListingInlineProps {
@@ -72,8 +76,6 @@ interface CreateListingInlineProps {
   initialCollectionId?: string
   initialCollectionName?: string
 }
-
-type Suggestion = { value: string; confidence: "high" | "medium" | "low"; accepted: boolean }
 
 const CONDITION_GRADES = [
   { value: "new", label: "New" },
@@ -204,147 +206,6 @@ const onboardingSteps: OnboardingStep[] = [
     position: "bottom",
   },
 ]
-
-function scrollSectionIntoView(el: HTMLElement | null) {
-  if (!el) return
-  const container = el.closest("[data-section]") as HTMLElement | null
-  ;(container || el).scrollIntoView({ behavior: "smooth", block: "nearest" })
-}
-
-// Expands a textarea vertically to fit its content so that the surrounding card
-// card grows with the text instead of scrolling inside a fixed-height box.
-// minRows acts as a floor so empty textareas don't collapse to a single line
-// (browsers report scrollHeight ≈ 1 line for empty <textarea>s after a
-// `height: auto` reset, regardless of the `rows` attribute).
-function useAutoGrowTextarea(
-  ref: React.RefObject<HTMLTextAreaElement | HTMLInputElement | null>,
-  value: string,
-  enabled: boolean,
-  minRows = 1,
-) {
-  useLayoutEffect(() => {
-    if (!enabled) return
-    const el = ref.current as HTMLTextAreaElement | null
-    if (!el || el.tagName !== "TEXTAREA") return
-    // Reset first so shrinking also works when text is deleted.
-    el.style.height = "auto"
-    const styles = window.getComputedStyle(el)
-    const lineHeightRaw = parseFloat(styles.lineHeight)
-    const fontSize = parseFloat(styles.fontSize) || 14
-    // Fall back to 1.4× font-size when line-height is "normal" (NaN).
-    const lineHeight = Number.isFinite(lineHeightRaw) ? lineHeightRaw : fontSize * 1.4
-    const paddingY = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom)
-    const borderY = parseFloat(styles.borderTopWidth) + parseFloat(styles.borderBottomWidth)
-    const minHeight = lineHeight * minRows + paddingY + borderY
-    el.style.height = `${Math.max(el.scrollHeight, minHeight)}px`
-  }, [ref, value, enabled, minRows])
-}
-
-export function AutoGrowTextarea({
-  value,
-  onChange,
-  placeholder,
-  minRows = 2,
-  className,
-}: {
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-  minRows?: number
-  className?: string
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null)
-  useAutoGrowTextarea(ref, value, true, minRows)
-  return (
-    <textarea
-      ref={ref}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      rows={minRows}
-      className={className}
-    />
-  )
-}
-
-export function InlineInput({
-  value,
-  onChange,
-  placeholder,
-  className,
-  inputClassName,
-  as = "input",
-  suggestion,
-  onAcceptSuggestion,
-  onFocus,
-  onBlur,
-}: {
-  value: string
-  onChange: (v: string) => void
-  placeholder: string
-  className?: string
-  inputClassName?: string
-  as?: "input" | "textarea"
-  suggestion?: Suggestion
-  onAcceptSuggestion?: () => void
-  onFocus?: () => void
-  onBlur?: () => void
-}) {
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
-  const Component = as === "textarea" ? "textarea" : "input"
-  const showSuggestion = suggestion && !suggestion.accepted && !value
-  useAutoGrowTextarea(inputRef, value, as === "textarea" && !showSuggestion)
-
-  const handleFocus = () => {
-    scrollSectionIntoView(inputRef.current)
-    onFocus?.()
-  }
-
-  return (
-    <div className={cn("group relative", className)}>
-      {showSuggestion ? (
-        <div className="flex items-start gap-2">
-          <div className="flex-1">
-            <Component
-              value={suggestion.value}
-              readOnly
-              className={cn(
-                "w-full bg-primary/5 outline-none p-2 -mx-2 rounded-md border border-primary/20",
-                "text-foreground/80 italic",
-                as === "textarea" && "resize-none min-h-[100px]",
-                inputClassName,
-              )}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={onAcceptSuggestion}
-            className="shrink-0 p-2 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors"
-            title="Accept suggestion"
-          >
-            <Check className="h-4 w-4" />
-          </button>
-        </div>
-      ) : (
-        <Component
-          ref={inputRef as any}
-          value={value}
-          onChange={(e: any) => onChange(e.target.value)}
-          placeholder={placeholder}
-          onFocus={handleFocus}
-          onBlur={onBlur}
-          className={cn(
-            "w-full bg-transparent outline-none focus:ring-0 p-0 placeholder:text-muted-foreground/50",
-            "transition-colors duration-200",
-            "focus:bg-primary/5 px-2 -mx-2 rounded-md",
-            as === "textarea" && "resize-none min-h-[100px] py-2",
-            inputClassName,
-          )}
-        />
-      )}
-    </div>
-  )
-}
 
 export function InlineSpecInput({
   label,
@@ -704,7 +565,6 @@ export function CreateListingInline({
   const [inCollectionActive, setInCollectionActive] = useState(
     initialStatus === "collection" || !!initialCollectionId,
   )
-  const [isWishlistActive, setIsWishlistActive] = useState(initialStatus === "wishlist")
   const [hasSelectedStatus, setHasSelectedStatus] = useState(!!initialStatus || !!initialCollectionId)
   const [statusFieldsAdded, setStatusFieldsAdded] = useState<string | null>(null)
   const [tradeNoticeVisible, setTradeNoticeVisible] = useState(false)
@@ -754,18 +614,9 @@ export function CreateListingInline({
     receiptUrl: null,
   })
 
-  const [wishlistData, setWishlistData] = useState<WishlistItemData>({
-    sourceUrl: null,
-    isPublic: true,
-    targetPrice: null,
-    notes: null,
-    priority: 1,
-  })
-
   const baseCollections = [
     { id: "demo-collection-1", name: "My Guitars", itemCount: 12 },
     { id: "demo-collection-2", name: "Pedal Board", itemCount: 7 },
-    { id: "demo-wishlist-1", name: "Dream Guitars", itemCount: 3 },
   ]
   const userCollections =
     initialCollectionId && initialCollectionName && !baseCollections.some((c) => c.id === initialCollectionId)
@@ -785,9 +636,6 @@ export function CreateListingInline({
   const colorInputRef = useRef<HTMLInputElement>(null)
   const [specsOpen, setSpecsOpen] = useState(false)
 
-  const [wishlistEntryMethod, setWishlistEntryMethod] = useState<"url" | "manual" | null>(null)
-  const [showNormalFields, setShowNormalFields] = useState(!isWishlistActive)
-
   useEffect(() => {
     if (specsOpen) {
       const t = setTimeout(() => brandInputRef.current?.focus(), 100)
@@ -802,23 +650,6 @@ export function CreateListingInline({
       setShowMissingError(false)
     }
   })
-
-  const handleWishlistChange = (checked: boolean) => {
-    setIsWishlistActive(checked)
-    setHasSelectedStatus(true)
-    if (checked) {
-      setForSaleActive(false)
-      setForTradeActive(false)
-      setSaleData((p) => ({ ...p, active: false }))
-      setTradeData((p) => ({ ...p, active: false }))
-      setShowNormalFields(false)
-      setWishlistEntryMethod(null)
-      handleFieldsVisible("Wishlist")
-    } else {
-      setShowNormalFields(true)
-      setWishlistEntryMethod(null)
-    }
-  }
 
   const getCurrentStep = () => {
     if (activeSection) return activeSection
@@ -857,9 +688,6 @@ export function CreateListingInline({
       if (saleData.shippingAvailable && saleData.shippingCost === null) {
         missing.push("Shipping cost")
       }
-    }
-    if (isWishlistActive && !wishlistData.sourceUrl && !wishlistData.targetPrice) {
-      missing.push("Wishlist source URL or target price")
     }
     return missing
   }
@@ -909,9 +737,7 @@ export function CreateListingInline({
     setForSaleActive(true)
     setForTradeActive(true)
     setInCollectionActive(false)
-    setIsWishlistActive(false)
     setHasSelectedStatus(true)
-    setShowNormalFields(true)
 
     setSaleData({
       active: true,
@@ -990,12 +816,6 @@ export function CreateListingInline({
     if (forTradeActive) statusChips.push({ key: "trade", label: "For Trade", tone: "trade" })
     if (inCollectionActive)
       statusChips.push({ key: "collection", label: "In Collection", tone: "collection" })
-    if (isWishlistActive)
-      statusChips.push({
-        key: "wishlist",
-        label: wishlistData.isPublic ? "Public Wishlist" : "Private Wishlist",
-        tone: "wishlist",
-      })
 
     return {
       title,
@@ -1193,7 +1013,6 @@ export function CreateListingInline({
       forSaleActive,
       forTradeActive,
       inCollectionActive,
-      isWishlistActive,
       price: forSaleActive ? saleData.price : null,
       estimatedTradeValue: forTradeActive ? tradeData.estimatedValue : null,
       paymentMethods,
@@ -1287,19 +1106,6 @@ export function CreateListingInline({
   }
 
   const getPublishStatus = (): PublishStatus => {
-    // Wishlist is mutually exclusive with ownership statuses.
-    if (isWishlistActive) {
-      const isPublic = wishlistData.isPublic
-      return {
-        label: "Add to Wishlist",
-        tone: "info",
-        Icon: isPublic ? Eye : Lock,
-        message: isPublic
-          ? "Added to your public wishlist — visible to other collectors."
-          : "Added to your private wishlist — only visible to you.",
-      }
-    }
-
     const nothingSelected = !forSaleActive && !forTradeActive && !inCollectionActive
     if (nothingSelected) {
       return {
@@ -1337,25 +1143,6 @@ export function CreateListingInline({
           ? "Only visible to you."
           : undefined,
     }
-  }
-
-  const handleWishlistUrlProcessed = (data: {
-    title: string
-    subtitle?: string
-    description?: string
-    sourceUrl?: string
-    specifications?: Record<string, string>
-    imageUrl?: string
-  }) => {
-    if (data.title) setTitle(data.title)
-    if (data.subtitle) setSubtitle(data.subtitle)
-    if (data.description) setDescription(data.description)
-    if (data.specifications?.brand) setBrand(data.specifications.brand)
-    if (data.specifications?.color) setColor(data.specifications.color)
-    if (data.specifications?.year) setYear(data.specifications.year)
-    if (data.imageUrl) setImages([data.imageUrl])
-    setWishlistData((prev) => ({ ...prev, sourceUrl: data.sourceUrl || null }))
-    setShowNormalFields(true)
   }
 
   const handleForSaleChange = (a: boolean) => {
@@ -1404,11 +1191,9 @@ export function CreateListingInline({
         forSaleActive={forSaleActive}
         forTradeActive={forTradeActive}
         inCollectionActive={inCollectionActive}
-        isWishlistActive={isWishlistActive}
         onForSaleChange={handleForSaleChange}
         onForTradeChange={handleForTradeChange}
         onInCollectionChange={handleInCollectionChange}
-        onWishlistChange={handleWishlistChange}
         hasSelectedStatus={hasSelectedStatus}
         saleData={saleData}
         setSaleData={setSaleData}
@@ -1416,12 +1201,7 @@ export function CreateListingInline({
         setTradeData={setTradeData}
         collectionData={collectionData}
         setCollectionData={setCollectionData}
-        wishlistData={wishlistData}
-        setWishlistData={setWishlistData}
         userCollections={userCollections}
-        wishlistEntryMethod={wishlistEntryMethod}
-        setWishlistEntryMethod={setWishlistEntryMethod}
-        onWishlistUrlProcessed={handleWishlistUrlProcessed}
         suggestions={suggestions}
         onAcceptSuggestion={acceptSuggestion}
         onAcceptAllSuggestions={acceptAllSuggestions}
@@ -1523,7 +1303,6 @@ export function CreateListingInline({
                       statusFieldsAdded === "For Sale" && "text-emerald-400",
                       statusFieldsAdded === "For Trade" && "text-sky-400",
                       statusFieldsAdded === "Collection" && "text-primary",
-                      statusFieldsAdded === "Wishlist" && "text-rose-400",
                     )}
                   >
                     <span>•</span>
@@ -1542,11 +1321,9 @@ export function CreateListingInline({
                 forSale={forSaleActive}
                 forTrade={forTradeActive}
                 inCollection={inCollectionActive}
-                isWishlist={isWishlistActive}
                 onForSaleChange={handleForSaleChange}
                 onForTradeChange={handleForTradeChange}
                 onInCollectionChange={handleInCollectionChange}
-                onWishlistChange={handleWishlistChange}
               />
               {initialCollectionName && (
                 <span className="text-xs text-muted-foreground border border-border rounded-md px-2 py-0.5">
@@ -1592,48 +1369,19 @@ export function CreateListingInline({
         )}
 
         {/* Category */}
-        {(!isWishlistActive || (wishlistEntryMethod !== null && showNormalFields)) && (
-          <div className="mb-4" data-onboarding="category">
-            <div className={cn("rounded-lg", currentStep === "category" && "ring-2 ring-primary")}>
-              <CategorySelector
-                category={category}
-                subcategory={subcategory}
-                onCategoryChange={setCategory}
-                onSubcategoryChange={setSubcategory}
-              />
-            </div>
+        <div className="mb-4" data-onboarding="category">
+          <div className={cn("rounded-lg", currentStep === "category" && "ring-2 ring-primary")}>
+            <CategorySelector
+              category={category}
+              subcategory={subcategory}
+              onCategoryChange={setCategory}
+              onSubcategoryChange={setSubcategory}
+            />
           </div>
-        )}
-
-        {/* Wishlist entry selector (before normal fields) */}
-        {isWishlistActive && wishlistEntryMethod === null && (
-          <div className="grid lg:grid-cols-2 gap-4 mb-4">
-            <div>
-              <WishlistEntrySelector
-                onMethodSelected={(method) => {
-                  setWishlistEntryMethod(method)
-                  if (method === "manual") setShowNormalFields(true)
-                }}
-                onUrlProcessed={handleWishlistUrlProcessed}
-              />
-            </div>
-            {inCollectionActive && (
-              <div>
-                <CollectionFields
-                  data={collectionData}
-                  onChange={setCollectionData}
-                  isActive={inCollectionActive}
-                  collections={userCollections}
-                  isWishlistMode
-                />
-              </div>
-            )}
-          </div>
-        )}
+        </div>
 
         {/* Main columns */}
-        {(!isWishlistActive || (wishlistEntryMethod !== null && showNormalFields)) && (
-          <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 items-start">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 items-start">
             {/* Left column */}
             <div className="space-y-4 order-2 lg:order-1 w-full">
               {/* Title + subtitle + price */}
@@ -1731,7 +1479,7 @@ export function CreateListingInline({
                 />
               </div>
 
-              {/* Condition — only shown for items you own, list, or trade (not pure wishlist entries) */}
+              {/* Condition — only shown for items you own, list, or trade */}
               {(forSaleActive || forTradeActive || inCollectionActive) && (
                 <div
                   data-section="condition"
@@ -2064,42 +1812,34 @@ export function CreateListingInline({
                 </div>
               )}
 
-              {/* Collection (non-wishlist flow) */}
-              {!isWishlistActive && (
-                <CollectionFields
-                  data={collectionData}
-                  onChange={setCollectionData}
-                  isActive={inCollectionActive}
-                  collections={userCollections}
-                  onFieldsVisible={() => handleFieldsVisible("Collection")}
-                />
-              )}
-
-              {/* Wishlist details */}
-              <WishlistFields data={wishlistData} onChange={setWishlistData} isActive={isWishlistActive} />
+              {/* Collection */}
+              <CollectionFields
+                data={collectionData}
+                onChange={setCollectionData}
+                isActive={inCollectionActive}
+                collections={userCollections}
+                onFieldsVisible={() => handleFieldsVisible("Collection")}
+              />
             </div>
           </div>
-        )}
 
         {/* Bottom "scroll up to publish" nudge — minimal, desktop only. The actual
             publish actions live in the top-right header so the status selector pills
             right beneath them act as the visual reference for what's about to happen. */}
-        {(!isWishlistActive || (wishlistEntryMethod !== null && showNormalFields)) && (
-          <div className="mt-8 hidden lg:flex justify-center">
-            <button
-              type="button"
-              onClick={() =>
-                document
-                  .getElementById("create-listing-top")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }
-              className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors group"
-            >
-              <ArrowUp className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" />
-              Back to top to {getPublishStatus().label.toLowerCase()}
-            </button>
-          </div>
-        )}
+        <div className="mt-8 hidden lg:flex justify-center">
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("create-listing-top")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+            className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <ArrowUp className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" />
+            Back to top to {getPublishStatus().label.toLowerCase()}
+          </button>
+        </div>
 
         {/* Mobile sticky actions — compact status + action buttons */}
         <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-card/95 backdrop-blur-sm border-t border-border z-40">
@@ -2116,8 +1856,6 @@ export function CreateListingInline({
                     forSaleActive={forSaleActive}
                     forTradeActive={forTradeActive}
                     inCollectionActive={inCollectionActive}
-                    isWishlistActive={isWishlistActive}
-                    wishlistIsPublic={!!wishlistData.isPublic}
                     collectionName={selectedCollection?.name}
                     compact
                   />
@@ -2185,8 +1923,6 @@ function PublishStatusChips({
   forSaleActive,
   forTradeActive,
   inCollectionActive,
-  isWishlistActive,
-  wishlistIsPublic,
   collectionName,
   compact = false,
   stacked = false,
@@ -2194,8 +1930,6 @@ function PublishStatusChips({
   forSaleActive: boolean
   forTradeActive: boolean
   inCollectionActive: boolean
-  isWishlistActive: boolean
-  wishlistIsPublic: boolean
   collectionName?: string | null
   compact?: boolean
   stacked?: boolean
@@ -2208,45 +1942,37 @@ function PublishStatusChips({
   }
   const chips: Chip[] = []
 
-  if (isWishlistActive) {
+  const nothingSelected = !forSaleActive && !forTradeActive && !inCollectionActive
+  if (nothingSelected) {
     chips.push({
-      key: "wishlist",
-      label: wishlistIsPublic ? "Public wishlist" : "Private wishlist",
-      tone: "bg-rose-500/10 border-rose-500/40 text-rose-400",
+      key: "hidden",
+      label: "Not visible to other users",
+      tone: "bg-status-warning/10 border-status-warning/40 text-status-warning",
     })
   } else {
-    const nothingSelected = !forSaleActive && !forTradeActive && !inCollectionActive
-    if (nothingSelected) {
+    if (inCollectionActive) {
       chips.push({
-        key: "hidden",
-        label: "Not visible to other users",
-        tone: "bg-status-warning/10 border-status-warning/40 text-status-warning",
+        key: "collection",
+        label: collectionName?.trim() || "Collection",
+        tone: "bg-primary/10 border-primary/40 text-primary",
+        Icon: FolderOpen,
       })
-    } else {
-      if (inCollectionActive) {
-        chips.push({
-          key: "collection",
-          label: collectionName?.trim() || "Collection",
-          tone: "bg-primary/10 border-primary/40 text-primary",
-          Icon: FolderOpen,
-        })
-      }
-      if (forSaleActive) {
-        chips.push({
-          key: "sale",
-          label: "For sale",
-          tone: "bg-emerald-500/10 border-emerald-500/40 text-emerald-400",
-          Icon: Tag,
-        })
-      }
-      if (forTradeActive) {
-        chips.push({
-          key: "trade",
-          label: "Trade interests next step",
-          tone: "bg-sky-500/10 border-sky-500/40 text-sky-400",
-          Icon: Repeat2,
-        })
-      }
+    }
+    if (forSaleActive) {
+      chips.push({
+        key: "sale",
+        label: "For sale",
+        tone: "bg-emerald-500/10 border-emerald-500/40 text-emerald-400",
+        Icon: Tag,
+      })
+    }
+    if (forTradeActive) {
+      chips.push({
+        key: "trade",
+        label: "Trade interests next step",
+        tone: "bg-sky-500/10 border-sky-500/40 text-sky-400",
+        Icon: Repeat2,
+      })
     }
   }
 

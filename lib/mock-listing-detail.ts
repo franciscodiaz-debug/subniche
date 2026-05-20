@@ -109,7 +109,7 @@ export interface MockListing {
   viewerIsOwner: boolean
   ownerStats?: {
     views: number
-    wishlistAdds: number
+    saves: number
     messages: number
     daysListed: number
   }
@@ -585,7 +585,7 @@ const MOCK_LISTINGS: Record<string, MockListing> = {
     viewerIsOwner: true,
     ownerStats: {
       views: 1284,
-      wishlistAdds: 37,
+      saves: 37,
       messages: 9,
       daysListed: 11,
     },

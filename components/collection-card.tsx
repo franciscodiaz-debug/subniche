@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { FolderOpen, Globe, Heart, Link2, Lock } from "lucide-react"
+import { FolderOpen, Globe, Link2, Lock } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { Collection } from "@/lib/types"
@@ -61,27 +61,17 @@ export function CollectionCard({
             alt={collection.name}
             className="h-full w-full object-cover"
           />
-        ) : collection.is_wishlist ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <Heart className="h-6 w-6 text-chart-5" />
-          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <FolderOpen className="h-6 w-6 text-primary" />
           </div>
         )}
-
-        {collection.is_wishlist ? (
-          <div className="absolute left-1 top-1 flex items-center gap-0.5 rounded bg-background/80 px-1 py-0.5 backdrop-blur-sm">
-            <Heart className="h-2 w-2 fill-current text-chart-5" />
-          </div>
-        ) : null}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="truncate font-medium text-foreground">{collection.name}</h3>
-          <div className="flex-shrink-0 text-right" title={visibilityLabel}>
+          <div className="ml-auto flex-shrink-0 text-right" title={visibilityLabel}>
             <VisibilityIcon className={cn("h-4 w-4", visibilityColor)} />
           </div>
         </div>
@@ -149,12 +139,20 @@ export function CollectionCard({
             ))}
           </div>
         ) : (
-          <div className="flex h-16 md:aspect-square items-center justify-center bg-muted">
-            {collection.is_wishlist ? (
-              <Heart className="h-6 w-6 text-chart-5/60" />
-            ) : (
-              <FolderOpen className="h-6 w-6 text-primary/40" />
-            )}
+          <div className="relative">
+            <div className="grid grid-cols-4 md:grid-cols-2 gap-px">
+              {[0, 1, 2, 3].map((index) => (
+                <div
+                  key={index}
+                  className="relative aspect-square overflow-hidden bg-secondary/40"
+                />
+              ))}
+            </div>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-3 text-primary">
+                <FolderOpen className="h-5 w-5" />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -171,9 +169,6 @@ export function CollectionCard({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            {collection.is_wishlist ? (
-              <Heart className="h-3.5 w-3.5 fill-current text-chart-5" />
-            ) : null}
             <VisibilityIcon className={cn("h-3.5 w-3.5", visibilityColor)} />
           </div>
         </div>

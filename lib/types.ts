@@ -36,11 +36,14 @@ export type CollectionVisibility = "private" | "unlisted" | "public"
 
 export interface Collection {
   id: string
+  /** Username of the user who owns this collection. Used to decide whether
+   *  the current viewer sees the owner or visitor view. Optional in legacy
+   *  mocks; treated as "owned by the current user" when omitted. */
+  owner_id?: string
   name: string
   description?: string | null
   cover_image?: string | null
   visibility?: CollectionVisibility
-  is_wishlist?: boolean
   tags?: string[]
   item_count?: number
   total_user_value?: number

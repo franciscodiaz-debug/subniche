@@ -8,6 +8,7 @@ interface EditCollectionPageProps {
 
 export default async function EditCollectionPage({ params }: EditCollectionPageProps) {
   const { id } = await params
+
   const collection = myCollections.find((c) => c.id === id)
   if (!collection) notFound()
 

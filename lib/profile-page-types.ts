@@ -37,7 +37,6 @@ export interface ProfileCollectionReference {
   visibility: ProfileCollectionVisibility
   itemCount: number
   totalValue: number
-  isWishlist: boolean
   previewLabels: string[]
   previewImages: string[]
 }
@@ -52,15 +51,6 @@ export interface ProfileListingReference {
   forSale: boolean
   forTrade: boolean
   listedAt: string
-}
-
-export interface ProfileWishlistReference {
-  id: string
-  title: string
-  subtitle: string
-  imageLabel: string
-  imageUrl: string
-  addedAt: string
 }
 
 export interface ProfileTradeCriterion {
@@ -88,6 +78,5 @@ export interface ProfilePageReferenceData {
   collections: ProfileCollectionReference[]
   forSaleItems: ProfileListingReference[]
   tradeInterests: ProfileTradeInterestReference[]
-  lookingForItems: ProfileWishlistReference[]
   activity: ProfileActivityReference[]
 }

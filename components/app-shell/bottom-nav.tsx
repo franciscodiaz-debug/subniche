@@ -16,7 +16,7 @@ export function BottomNav({ isAuthenticated, mobileChromeHidden = false }: Botto
   const pathname = usePathname()
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" || pathname.startsWith("/niche/") : pathname === href || pathname.startsWith(href + "/")
+    href === "/" ? pathname === "/" || pathname.startsWith("/n/") : pathname === href || pathname.startsWith(href + "/")
 
   const leftItems = [
     { href: "/", icon: Home, label: "Home" },

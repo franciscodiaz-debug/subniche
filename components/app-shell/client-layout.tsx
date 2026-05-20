@@ -8,6 +8,7 @@ import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 import { BottomNav } from "./bottom-nav";
 import { SavedTradeInterestsProvider } from "@/lib/saved-trade-interests-context";
+import { CollectionsProvider } from "@/lib/collections-context";
 import { useIsNavCollapseRequested } from "@/hooks/use-nav-collapse-request";
 
 interface ClientLayoutProps {
@@ -127,6 +128,7 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
 
   return (
     <SavedTradeInterestsProvider>
+      <CollectionsProvider>
       <div className="flex min-h-screen w-full">
         <Suspense
           fallback={<div className="hidden bg-sidebar lg:block lg:w-[220px]" />}
@@ -160,6 +162,7 @@ export function ClientLayout({ children, isAuthenticated }: ClientLayoutProps) {
           />
         )}
       </div>
+      </CollectionsProvider>
     </SavedTradeInterestsProvider>
   );
 }

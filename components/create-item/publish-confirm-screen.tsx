@@ -62,7 +62,7 @@ export interface PublishConfirmListingSummary {
   statusChips: Array<{
     key: string
     label: string
-    tone: "sale" | "trade" | "collection" | "wishlist"
+    tone: "sale" | "trade" | "collection"
   }>
   paymentMethods: string[]
   localPickup: boolean
@@ -111,8 +111,6 @@ function summaryToMockListing(
     if (chip.tone === "sale") availability.push("for-sale")
     else if (chip.tone === "trade") availability.push("for-trade")
     else if (chip.tone === "collection") availability.push("collection")
-    // Wishlist items aren't published as availability — they're a separate
-    // user-side concept — so we omit them here.
   }
 
   const tradeInterestSnapshot: MockTradeInterest | null = (() => {

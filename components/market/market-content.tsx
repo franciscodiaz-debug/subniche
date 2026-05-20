@@ -19,6 +19,12 @@ import { exploreItems, type ExploreItem } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 import { ItemCard } from "@/components/item-card"
 import {
+  EmptyState,
+  ItemCardGridSkeleton,
+} from "@/components/loading/skeletons"
+import { SimWrapper } from "@/components/loading/sim-wrapper"
+import { FolderOpen, Search as SearchIcon, Users as UsersIcon } from "lucide-react"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -356,51 +362,62 @@ export function MarketContent() {
           )}
 
           {(!queryFromUrl || searchTab === "items") && (
-            items.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
-                <p className="font-medium text-foreground">No items match your filters</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Try removing a filter or switching the sort mode.
-                </p>
-              </div>
-            ) : (
-              <div className={gridDensityConfig[gridDensity].gridClass}>
-                {items.map((item, index) => (
-                  <ItemCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    image={item.image}
-                    price={item.price}
-                    location={item.location}
-                    forSale={item.forSale}
-                    forTrade={item.forTrade}
-                    collections={item.collections}
-                    compact={gridDensity === "compact"}
-                    priority={index < 2}
-                    match={
-                      item.match
-                        ? {
-                            score: item.match.score,
-                            matchedItems: item.match.matchedItems,
-                            fallbackItemTitle: item.match.matchedItems[0]?.title,
-                          }
-                        : undefined
-                    }
-                    href={`/listings/${item.id}`}
-                  />
-                ))}
-              </div>
-            )
+            <SimWrapper
+              skeleton={<ItemCardGridSkeleton count={8} />}
+              empty={
+                <EmptyState
+                  icon={<SearchIcon className="h-10 w-10" />}
+                  title="No items match your filters"
+                  body="Try removing a filter or switching the sort mode."
+                />
+              }
+            >
+              {items.length === 0 ? (
+                <EmptyState
+                  icon={<SearchIcon className="h-10 w-10" />}
+                  title="No items match your filters"
+                  body="Try removing a filter or switching the sort mode."
+                />
+              ) : (
+                <div className={gridDensityConfig[gridDensity].gridClass}>
+                  {items.map((item, index) => (
+                    <ItemCard
+                      key={item.id}
+                      id={item.id}
+                      title={item.title}
+                      subtitle={item.subtitle}
+                      image={item.image}
+                      price={item.price}
+                      location={item.location}
+                      forSale={item.forSale}
+                      forTrade={item.forTrade}
+                      collections={item.collections}
+                      compact={gridDensity === "compact"}
+                      priority={index < 2}
+                      match={
+                        item.match
+                          ? {
+                              score: item.match.score,
+                              matchedItems: item.match.matchedItems,
+                              fallbackItemTitle: item.match.matchedItems[0]?.title,
+                            }
+                          : undefined
+                      }
+                      href={`/listings/${item.id}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </SimWrapper>
           )}
 
           {queryFromUrl && searchTab === "collections" && (
             collectionResults.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
-                <p className="font-medium text-foreground">No collections found</p>
-                <p className="mt-1 text-sm text-muted-foreground">Try a different search term.</p>
-              </div>
+              <EmptyState
+                icon={<FolderOpen className="h-10 w-10" />}
+                title="No collections found"
+                body="Try a different search term."
+              />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {collectionResults.map((c) => (
@@ -426,10 +443,11 @@ export function MarketContent() {
 
           {queryFromUrl && searchTab === "users" && (
             userResults.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/40 p-12 text-center">
-                <p className="font-medium text-foreground">No users found</p>
-                <p className="mt-1 text-sm text-muted-foreground">Try a different search term.</p>
-              </div>
+              <EmptyState
+                icon={<UsersIcon className="h-10 w-10" />}
+                title="No users found"
+                body="Try a different search term."
+              />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {userResults.map((u) => (

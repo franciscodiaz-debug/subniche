@@ -44,7 +44,6 @@ export const profilePageData: ProfilePageReferenceData = {
       visibility: "public",
       itemCount: 8,
       totalValue: 185000,
-      isWishlist: false,
       previewLabels: ["Strat", "Burst", "Tele", "335"],
       previewImages: [
         "https://images.unsplash.com/photo-1550985616-10810253b84d?w=200&h=200&fit=crop",
@@ -60,7 +59,6 @@ export const profilePageData: ProfilePageReferenceData = {
       visibility: "public",
       itemCount: 5,
       totalValue: 24500,
-      isWishlist: false,
       previewLabels: ["Twin", "Plexi", "AC30", "Deluxe"],
       previewImages: [
         "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=200&h=200&fit=crop",
@@ -76,7 +74,6 @@ export const profilePageData: ProfilePageReferenceData = {
       visibility: "unlisted",
       itemCount: 12,
       totalValue: 4800,
-      isWishlist: false,
       previewLabels: ["Klon", "Time", "TU", "Muff"],
       previewImages: [
         "https://images.unsplash.com/photo-1558098329-a11cff621064?w=200&h=200&fit=crop",
@@ -123,24 +120,6 @@ export const profilePageData: ProfilePageReferenceData = {
         { label: "Condition", value: "All original" },
         { label: "Budget", value: "$15k - $60k" },
       ],
-    },
-  ],
-  lookingForItems: [
-    {
-      id: "wish-1",
-      title: "1959 Gibson Les Paul Standard",
-      subtitle: "Sunburst, original PAFs",
-      imageLabel: "Burst",
-      imageUrl: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=800&h=600&fit=crop",
-      addedAt: "2024-01-12T00:00:00.000Z",
-    },
-    {
-      id: "wish-2",
-      title: "Dumble Overdrive Special",
-      subtitle: "Any year, working condition",
-      imageLabel: "Dumble",
-      imageUrl: "https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=800&h=600&fit=crop",
-      addedAt: "2024-01-10T00:00:00.000Z",
     },
   ],
   activity: [

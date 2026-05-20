@@ -11,7 +11,6 @@ import {
   FolderInput,
   FolderOpen,
   Globe,
-  Heart,
   Link2,
   Lock,
   MoreHorizontal,
@@ -49,8 +48,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Collection, CollectionVisibility } from "@/lib/types"
 import { type MyItem } from "@/lib/mock/my-stuff"
-import { isUserWishlist, useCollections } from "@/lib/collections-context"
-import { currentUser } from "@/lib/current-user"
+import { useCollections } from "@/lib/collections-context"
 import { ItemCard } from "@/components/item-card"
 import { ItemActionsMenu } from "@/components/my-stuff/owner-item-controls"
 
@@ -107,7 +105,6 @@ export function CollectionOwnerView({
   const visibility = collection.visibility ?? "private"
   const vis = visibilityConfig[visibility]
   const VisibilityIcon = vis.icon
-  const isWishlist = isUserWishlist(collection, currentUser.username)
 
   const totalValue = useMemo(
     () =>
@@ -254,14 +251,12 @@ export function CollectionOwnerView({
               <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                 Manage collection
               </DropdownMenuLabel>
-              {!isWishlist && (
-                <DropdownMenuItem asChild>
-                  <Link href={`/collection/${collection.id}/edit`}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                  </Link>
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem asChild>
+                <Link href={`/collection/${collection.id}/edit`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={handleShare}>
                 {copied ? (
                   <Check className="mr-2 h-4 w-4 text-primary" />
@@ -270,21 +265,17 @@ export function CollectionOwnerView({
                 )}
                 {copied ? "Link copied" : "Share"}
               </DropdownMenuItem>
-              {!isWishlist && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault()
-                      setDeleteOpen(true)
-                    }}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete collection
-                  </DropdownMenuItem>
-                </>
-              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setDeleteOpen(true)
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete collection
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -472,35 +463,3 @@ export function CollectionOwnerView({
   )
 }
 
-function GalleryTile({
-  src,
-  fallback,
-}: {
-  src: string | null
-  fallback: "heart" | "folder"
-}) {
-  if (src) {
-    return (
-      <div className="relative overflow-hidden bg-secondary">
-        <Image src={src} alt="" fill sizes="140px" className="object-cover" />
-      </div>
-    )
-  }
-  return (
-    <div className="flex items-center justify-center bg-secondary/60">
-      {fallback === "heart" ? (
-        <Heart className="h-6 w-6 text-pink-400/50" />
-      ) : (
-        <FolderOpen className="h-6 w-6 text-primary/50" />
-      )}
-    </div>
-  )
-}
-
-function TagPill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border border-border bg-secondary/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-      {children}
-    </span>
-  )
-}

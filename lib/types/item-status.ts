@@ -1,4 +1,4 @@
-// Types for the item status system (For Sale / For Trade / In Collection / Wishlist)
+// Types for the item status system (For Sale / For Trade / In Collection)
 
 import type { TradeInterestData } from "@/components/create-item/trade-interest-section"
 
@@ -46,12 +46,4 @@ export interface ItemCollectionStatus {
   receiptUrl: string | null
 }
 
-export interface WishlistItemData {
-  sourceUrl: string | null
-  isPublic: boolean
-  targetPrice: number | null
-  notes: string | null
-  priority: 0 | 1 | 2 // 0 = Low, 1 = Medium, 2 = High
-}
-
-export type ItemStatusType = "for-sale" | "for-trade" | "collection" | "wishlist"
+export type ItemStatusType = "for-sale" | "for-trade" | "collection"

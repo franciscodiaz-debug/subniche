@@ -32,54 +32,15 @@ import type { Collection, CollectionVisibility } from "@/lib/types"
 import {
   myItems as MOCK_ITEMS,
   myCollections as MOCK_COLLECTIONS,
-  wishlistIdFor,
   type MyItem,
 } from "@/lib/mock/my-stuff"
 import { currentUser } from "@/lib/current-user"
-
-/**
- * Each user has exactly one Wishlist collection, seeded by default. It can't
- * be renamed, edited, or deleted. Items created with status=wishlist land
- * here automatically.
- */
-export function isUserWishlist(
-  collection: Pick<Collection, "id" | "owner_id" | "is_wishlist">,
-  username: string,
-): boolean {
-  return (
-    collection.is_wishlist === true &&
-    collection.owner_id === username &&
-    collection.id === wishlistIdFor(username)
-  )
-}
-
-function seedWishlistIfMissing(
-  collections: Collection[],
-  username: string,
-): Collection[] {
-  const wid = wishlistIdFor(username)
-  if (collections.some((c) => c.id === wid)) return collections
-  const seeded: Collection = {
-    id: wid,
-    owner_id: username,
-    name: "Wishlist",
-    description: "Items you're hunting for.",
-    visibility: "private",
-    is_wishlist: true,
-    tags: [],
-    cover_image: null,
-    item_count: 0,
-    total_user_value: 0,
-    total_ai_value: 0,
-  }
-  return [seeded, ...collections]
-}
 
 /* -------------------------------------------------------------------------- */
 /* Storage key — bump the version suffix if the persisted shape changes so   */
 /* old clients don't try to deserialize an incompatible snapshot.            */
 /* -------------------------------------------------------------------------- */
-const STORAGE_KEY = "subniche.collections.v2"
+const STORAGE_KEY = "subniche.collections.v3"
 
 interface PersistedState {
   collections: Collection[]
@@ -96,7 +57,6 @@ export interface CreateCollectionInput {
   name: string
   description?: string | null
   visibility?: CollectionVisibility
-  is_wishlist?: boolean
   tags?: string[]
   cover_image?: string | null
 }
@@ -105,7 +65,6 @@ export interface UpdateCollectionInput {
   name?: string
   description?: string | null
   visibility?: CollectionVisibility
-  is_wishlist?: boolean
   tags?: string[]
   cover_image?: string | null
 }
@@ -173,10 +132,7 @@ function withRecomputedCounts(
 
 export function CollectionsProvider({ children }: { children: ReactNode }) {
   const [collections, setCollections] = useState<Collection[]>(() =>
-    withRecomputedCounts(
-      seedWishlistIfMissing(MOCK_COLLECTIONS, currentUser.username),
-      MOCK_ITEMS,
-    ),
+    withRecomputedCounts(MOCK_COLLECTIONS, MOCK_ITEMS),
   )
   const [items, setItems] = useState<MyItem[]>(MOCK_ITEMS)
   const [followedCollectionIds, setFollowedCollectionIds] = useState<string[]>([])
@@ -192,12 +148,7 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
       if (raw) {
         const parsed: PersistedState = JSON.parse(raw)
         if (Array.isArray(parsed.collections) && Array.isArray(parsed.items)) {
-          setCollections(
-            withRecomputedCounts(
-              seedWishlistIfMissing(parsed.collections, currentUser.username),
-              parsed.items,
-            ),
-          )
+          setCollections(withRecomputedCounts(parsed.collections, parsed.items))
           setItems(parsed.items)
         }
         if (Array.isArray(parsed.followedCollectionIds)) {
@@ -259,7 +210,6 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
         name: input.name.trim(),
         description: input.description?.trim() || null,
         visibility: input.visibility ?? "private",
-        is_wishlist: input.is_wishlist ?? false,
         tags: input.tags ?? [],
         cover_image: input.cover_image ?? null,
         item_count: 0,
@@ -277,9 +227,6 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
       setCollections((prev) =>
         prev.map((c) => {
           if (c.id !== id) return c
-          // The default Wishlist is immutable — silently ignore any attempt
-          // to mutate its identity (name, visibility, is_wishlist flag).
-          if (isUserWishlist(c, currentUser.username)) return c
           return {
             ...c,
             ...patch,
@@ -299,14 +246,7 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
   )
 
   const deleteCollection = useCallback((id: string) => {
-    setCollections((prev) => {
-      const target = prev.find((c) => c.id === id)
-      if (target && isUserWishlist(target, currentUser.username)) {
-        // Wishlist can't be deleted.
-        return prev
-      }
-      return prev.filter((c) => c.id !== id)
-    })
+    setCollections((prev) => prev.filter((c) => c.id !== id))
     // Items in the deleted collection become unassigned rather than vanishing
     // — the user keeps their items, they just need a new home.
     setItems((prev) =>

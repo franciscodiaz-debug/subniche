@@ -1,12 +1,5 @@
 import type { Collection } from "@/lib/types"
 
-/**
- * Each user has exactly one Wishlist collection, seeded by default. It can't
- * be renamed, edited, or deleted. The id is namespaced by username so the
- * collections-context can find or seed the right one per user.
- */
-export const wishlistIdFor = (username: string) => `wishlist-${username}`
-
 export interface MyItem {
   id: string
   title: string
@@ -27,7 +20,6 @@ export interface MyItem {
 export const myItemCollections: Array<{ id: string; name: string }> = [
   { id: "col-guitars", name: "My Guitars" },
   { id: "col-pedalboard", name: "Pedal Board" },
-  { id: "wishlist-jek116", name: "Wishlist" },
 ]
 
 export const myItems: MyItem[] = [
@@ -93,22 +85,6 @@ export const myItems: MyItem[] = [
     messages: 0,
     updated_at: "2w ago",
     collection_id: "col-guitars",
-    location: "Brooklyn, NY",
-  },
-  {
-    id: "mi-5",
-    title: "Mystery Pickup Set",
-    subtitle: "Unmarked humbuckers",
-    price: null,
-    images: ["https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=800&h=600&fit=crop"],
-    for_sale: false,
-    for_trade: false,
-    sold: false,
-    views: 0,
-    saves: 0,
-    messages: 0,
-    updated_at: "Draft",
-    collection_id: "wishlist-jek116",
     location: "Brooklyn, NY",
   },
   {
@@ -267,17 +243,6 @@ export const myCollections: Collection[] = [
     total_user_value: 8600,
     total_ai_value: 9200,
   },
-  {
-    id: "wishlist-jek116",
-    owner_id: "jek116",
-    name: "Wishlist",
-    description: "Items you're hunting for.",
-    visibility: "private",
-    is_wishlist: true,
-    item_count: 5,
-    total_user_value: 0,
-    total_ai_value: 0,
-  },
   /* -----------------------------------------------------------------------
    * Collections owned by other users — used to demo the visitor view when
    * a user navigates from another profile to a collection detail page.
@@ -290,7 +255,6 @@ export const myCollections: Collection[] = [
     name: "Vintage Guitars",
     description: "Pre-1970 American classics",
     visibility: "public",
-    is_wishlist: false,
     item_count: 8,
     total_user_value: 185000,
     total_ai_value: 192000,
@@ -301,7 +265,6 @@ export const myCollections: Collection[] = [
     name: "Tube Amplifiers",
     description: "Fender, Marshall, Vox",
     visibility: "public",
-    is_wishlist: false,
     item_count: 5,
     total_user_value: 24500,
     total_ai_value: 26000,
@@ -312,7 +275,6 @@ export const myCollections: Collection[] = [
     name: "Pedal Board",
     description: "Current touring setup",
     visibility: "unlisted",
-    is_wishlist: false,
     item_count: 12,
     total_user_value: 4800,
     total_ai_value: 5100,
@@ -333,11 +295,6 @@ export const collectionMeta: Record<
     subcategories: ["Drive", "Modulation"],
     followingCountLabel: "412 following",
   },
-  "wishlist-jek116": {
-    categories: ["Guitars"],
-    subcategories: ["Electric", "Amps"],
-    followingCountLabel: "86 following",
-  },
 }
 
 export const collectionPreviewImages: Record<string, string[]> = {
@@ -352,8 +309,5 @@ export const collectionPreviewImages: Record<string, string[]> = {
     "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=400&h=400&fit=crop",
     "https://images.unsplash.com/photo-1558098329-a11cff621064?w=400&h=400&fit=crop",
     "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=400&h=400&fit=crop",
-  ],
-  "wishlist-jek116": [
-    "https://images.unsplash.com/photo-1519508234439-4f23643125c1?w=400&h=400&fit=crop",
   ],
 }

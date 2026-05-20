@@ -281,17 +281,6 @@ export function FollowedItemsSection() {
 
 const myCollectionsData: Array<Collection & { previewImages: string[] }> = [
   {
-    id: 'mc1',
-    name: 'My Wishlist',
-    item_count: 8,
-    is_wishlist: true,
-    visibility: 'private',
-    previewImages: [
-      'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1550985616-10810253b84d?w=200&h=200&fit=crop',
-    ],
-  },
-  {
     id: 'mc2',
     name: 'Pedalboard 2025',
     item_count: 12,

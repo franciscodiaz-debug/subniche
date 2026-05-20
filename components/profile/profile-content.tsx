@@ -6,7 +6,6 @@ import {
   Activity,
   CalendarDays,
   Check,
-  ChevronDown,
   Clock,
   ExternalLink,
   FolderOpen,
@@ -28,6 +27,7 @@ import type {
   ProfileActivityReference,
   ProfileLinkedAccountReference,
   ProfileSummaryReference,
+  ProfileTradeInterestReference,
 } from "@/lib/profile-page-types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -36,7 +36,6 @@ import { ItemCard } from "@/components/item-card"
 import { ProfileEditView } from "./profile-edit-view"
 import { ProfileMobileSheet } from "./profile-mobile-sheet"
 import { ProfileNicheSwitcher } from "./profile-niche-switcher"
-import { TradeInterestRow } from "@/components/trade/trade-interest-row"
 
 type ProfileTab = "collections" | "for-sale" | "looking-for" | "activity"
 type ProfileViewMode = "own" | "other"
@@ -311,7 +310,6 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
                   name: collection.name,
                   description: collection.description,
                   visibility: collection.visibility,
-                  is_wishlist: collection.isWishlist,
                   item_count: collection.itemCount,
                   total_user_value: collection.totalValue,
                 }}
@@ -351,57 +349,19 @@ export function ProfileContent({ initialViewMode = "own" }: { initialViewMode?: 
       )}
 
       {activeTab === "looking-for" && (
-        <div>
-          <CollapsibleSection
-            label={`${profilePageData.tradeInterests.length} trade interests`}
-            defaultOpen
-          >
-            {profilePageData.tradeInterests.length === 0 ? (
-              <EmptyState
-                icon={<Repeat2 className="h-10 w-10 text-muted-foreground/50" />}
-                title="No trade interests yet"
-                body="Save a set of trade filters to show collectors what you're open to."
-              />
-            ) : (
-              <div className="divide-y divide-border/60">
-                {profilePageData.tradeInterests.map((interest) => (
-                  <TradeInterestRow
-                    key={interest.id}
-                    name={interest.name}
-                    description={interest.description}
-                    chips={interest.criteria}
-                  />
-                ))}
-              </div>
-            )}
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            label={`${profilePageData.lookingForItems.length} wishlist items`}
-            defaultOpen
-          >
-            {profilePageData.lookingForItems.length === 0 ? (
-              <EmptyState
-                icon={<Heart className="h-10 w-10 text-muted-foreground/50" />}
-                title="No wishlist items"
-                body="Add public wishlist items to show what this profile is looking for."
-              />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {profilePageData.lookingForItems.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    id={item.id}
-                    image={item.imageUrl}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    href={`/listings/${item.id}`}
-                  />
-                ))}
-              </div>
-            )}
-          </CollapsibleSection>
-        </div>
+        profilePageData.tradeInterests.length === 0 ? (
+          <EmptyState
+            icon={<Repeat2 className="h-10 w-10 text-muted-foreground/50" />}
+            title="No trade interests yet"
+            body="Trade interests describe the kinds of items this user is open to swapping for."
+          />
+        ) : (
+          <div className="space-y-3">
+            {profilePageData.tradeInterests.map((interest) => (
+              <TradeInterestRow key={interest.id} interest={interest} />
+            ))}
+          </div>
+        )
       )}
 
       {activeTab === "activity" && (
@@ -676,29 +636,6 @@ function EmptyState({ icon, title, body }: { icon: ReactNode; title: string; bod
   )
 }
 
-function CollapsibleSection({ label, defaultOpen = false, children }: { label: string; defaultOpen?: boolean; children: ReactNode }) {
-  const [open, setOpen] = useState(defaultOpen)
-  return (
-    <div className="mb-6 last:mb-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="mb-4 flex items-center"
-        aria-expanded={open}
-      >
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">
-          {label}
-          <ChevronDown
-            className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")}
-            aria-hidden
-          />
-        </span>
-      </button>
-      {open ? children : null}
-    </div>
-  )
-}
-
 // ── Content rows ──────────────────────────────────────────────────────────────
 
 const activityIconConfig: Record<
@@ -710,6 +647,34 @@ const activityIconConfig: Record<
   collection: { icon: FolderOpen, bg: "bg-blue-500/10", color: "text-blue-400" },
   offer:   { icon: Package,    bg: "bg-orange-500/10",  color: "text-orange-400" },
   follow:  { icon: Heart,      bg: "bg-rose-500/10",    color: "text-rose-400" },
+}
+
+function TradeInterestRow({ interest }: { interest: ProfileTradeInterestReference }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/40 p-4">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
+          <Repeat2 className="h-3.5 w-3.5 text-primary" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground">{interest.name}</p>
+          {interest.description ? (
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">{interest.description}</p>
+          ) : null}
+          {interest.criteria.length > 0 ? (
+            <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+              {interest.criteria.map((criterion) => (
+                <div key={`${interest.id}-${criterion.label}`} className="flex items-baseline gap-2 text-xs">
+                  <dt className="shrink-0 text-muted-foreground">{criterion.label}:</dt>
+                  <dd className="min-w-0 truncate text-foreground">{criterion.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function ActivityRow({ item }: { item: ProfileActivityReference }) {

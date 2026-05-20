@@ -18,11 +18,9 @@ import { cn } from "@/lib/utils"
 import { exploreItems, type ExploreItem } from "@/lib/explore-data"
 import { searchCollections, searchUsers } from "@/lib/search-data"
 import { ItemCard } from "@/components/item-card"
-import {
-  EmptyState,
-  ItemCardGridSkeleton,
-} from "@/components/loading/skeletons"
+import { ItemCardGridSkeleton } from "@/components/loading/skeletons"
 import { SimWrapper } from "@/components/loading/sim-wrapper"
+import { EmptyView } from "@/components/ui/empty"
 import { FolderOpen, Search as SearchIcon, Users as UsersIcon } from "lucide-react"
 import {
   DropdownMenu,
@@ -365,18 +363,18 @@ export function MarketContent() {
             <SimWrapper
               skeleton={<ItemCardGridSkeleton count={8} />}
               empty={
-                <EmptyState
-                  icon={<SearchIcon className="h-10 w-10" />}
+                <EmptyView
+                  icon={<SearchIcon className="h-6 w-6" />}
                   title="No items match your filters"
-                  body="Try removing a filter or switching the sort mode."
+                  description="Try removing a filter or switching the sort mode."
                 />
               }
             >
               {items.length === 0 ? (
-                <EmptyState
-                  icon={<SearchIcon className="h-10 w-10" />}
+                <EmptyView
+                  icon={<SearchIcon className="h-6 w-6" />}
                   title="No items match your filters"
-                  body="Try removing a filter or switching the sort mode."
+                  description="Try removing a filter or switching the sort mode."
                 />
               ) : (
                 <div className={gridDensityConfig[gridDensity].gridClass}>
@@ -413,10 +411,10 @@ export function MarketContent() {
 
           {queryFromUrl && searchTab === "collections" && (
             collectionResults.length === 0 ? (
-              <EmptyState
-                icon={<FolderOpen className="h-10 w-10" />}
+              <EmptyView
+                icon={<FolderOpen className="h-6 w-6" />}
                 title="No collections found"
-                body="Try a different search term."
+                description="Try a different search term."
               />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -443,10 +441,10 @@ export function MarketContent() {
 
           {queryFromUrl && searchTab === "users" && (
             userResults.length === 0 ? (
-              <EmptyState
-                icon={<UsersIcon className="h-10 w-10" />}
+              <EmptyView
+                icon={<UsersIcon className="h-6 w-6" />}
                 title="No users found"
-                body="Try a different search term."
+                description="Try a different search term."
               />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

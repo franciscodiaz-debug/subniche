@@ -1,13 +1,16 @@
 "use client"
 
 /**
- * Reusable skeleton + empty-state primitives.
+ * Reusable skeleton primitives.
  *
  * Skeletons here intentionally MATCH the shape of the real cards they
  * replace — same aspect ratios, same layout slots — so the transition
  * to real data doesn't visually jump.
  *
  * If a real card's layout changes, update the matching skeleton here.
+ *
+ * For empty states, use the shadcn `Empty` primitives from
+ * `components/ui/empty.tsx` — single source of truth.
  */
 
 import { cn } from "@/lib/utils"
@@ -132,31 +135,4 @@ export function RowListSkeleton({ count = 4 }: { count?: number }) {
   )
 }
 
-/* ─── EmptyState ────────────────────────────────────────────────────── */
-
-export function EmptyState({
-  icon,
-  title,
-  body,
-  action,
-}: {
-  icon?: React.ReactNode
-  title: string
-  body?: string
-  action?: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card/30 px-6 py-12 text-center">
-      {icon ? (
-        <div className="text-muted-foreground/60">{icon}</div>
-      ) : null}
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">{title}</p>
-        {body ? (
-          <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">{body}</p>
-        ) : null}
-      </div>
-      {action ? <div className="pt-1">{action}</div> : null}
-    </div>
-  )
-}
+/* Empty state: see `components/ui/empty.tsx` for the canonical primitives. */

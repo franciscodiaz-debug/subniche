@@ -94,6 +94,44 @@ function EmptyContent({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+/**
+ * Convenience wrapper around the Empty primitives for the common case
+ * of "icon + title + description + optional action". Use the primitives
+ * directly when you need custom slots (e.g. linked descriptions, custom
+ * media). This wrapper is just less boilerplate for the 90% case.
+ */
+function EmptyView({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}: {
+  icon?: React.ReactNode
+  title: string
+  description?: React.ReactNode
+  action?: React.ReactNode
+  className?: string
+}) {
+  return (
+    <Empty
+      className={cn(
+        'rounded-lg border border-dashed border-border bg-card/30 py-10',
+        className,
+      )}
+    >
+      <EmptyHeader>
+        {icon ? (
+          <EmptyMedia variant="icon">{icon}</EmptyMedia>
+        ) : null}
+        <EmptyTitle>{title}</EmptyTitle>
+        {description ? <EmptyDescription>{description}</EmptyDescription> : null}
+      </EmptyHeader>
+      {action ? <EmptyContent>{action}</EmptyContent> : null}
+    </Empty>
+  )
+}
+
 export {
   Empty,
   EmptyHeader,
@@ -101,4 +139,5 @@ export {
   EmptyDescription,
   EmptyContent,
   EmptyMedia,
+  EmptyView,
 }

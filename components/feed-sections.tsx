@@ -4,10 +4,10 @@ import { ItemCard } from '@/components/item-card'
 import { CollectionCard } from '@/components/collection-card'
 import {
   CollectionCardScrollerSkeleton,
-  EmptyState,
   ItemCardScrollerSkeleton,
 } from '@/components/loading/skeletons'
 import { SimWrapper } from '@/components/loading/sim-wrapper'
+import { EmptyView } from '@/components/ui/empty'
 import type { Collection } from '@/lib/types'
 
 /* ─── Trending Section ───────────────────────────────────────────────── */
@@ -74,10 +74,10 @@ export function TrendingSection() {
       <SimWrapper
         skeleton={<ItemCardScrollerSkeleton />}
         empty={
-          <EmptyState
-            icon={<TrendingUp className="h-10 w-10" />}
+          <EmptyView
+            icon={<TrendingUp className="h-6 w-6" />}
             title="Nothing trending right now"
-            body="Check back later — items pick up steam as people view, save, and trade them."
+            description="Check back later — items pick up steam as people view, save, and trade them."
           />
         }
       >
@@ -166,10 +166,10 @@ export function JustListedSection() {
       <SimWrapper
         skeleton={<ItemCardScrollerSkeleton />}
         empty={
-          <EmptyState
-            icon={<Zap className="h-10 w-10" />}
+          <EmptyView
+            icon={<Zap className="h-6 w-6" />}
             title="No new listings yet"
-            body="Fresh listings from your niches will land here as soon as they're posted."
+            description="Fresh listings from your niches will land here as soon as they're posted."
           />
         }
       >
@@ -366,10 +366,10 @@ export function CollectionsSection() {
       <SimWrapper
         skeleton={<CollectionCardScrollerSkeleton />}
         empty={
-          <EmptyState
-            icon={<Layers className="h-10 w-10" />}
+          <EmptyView
+            icon={<Layers className="h-6 w-6" />}
             title="No collections yet"
-            body="Group your items into collections to organize them and share them publicly."
+            description="Group your items into collections to organize them and share them publicly."
           />
         }
       >
